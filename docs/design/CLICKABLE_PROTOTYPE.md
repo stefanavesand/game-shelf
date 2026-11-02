@@ -60,4 +60,4 @@ Existing historical full-game tests in this repository describe the old pilot. P
 
 Local verification on 2026-11-02: syntax checks passed; **12 Playwright/Chromium tests passed** in 27.8 seconds, including all four viewport cases. Relative documentation links and dependency lock were validated. The final screenshots were inspected for tablet/phone layout and saved as [iPad](prototype-ipad.png) and [phone](prototype-phone.png). These are rendered prototype screenshots, separate from the generated concept images.
 
-GitHub Pages deployment is pending; no live URL verification is claimed yet.
+Source commit `0c1dedc` was pushed to main. GitHub Pages activation is **blocked by integration permissions**: REST POST /repos/stefanavesand/game-shelf/pages returned HTTP 403, Resource not accessible by integration. The owner must enable Pages once in repository Settings → Pages, Deploy from a branch → main → / (root) → Save. Then verify the public prototype HTML/CSS/JS against the committed files before claiming deployment. No live URL verification is claimed yet. The runtime remains original static prototype code; no production game was migrated.
