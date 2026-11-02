@@ -1,6 +1,6 @@
 # MVP UI design brief and review plan
 
-Version 0.3 · 2026-11-02. This is a **design brief and screen/state inventory**, not an approved visual design or a completed prototype. Scope: [private MVP requirements](MVP_REQUIREMENTS.md), two humans plus one bot on iPad, with future phone support designed in from the start. The product baseline is agreed. A — Calm Table is the selected visual direction; detailed design and prototype review remain pending. Do not implement a large UI rewrite before requirements and the resulting design are agreed.
+Version 0.3 · 2026-11-02. This is a **design brief and screen/state inventory**, not an approved final visual design. An initial clickable prototype is now available for review, not for real play. Scope: [private MVP requirements](MVP_REQUIREMENTS.md), two humans plus one bot on iPad, with future phone support designed in from the start. The product baseline is agreed. A — Calm Table is the selected visual direction; detailed design and prototype review remain pending. Do not implement a large UI rewrite before requirements and the resulting design are agreed.
 
 ## Design goals
 
@@ -34,7 +34,11 @@ Proposed interaction: choose an action, preview a legal location/quantity, then 
 
 Connection state and game state are orthogonal. A disabled action must have a visible reason. Distinguish a locally selected preview from a server-acknowledged piece. Show offline readiness as app availability while making internet-game pause clear. Permanent failures need next steps, rather than an endless spinner or an ineffective Reconnect button.
 
-## Required deliverables before UI implementation
+## Initial clickable prototype
+
+See [CLICKABLE_PROTOTYPE.md](design/CLICKABLE_PROTOTYPE.md) for the runnable Calm Table review artifact, responsive component/state draft, scenario list and verification limits. Its fixture controller contains no imported rule engine or actual multiplayer. Physical-device walkthrough and final design acceptance remain pending.
+
+## Required deliverables before production UI implementation
 
 First review artifacts: [visual concepts and annotated low-fi journey](design/UI_CONCEPTS.md). Two iPad/phone directions are available. The user selected A — Calm Table on 2026-11-02; this does not imply final design/prototype approval.
 
@@ -42,7 +46,7 @@ First review artifacts: [visual concepts and annotated low-fi journey](design/UI
 - [x] D-02: Two board/hand/action visual directions with compact-phone adaptations produced. Product owner selected A — Calm Table; these are generated concept images, not implemented screens.
 - [ ] D-03: Hi-fi iPad portrait/landscape and compact phone designs for lobby, setup, active game, trade and results, plus recovery states. Use realistic resource/card quantities and long player names.
 - [ ] D-04: Component/state specification: terrain/pieces, player labels, hand/card UI, action/confirmation controls, legal targets, sheets, alerts, focus, spacing, typography, contrast and motion/reduced motion.
-- [ ] D-05: Clickable prototype covering create/invite/join, both setup rounds, ordinary turn/build, a trade, discard/robber, development card, disconnect/reconnect and victory. Include asynchronous waiting and failure, not only the happy path.
+- [ ] D-05: Initial clickable prototype delivered in prototype/; complete review and remaining state variants. Target coverage: create/invite/join, both setup rounds, ordinary turn/build, a trade, discard/robber, development card, disconnect/reconnect and victory. Include asynchronous waiting and failure, not only the happy path.
 - [ ] D-06: Walk through the prototype on iPad with the user and a second participant. Record whether each can understand who acts, what is legal, what is secret and what is committed. Fix blocking confusion before design agreement.
 - [ ] D-07: Record agreed design version, prototype location, resolved choices, accessible behavior and implementation acceptance checklist. Unresolved states remain visible tasks.
 

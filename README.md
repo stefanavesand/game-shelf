@@ -4,9 +4,11 @@ An independent board-game collection, starting with a private Catan-style intern
 
 ## Current status
 
-This public, independent repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. The owner created the remote and explicitly chose public visibility on 2026-11-02. Public source visibility does not change the private, invitation-based MVP audience. It is not a fork. Application code, rule engine, managed backend and deployment automation have **not yet been migrated**. There is no runnable app or build command in this initial commit.
+This public, independent repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. The owner created the remote and explicitly chose public visibility on 2026-11-02. Public source visibility does not change the private, invitation-based MVP audience. It is not a fork. Application code, rule engine, managed backend and deployment automation have **not yet been migrated**. A separate, original clickable design prototype is now runnable; it is not the migrated game or an MVP release.
 
-Selected visual direction: **A — Calm Table**. Detailed design and a clickable prototype remain to be completed.
+Selected visual direction: **A — Calm Table**. The first clickable prototype is available for review; physical-device walkthrough and final design agreement remain pending.
+
+Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-shelf/prototype/`. Run `npm run prototype:check` and `npm run prototype:test` for its isolated checks (install Chromium with `npx playwright install chromium` if needed). See the [prototype guide](docs/design/CLICKABLE_PROTOTYPE.md) for scenarios and verification limits.
 
 - [MVP requirements](docs/MVP_REQUIREMENTS.md)
 - [UI design brief](docs/MVP_UI_DESIGN.md)

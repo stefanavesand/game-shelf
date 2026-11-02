@@ -1,0 +1,12 @@
+{
+  "name": "game-shelf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prototype:dev": "node scripts/serve-prototype.mjs",
+    "prototype:check": "node --check prototype/app.js && node --check prototype/board.js && node --check scripts/serve-prototype.mjs",
+    "prototype:test": "playwright test"
+  },
+  "devDependencies": { "@playwright/test": "1.64.1" }
+}

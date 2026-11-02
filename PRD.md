@@ -152,3 +152,7 @@ Established direction: PWA first, TypeScript reuse, replaceable layers, managed 
 - Base-game rule reference/variants, distribution rights and final product naming. The current English display name is Game Shelf.
 
 [HLD](docs/HLD.md) and later decisions must reference requirement IDs; update product requirements here first. Historical review reports retain their dates and scope.
+
+## Design prototype note — 2026-11-02
+
+An original standalone Calm Table UI prototype is available in [the prototype guide](docs/design/CLICKABLE_PROTOTYPE.md). It illustrates responsive layouts and scripted interaction/recovery states only. This adds no real multiplayer, rule execution, offline installation or production data migration. Existing engine/backend/device release gates remain open, and final design agreement follows the owner/friend walkthrough.

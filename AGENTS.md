@@ -10,7 +10,7 @@ Read PRD.md and docs/MVP_REQUIREMENTS.md. The private MVP is two humans plus one
 
 ## Migration and compatibility
 
-Read SOURCE_PROVENANCE.md and docs/MIGRATION_MVP_TODO.md. This repository begins with planning/design artifacts only. Do not claim that historical prototype tests ran here. Preserve upstream attribution, the verified bot MIT notice and an auditable origin for moved code. Resolve applicable rights before importing runtime code or assets. Do not copy the entire legacy application as a shortcut.
+Read SOURCE_PROVENANCE.md and docs/MIGRATION_MVP_TODO.md. The initial bootstrap contained planning/design artifacts only. It now also contains an original standalone UI prototype in prototype/, with isolated Playwright tests. Its scripted fixtures are not a second authoritative engine or proof of actual multiplayer. Do not claim that historical prototype tests ran here. Preserve upstream attribution, the verified bot MIT notice and an auditable origin for moved code. Resolve applicable rights before importing runtime code or assets. Do not copy the entire legacy application as a shortcut.
 
 Keep rules, authorized private views, sessions, transports, storage and UI separate. Do not let viewport or provider APIs enter the rule engine. Preserve installed app identity, original serving path, persisted player IDs, saves, pending command IDs and active room links during migration. Publishing or moving hosting is a distinct deployment step.
 

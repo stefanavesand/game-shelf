@@ -85,5 +85,6 @@ Acceptance and accessibility must be tested with actual layouts and people. This
 
 - D-01: initial annotated low-fi journey drafted here; ready for review, not approved.
 - D-02: two visual options produced; A — Calm Table selected by the product owner.
-- D-03–07: portrait/detail/failure-state hi-fi designs, component specification, clickable prototype, iPad walkthrough and final design agreement remain open.
+- D-03–05: first responsive implemented design, component/state draft and clickable scenarios are now available in [CLICKABLE_PROTOTYPE.md](CLICKABLE_PROTOTYPE.md). Further state coverage/refinement remains open.
+- D-06/07: iPad walkthrough and final design agreement remain open.
 - No new paid backend build, app release, repository migration or framework choice was made by this design exploration.
