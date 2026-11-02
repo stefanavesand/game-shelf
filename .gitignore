@@ -1,0 +1,12 @@
+node_modules/
+dist/
+pwa-dist/
+coverage/
+test-results/
+playwright-report/
+playwright-pwa-report/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
