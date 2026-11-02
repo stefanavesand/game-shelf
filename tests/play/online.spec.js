@@ -91,3 +91,53 @@ test('a lost solo creation reply retries the same mode and UUID rather than crea
     const pending=(await state(page)).pending;expect(pending.body.mode).toBe('solo');await page.reload();await expect.poll(()=>backend.creates.length,{timeout:15000}).toBeGreaterThanOrEqual(2);await ready(page);expect(backend.creates[1]).toEqual(backend.creates[0]);expect((await state(page)).pending).toBeNull();await expect(page.locator('.players .bot-tag')).toHaveCount(2);
   }finally{await context.close();}
 });
+
+test('unchanged automatic polls preserve board nodes, preview, focus and expanded history',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext();
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.clock.install();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();
+    await page.locator('.public-log summary').click();await page.getByRole('button',{name:'Confirm',exact:true}).focus();
+    await page.evaluate(()=>{window.oldBoard=document.querySelector('#board');window.oldTile=oldBoard.firstChild;window.oldFocus=document.activeElement;window.changes=0;window.watch=new MutationObserver(records=>window.changes+=records.length);watch.observe(document.querySelector('#app'),{subtree:true,childList:true,attributes:true,characterData:true});});
+    let reads=0;await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().op==='view')reads++;await route.fallback();});
+    for(let i=0;i<3;i++){await page.clock.runFor(5000);await expect.poll(()=>reads).toBe(i+1);await ready(page);}
+    expect(await page.evaluate(()=>({board:oldBoard===document.querySelector('#board'),tile:oldTile===oldBoard.firstChild,focus:oldFocus===document.activeElement,history:document.querySelector('.public-log').open,changes}))).toEqual({board:true,tile:true,focus:true,history:true,changes:0});
+    await expect(page.getByRole('button',{name:'Location 1',exact:true})).toHaveAttribute('aria-pressed','true');expect(backend.commands).toHaveLength(0);
+  }finally{await context.close();}
+});
+test('a command clicked during a slow poll is sent once after the read, with a real board update',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext();let release;
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();const before=backend.current.p1.view.state.board.roads.length;
+    let held=false;const gate=new Promise(resolve=>release=resolve);await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(!held&&route.request().method()==='POST'&&route.request().postDataJSON().op==='view'){held=true;await gate;}await route.fallback();});
+    await page.locator('#refresh').click();await expect.poll(()=>held).toBe(true);await ready(page);await expect(page.getByRole('button',{name:'Confirm',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Confirm',exact:true}).click();expect(backend.commands).toHaveLength(0);release();
+    await expect.poll(()=>backend.accepted).toBe(1);await ready(page);expect(backend.commands).toHaveLength(1);expect(backend.current.p1.view.state.board.roads).toHaveLength(before+1);await expect(page.getByRole('button',{name:'Build',exact:true})).toBeVisible();
+  }finally{release?.();await context.close();}
+});
+test('a failed background poll shows recovery and disables game actions',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext();
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
+    await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().op==='view'){await route.abort('failed');return;}await route.fallback();});await page.locator('#refresh').click();
+    await expect(page.getByText('The connection was interrupted. Reconnect to check your original move.')).toBeVisible();await expect(page.getByRole('button',{name:'Build',exact:true})).toBeDisabled();expect(backend.commands).toHaveLength(0);
+  }finally{await context.close();}
+});
+test('a new board revision is painted even when the surrounding panel markup is unchanged',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext();
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.evaluate(()=>{window.oldBoard=document.querySelector('#board');window.oldTile=oldBoard.firstChild;});const lines=await page.locator('#board > line').count();
+    // Synthetic wire update isolates the renderer's board invalidation from panel text.
+    for(const seat of ['p1','p2']){const p=backend.current[seat];p.revision++;p.view.revision=p.revision;p.view.state.board.roads.push({id:'remote-road',type:'road',playerId:'p2',edge:backend.current.p1.view.choices.find(c=>c.type==='BUILD_ROAD').edge});}
+    await page.locator('#refresh').click();await expect(page.locator('#board > line')).toHaveCount(lines+2);expect(await page.evaluate(()=>oldBoard===document.querySelector('#board')&&oldTile!==oldBoard.firstChild)).toBe(true);expect(backend.commands).toHaveLength(0);
+  }finally{await context.close();}
+});
+test('a queued placement keeps its original revision and is rejected safely if a poll reveals a newer turn',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext();let release;
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();const revision=backend.current.p1.revision,edge=structuredClone(backend.current.p1.view.choices.find(c=>c.type==='BUILD_ROAD').edge);
+    let held=false;const gate=new Promise(resolve=>release=resolve);await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(!held&&route.request().method()==='POST'&&route.request().postDataJSON().op==='view'){held=true;await gate;}await route.fallback();});await page.locator('#refresh').click();await expect.poll(()=>held).toBe(true);await page.getByRole('button',{name:'Confirm',exact:true}).click();
+    for(const seat of ['p1','p2']){const p=backend.current[seat];p.revision++;p.view.revision=p.revision;p.view.state.game.phase='roll';p.view.choices=seat==='p1'?[{type:'ROLL_DICE'}]:[];}release();
+    await expect(page.getByRole('button',{name:'Roll dice',exact:true})).toBeVisible();await ready(page);expect(backend.accepted).toBe(0);expect(backend.commands).toHaveLength(1);expect(backend.commands[0]).toMatchObject({expectedRevision:revision,action:{type:'BUILD_ROAD',edge}});expect((await state(page)).pending).toBeNull();
+  }finally{release?.();await context.close();}
+});

@@ -8,6 +8,7 @@ const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll
 const button=(label,action,classes='',disabled=false)=>`<button type="button" data-action="${action}" class="${classes}" ${disabled?'disabled':''}>${label}</button>`;
 const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
+let activeSync=null,renderedHTML=null,renderedBoard=null;
 let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={name:'',room:null,level:'standard',gameMode:'friends'};
 function announce(s){$('announcement').textContent=s;}
 const view=()=>packet?.view;
@@ -73,17 +74,22 @@ function drawTable(){
 function render(){
   const focused=document.activeElement?.id;
   document.body.classList.toggle('table-screen',screen==='table'&&!!view());
-  $('room').hidden=!packet;$('refresh').disabled=busy||!navigator.onLine||(saved?.retryAt||0)>Date.now();$('connection').textContent=!navigator.onLine?'Offline':busy?'Checking table…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
+  if($('room').hidden!==!packet)$('room').hidden=!packet;
+  const refreshDisabled=busy||!navigator.onLine||(saved?.retryAt||0)>Date.now(),connection=!navigator.onLine?'Offline':busy?'Checking table…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
+  if($('refresh').disabled!==refreshDisabled)$('refresh').disabled=refreshDisabled;
+  if($('connection').textContent!==connection)$('connection').textContent=connection;
   let html='';
   if(screen==='home')html=`${recovery()}<section class="entry"><div class="entry-copy"><p class="eyebrow">Calm Table · A private internet game</p><h1>A little island.<br>A good evening.</h1><p class="muted">Play solo with two bots, or invite a friend.<br>Settle in. There’s no rush.</p><div class="entry-actions">${saved?.roomId?button('Resume your table','resume','primary',busy):button('Create a room','create','primary',blocked())}${saved?.roomId?button('Create another room','create','',blocked()):''}${button('Play solo','solo','',blocked())}${button('Join a friend','join','',blocked())}</div><p class="safe-hint">This early playtest creates real, saved internet games. Keep the same browser or installation to retain your seat.</p></div><div class="entry-art"><div class="entry-motif"><div class="island" aria-hidden="true">⬡</div><h2>Make room for an evening.</h2><p>Your own table, or a shared evening.<br>The rest is up to you.</p></div></div></section>`;
   else if(['create','join'].includes(screen))html=`${recovery()}<section class="form-card">${button('← Back','home','back-link')}<p class="eyebrow">A place at the table</p><h1>${screen==='create'?'Make an evening of it.':'Join your friend.'}</h1><p class="muted">${screen==='create'?(formDraft.gameMode==='solo'?'Play against two bots. Your game starts right away.':'Invite one friend. A bot takes the third seat.'):'The first invited friend takes the open seat.'}</p><form id="entry-form"><div class="form-fields"><label for="player-name">Your name</label><input id="player-name" maxlength="30" autocomplete="nickname" placeholder="Your name" value="${esc(formDraft.name)}" required>${screen==='create'?`<label for="game-mode">Players</label><select id="game-mode"><option value="friends" ${formDraft.gameMode==='friends'?'selected':''}>You + a friend + one bot</option><option value="solo" ${formDraft.gameMode==='solo'?'selected':''}>Solo · you + two bots</option></select><label for="bot-level">Bot level</label><select id="bot-level"><option value="standard" ${formDraft.level==='standard'?'selected':''}>Standard · resource priorities</option><option value="easy" ${formDraft.level==='easy'?'selected':''}>Easy · more varied choices</option></select>`:`<label for="room-id">Room ID</label><input id="room-id" value="${esc(formDraft.room??invitedRoom()??'')}" required autocomplete="off">`}</div><button class="primary" type="submit" ${blocked()?'disabled':''}>${screen==='create'?(formDraft.gameMode==='solo'?'Start solo game':'Create room'):'Join the table'}</button></form><p class="safe-hint">No account form is needed. Clearing browser data loses access to your saved player identity.</p></section>`;
   else if(packet?.status==='waiting')html=`${recovery()}<section class="form-card"><p class="eyebrow">Your table is ready</p><h1>One seat for a friend.</h1><p class="muted">Share the invitation. Your friend joins from their own browser or installed app.</p><div class="lobby-seats">${packet.members.map(m=>`<div class="lobby-seat"><span class="avatar ${m.kind==='bot'?'bot':''}">${m.kind==='bot'?'B':'Y'}</span><div><strong>${esc(m.name)}${m.kind==='bot'?` · Bot (${m.level})`:' · You'}</strong><p class="muted">Ready to play</p></div></div>`).join('')}<div class="lobby-seat"><span class="avatar alex">?</span><div><strong>Your friend</strong><p class="muted">Waiting for the invitation</p></div></div></div><div class="lobby-buttons">${button('Share invitation','share','primary',busy)}${button('Check the table','refresh','quiet',busy)}</div><p class="lobby-status">The board opens when your friend joins. You keep your own separate seats.</p></section>`;
   else if(view())html=drawTable();else html=`${recovery()}<section class="empty-state"><h1>Checking your table.</h1><p class="muted">Your saved room and player identity are being restored.</p>${button('Return to start','home','quiet',busy)}</section>`;
   if(notice)html=`<div class="notice-bar ${error?'error':''}" role="status">${esc(notice)}</div>`+html;
-  $('app').innerHTML=html;
-  if($('board'))draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}},{zoom,pan});
-  for(const[action,label]of Object.entries({'zoom-in':'Zoom in on board','zoom-out':'Zoom out on board','zoom-reset':'Reset board view','pan-left':'Move board view left','pan-right':'Move board view right','pan-up':'Move board view up','pan-down':'Move board view down'}))document.querySelector(`[data-action="${action}"]`)?.setAttribute('aria-label',label);
-  if(focused&&$(focused))$(focused).focus({preventScroll:true});
+  const replaced=html!==renderedHTML;
+  if(replaced){$('app').innerHTML=html;renderedHTML=html;renderedBoard=null;}
+  const boardKey=$('board')?JSON.stringify([view().state.board,view().state.players.players.map(p=>[p.id,p.color]),view().you,spatial,selection,blocked(),zoom,pan]):null;
+  if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}},{zoom,pan});renderedBoard=boardKey;}
+  if(replaced)for(const[action,label]of Object.entries({'zoom-in':'Zoom in on board','zoom-out':'Zoom out on board','zoom-reset':'Reset board view','pan-left':'Move board view left','pan-right':'Move board view right','pan-up':'Move board view up','pan-down':'Move board view down'}))document.querySelector(`[data-action="${action}"]`)?.setAttribute('aria-label',label);
+  if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
 }
 function apply(next){
   if(!next)return;
@@ -97,10 +103,21 @@ function apply(next){
   if(bot&&next.view.state.game.phase!=='discard'&&!next.view.offer){if(botRevision!==next.revision){botSince=Date.now();botRevision=next.revision;}if(Date.now()-botSince>20000)notice='The bot is taking longer than usual. Check the table to retry its next decision.';}else botSince=0;
 }
 function schedule(){clearTimeout(timer);if(['create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||!navigator.onLine||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
-async function sync(op,args={},options={}){
-  if(busy)return;clearTimeout(timer);
+function sync(op,args={},options={}){
+  if(activeSync){
+    if(!op)return activeSync;
+    // Keep the exact selected command while a read finishes; never drop a click.
+    busy=true;ready=false;render();
+    return activeSync.then(()=>{if(error||!navigator.onLine)return;return sync(op,args,options);});
+  }
+  activeSync=runSync(op,args,options).finally(()=>{activeSync=null;});
+  return activeSync;
+}
+async function runSync(op,args={},options={}){
+  clearTimeout(timer);
   if(!navigator.onLine){ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your saved data is still here.',{retryable:true});render();return;}
-  busy=true;ready=false;error=null;render();
+  const background=!op&&ready&&!error&&!saved?.pending&&!!packet;
+  if(!background){busy=true;ready=false;error=null;render();}
   try{
     if(op){const result=await client.execute(op,args,options);apply(result);if(result?.ok)screen='table';}
     const recoveringEntry=['create','join'].includes(saved?.pending?.body.op);

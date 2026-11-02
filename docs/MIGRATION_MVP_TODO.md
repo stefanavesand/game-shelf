@@ -65,3 +65,5 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 ## Optional solo internet addition (owner request, 2026-11-02)
 
 - [x] SOLO-01 — M-17: expose Solo with Easy/Standard, atomically create one-human/two-bot rooms, schedule both bot seats fairly, reject guests, preserve friend/legacy receipt compatibility, verify full managed game and resume. Track execution and delivery in [solo integration](SOLO_INTEGRATION.md). Full live solo game passed (111 human commands, 6.5 minutes), with Easy start and legacy friend flow checked. Public delivery is tracked in the integration report. Physical iPad acceptance remains separate from automated execution.
+
+- [x] UI-05 — Stop unchanged background refreshes from rebuilding the Calm Table UI. Preserve preview/focus/history and SVG nodes; serialize a command with an in-flight read without changing its original revision; retain real updates and failure blocking. Verified by 12 core tests, 26 browser suite passes plus two new focused race/render passes. See [integration evidence](ONLINE_INTEGRATION.md). Physical iPad confirmation remains QA-02.
