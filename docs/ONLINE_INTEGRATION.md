@@ -51,4 +51,4 @@ Still open: physical iPad/friend/full-game acceptance and phone certification, p
 
 ## Publication
 
-The full live game passed. Static publication and public-file verification are the remaining delivery step for this report. Do not treat this browser playtest as an MVP release approval.
+Published browser playtest: https://stefanavesand.github.io/game-shelf/play/. Source revision `748e24dd173b1a71b59b02ec0e3146a92c3e3d4b` was verified on 2026-11-02: all 17 public HTML/CSS/JS assets across the root, real client, shared UI and prototype returned HTTP 200 and matched local SHA-256 hashes. The managed API accepted the published origin in its OPTIONS preflight. A Chromium smoke check opened the public client, initialized IndexedDB and reached both create/join forms without browser errors; it created no account or room. The complete managed-game test above was executed separately against the same client source. Do not treat this browser playtest as an MVP release approval.
