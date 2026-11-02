@@ -1,158 +1,63 @@
-# Game Shelf / OpenCatan — Product Requirements Document
+# Migration and private MVP release todo
 
-Version 3.4 · 2026-11-02 · Roadmap baseline with a confirmed narrow private-MVP scope; product decisions agreed, mobile-ready design required, operational acceptance and visual design still under review.
+2026-11-02. Scope agreed: **two humans plus one bot, private internet play, iPad PWA**. This list plans work; it does not authorize declaring unreviewed requirements/design complete. An independent public repository, `stefanavesand/game-shelf`, was bootstrapped on 2026-11-02 at the user's request. The owner created the remote and explicitly chose public visibility; the MVP audience remains private. It now includes planning/design artifacts and an isolated original UI prototype; production game migration and hosting cutover remain pending. See ../SOURCE_PROVENANCE.md.
 
-This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
+Read [inventory](MIGRATION_INVENTORY.md), [requirements draft](MVP_REQUIREMENTS.md) and [UI design brief](MVP_UI_DESIGN.md). Existing wider PRD/bot stages remain roadmap items. `bd` is unavailable in this environment, so these stable IDs are the local issue ledger; transfer them into the chosen tracker later without losing acceptance criteria.
 
-## 1. Goals and audience
+## 0. Establish and agree the release contract
 
-Build a board-game collection for friends on tablets, phones and computers. OpenCatan is the first substantial game. Tic-tac-toe is a small reference game for verifying installation, sessions and transports before adding complexity.
+- [x] PLAN-01 — Inventory actual PWA runtime, upstream provenance, type-only coupling, hosting/storage compatibility and existing evidence. Deliverable: MIGRATION_INVENTORY.md and machine-readable module report. No app behavior changed.
+- [x] PLAN-02 — Confirm narrow MVP audience/scope with product owner: private iPad PWA, two humans and one bot online. Confirmed 2026-11-02.
+- [x] PLAN-03 — Draft acceptance requirements, decision register, UI screen/state brief and this ordered backlog. Drafting does not mean agreement.
+- [ ] **P0 / REQ-01 — Complete release requirements v1 (product baseline agreed).** Depends on PLAN-02/03. The user agreed both iPad orientations, base rules/ten VP/fixed board/no timer, first invited guest, anonymous identity/no storage-loss recovery, Easy/Standard, separate experiments and save/reconnect. Include responsive phone design now with full mobile certification later. Remaining: exact device/OS matrix, rule reference, expiry/retention, budget/owner and naming. Record accepted M-01–16 or edits; update PRD first, then affected HLD/ADRs. Owner: product owner with technical input. Done when the reviewable contract has an accepted version and no hidden scope assumptions.
+- [ ] **P0 / LEG-01 — Resolve reused-code/asset rights.** Can start alongside requirements. Trace all upstream-derived runtime/type fragments and bot attribution; obtain sufficient license evidence/permission or specify independent replacements and review obligations. Decide distribution license and product naming. Preserve provenance/history. Done when every shipped component has an evidenced right/notice; a new repo alone does not close it. Blocks MVP distribution, not inventory/design work.
 
-Start with an installable PWA, with iPad as the first verified device. Internet play must use managed hosting without requiring us to administer a server. Later, the same product should be packaged for iOS/Android with Capacitor and support LAN and cross-platform Bluetooth. Reuse web technology/TypeScript where appropriate; Rust/Wasm is not required.
+## 1. Design before production UI implementation
 
-Local games must work without internet or an authentication server. Internet games may require internet access. Downloading the app does not mean an internet game can continue without its authority.
+UX-01 first artifacts are available in [design/UI_CONCEPTS.md](design/UI_CONCEPTS.md): annotated low-fi journey and two iPad/phone visual directions. The user selected A — Calm Table on 2026-11-02. Initial concept work is complete; detailed design/prototype review remains pending.
 
-The app and all maintained repository content must be in English. Conversation with the user may be in Swedish. Language changes must preserve installation identity, saved games, player identities and compatibility with existing links.
+- [x] **P0 / UX-01 — Initial low-fi journey and original visual options.** Depends on the agreed product portion of REQ-01; remaining operational decisions do not block concept work. Complete D-01/02 in MVP_UI_DESIGN.md: screen flows, legal-selection/commit model, board-first tablet layouts with compact-phone adaptations, two visual directions. Product owner selects direction; no production UI rewrite yet.
+- [ ] **P0 / UX-02 — Hi-fi design and clickable prototype (first review artifact delivered).** Depends on UX-01. The original responsive prototype and component/state draft are available in [design/CLICKABLE_PROTOTYPE.md](design/CLICKABLE_PROTOTYPE.md); Twelve isolated Playwright tests passed; prototype fixtures are separate from production gameplay evidence. Source is pushed and the owner enabled GitHub Pages. The [public review prototype](https://stefanavesand.github.io/game-shelf/prototype/) is verified with five matching asset hashes; the previous activation blocker is resolved. Complete/refine D-03–05: both iPad orientations and compact phone frames, realistic hands/trades, all turn phases, off-turn actions, pending/outcome-unknown, offline/429/auth/expiry/bot-failure states; accessible component specifications. Done when every required state has a design and navigable prototype path.
+- [x] **P0 / UX-03 — Owner prototype approval / implementation gate.** Owner reported the prototype working, approved the layout and authorized real integration on 2026-11-02. Exact device/OS, second-person, accessibility and release playtest evidence remain QA-02, not inferred from that approval. Original broader walkthrough scope: Depends on UX-02. Complete D-06/07 with user and second participant. Resolve blocking usability problems; record accepted design/prototype version and implementation checklist. This is the UI implementation gate. Technical isolation can proceed independently once its scope/rights are understood.
 
-## 2. Stages and scope
+## 2. Extract a small independent codebase
 
-Private MVP scope confirmed by the user on 2026-11-02: **two humans plus one bot, internet play, iPad PWA, private invitations**. The broader E2/B1–B3 capabilities below remain roadmap stages; not all are mandatory for this first MVP. [MVP requirements](docs/MVP_REQUIREMENTS.md) propose the detailed acceptance contract and open decisions; [UI design brief](docs/MVP_UI_DESIGN.md) defines the design work still required. The user also agreed the detailed product baseline on 2026-11-02: both iPad orientations, fixed beginner board/ten VP/no timer, first invited guest admission, persistent anonymous identity with no storage-loss recovery, Easy/Standard at creation, Catan/resume primary with experiments separate, and save/reconnect after every accepted action. Design responsive phone layouts now for later mobile support; phone certification and native packaging remain later gates. Operational choices remain open. The user selected A — Calm Table as the visual direction on 2026-11-02; detailed design and clickable-prototype agreement remain pending. [Inventory](docs/MIGRATION_INVENTORY.md) and [migration/release todo](docs/MIGRATION_MVP_TODO.md) describe the independent-repository transition; no live migration has occurred.
+- [x] **MIG-00 — Bootstrap independent repository.** Owner created public `stefanavesand/game-shelf`; bootstrap main contains product/design/migration documents and source provenance. Visibility was explicitly confirmed as public. The remote was verified empty and not a fork before first push. No engine/UI/backend code moved; no app deployment changed. This does not complete MIG-01–05.
 
-| Stage | Deliverable and gate |
-|---|---|
-| E0 — reference game | Installable PWA, locally saved tic-tac-toe and internet play. The baseline exists; remaining failure paths and measurements must be verified under §8. |
-| E1 — shared session foundation | Independent rule engine, versioned session protocol, durable storage, private views, defined states/errors and a selected managed execution environment. Verify with tic-tac-toe first. |
-| E2 — OpenCatan base game | 3–4 human/bot players, touch UI, complete scoped base game, saving and reconnection. Includes player trading; verify complete natural games. Distribution of bundled assets requires rights review. |
-| E3 — native and local transports | Capacitor iOS/Android; verify LAN/TCP, then Bluetooth separately. Document host trust and recovery. |
-| Later | Expansions, 5–6 players, direct P2P/WebRTC, account linking, spectators, advanced AI and automatic host migration need separate prioritization. Friends follow account linking and identity recovery; invitations remain room links for now. Basic bots are now in scope under the staged plan below; advanced learned/LLM opponents remain later work. |
+- [ ] **P0 / MIG-01 — Select repository and compatibility deployment strategy.** Depends on REQ-01; informed by LEG-01. Choose repository name/history strategy and ownership, engine/UI/server package boundaries, hosting adapter, secret handling and rollback. Keep the installed origin/path initially. Do not assume moving a GitHub Pages repo or redirect transfers service workers, local data or identities. Done when old installs and room links have an explicit supported route through cutover.
+- [ ] **P0 / MIG-02 — Remove legacy type coupling.** Depends on MIG-01. Define engine-owned snapshot/player-view/command types; replace imports of Redux slice state and broad type barrels. Preserve wire shapes, coordinates and rule behavior. Done when domain/session/bot packages typecheck without React/Redux/PartyKit/network/UI modules and privacy tests still pass.
+- [ ] **P0 / MIG-03 — Create independent repository and minimal build.** Depends on MIG-01/02 and rights decision for copied material. Move the inventoried engine/PWA/test/tooling surface with history/attribution; pin only needed dependencies. Exclude legacy UI/engines/assets and unrelated copied tools. Done when clean checkout builds and scoped lint/typecheck/tests pass without legacy packages. Publish no UI behavior change in this step.
+- [ ] **P0 / MIG-04 — Separate neutral auth, storage and transport adapters.** Depends on MIG-02/03. Stop Catan importing auth through the tic-tac-toe transport; expose capability/limit contract; retain saved identity and exact pending UUID/payload on unknown outcome. Preserve existing local stores or provide tested compatibility adapters. Keep providers outside rules. Done when fake transport/storage failure tests and old-save fixtures pass.
+- [ ] **P0 / MIG-05 — Prove migration parity and installation continuity.** Depends on MIG-03/04. Compare deterministic command traces/projections, seeded outcomes and geometry fixes before/after; check bot notice in bundles. Reopen old saves, resolve a pre-cutover pending move and upgrade an installed old client. Reconcile engine versions/hashes explicitly. Done when no data/identity/room access is lost and rollback has been exercised on test devices.
 
-Avoid a large rewrite: replace bounded flows and preserve working installations/saves. Native, Bluetooth and expansions are outside the next implementation. Existing PartyKit code is reuse material, not a binding provider choice. Lovable Cloud is verified prototype hosting; the final runtime for a shared TypeScript engine remains open.
+## 3. Make the managed authority reproducible and supportable
 
-Basic bot stages: **B1** local Catan setup bots, **B2** complete base-game decisions and repeatable headless simulations, **B3** internet play with two humans plus one bot. B3 depends on Catan rooms and managed authority; B1 remains shared-device setup. [Bot requirements](docs/BOT_REQUIREMENTS.md) define BOT-01–18, acceptance tests BT-01–12 and release gates. These are planned requirements, not implemented features.
+- [ ] **P0 / BE-01 — Bring complete backend source/tests/schema into the new build.** Depends on MIG-01/02; can proceed before UI design is finished. Recover initial tables/indexes/constraints/grants/policies, followed by existing migrations; include server-only integration and a generated shared-runtime artifact. Replace manual source transcription with automated parity/version checks. Done when a fresh test environment and ordinary deploy reproduce the managed service without copying live data/secrets.
+- [ ] **P0 / BE-02 — Close atomicity/recovery/privacy verification.** Depends on BE-01. Repeat combined backend suite in a dedicated test environment; cover create/join/command races, principal/payload binding, stable rejection receipts, lost winning acknowledgment and unauthorized database access. Inject interrupted commit/response where possible. Done when mapped checks pass together without bypassing configured quotas; historical 7/8 quota-blocked rerun remains recorded.
+- [ ] **P0 / OPS-01 — Bound abuse, cost and retention.** Depends on REQ-01/BE-01. Make quota enforcement atomic; choose aggregate anonymous-abuse protections and realistic pilot limits. Record expected requests/full game and bot CPU/work; configure budget alert, inactive-game expiry/deletion/receipt retention and sanitized diagnostics. Done when bounded test load, 429/retry behavior and chosen budget/retention policy are verified; no unannounced load test on the live pilot.
+- [ ] **P0 / OPS-02 — Backup/restore, rollback and incident ownership.** Depends on BE-01/OPS-01. Document operator, monitored failures, provider charges, backup retention, restore objectives and frontend/backend rollback compatibility. Restore into a test environment. Done when owner can follow the runbook and recover a known test game with secrets protected.
 
-## 3. Current status and evidence
+## 4. Implement the agreed experience in vertical slices
 
-Status: **M** = manually confirmed, **A** = automatically verified within the stated scope, **R** = code-reviewed, **P** = planned. Passing a scenario is not a general guarantee.
+First real-client slice is implemented in play/ against the existing managed authority; see [ONLINE_INTEGRATION.md](ONLINE_INTEGRATION.md). Original UI/core/storage/transport code is separated and the old identity/outbox bridge is tested. Rule-source extraction, complete PWA/cutover, operational gates and physical acceptance remain open; the pilot server is unchanged.
 
-| Area | Evidence as of 2026-11-01 | Remaining |
-|---|---|---|
-| PWA installation, offline startup, updates and local tic-tac-toe | M: user confirmed on iPad. A: cache integrity, failed updates, storage failures and recovery. | Wider iOS/Android matrix, long-term storage. |
-| Online tic-tac-toe, Lovable Cloud | M: user confirmed 1.2.0 on their devices. A: full game with two isolated browser identities against the real backend, polling and reconnection. | Separate physical networks and exact sleep/resume scenarios have not been specifically confirmed. |
-| PWA commands and failures | A: simulated lost response, identical retry after reload, offline pause and identity preservation on failed token refresh. Version 1.2.1 added lifecycle/backoff policy; the user confirmed it works. | Complete failure/version matrix and safer identity-loss handling. |
-| OpenCatan | A: local PartyKit scenarios cover setup and progression to victory using prepared fixtures. A/R: parts of the rules and protected player views. | Natural complete games, 3–4 participants, player trading, full durable saves and secrecy review. |
-| Security and operations | R: prototype RLS, validating RPCs and public client key. Lovable reported 11 passing backend/rule tests; these were not independently rerun here. | Rate limiting, abuse protection, retention, cost controls and complete threat-model implementation. |
-| Rights | README states MIT; an actual license file and supporting asset rights were missing at the initial review. | Establish rights or replace affected assets before distribution. |
+- [ ] **P0 / UI-01 — Entry, invitation, lobby and resume.** Depends on UX-03/MIG-03/04. Implement approved navigation and admission/identity policy; preserve experiments/saves according to REQ-01. Done when two devices reach the correct seats, reconnect or receive a meaningful permanent error; duplicate create/join cannot reset the game.
+- [ ] **P0 / UI-02 — Board workspace, setup and ordinary turns.** Depends on UI-01 and shared engine parity. Implement approved portrait/landscape board, player strip, own hand, legal preview/commit, costs, build/roll/end-turn flow and accessible touch states. Done when tasks can be completed without developer guidance and rules remain independent of drawing code.
+- [ ] **P0 / UI-03 — Trade and special phases.** Depends on UI-02. Implement incoming/outgoing offers, off-turn discards, robber/victim, every supported development card, bank/ports and victory. Done when happy/stale/invalid/cancel paths match engine outcomes and only authorized private data is visible.
+- [ ] **P0 / UI-04 — Recovery and bot status.** Depends on UI-01–03/BE-02. Show selected versus committed actions, pending outcome, rate cooldown, offline/sync, identity/storage/version/expiry errors and explicit bot fault. Keep controls readable while command submission is blocked; bound retries. Done when injected failures recover or stop with an actionable explanation and no duplicate move.
 
-The original 3.0 baseline followed 41 passing unit tests, 12 deterministic PWA tests and one separate live-backend E2E test. The 1.2.1 lifecycle slice subsequently passed 53 unit tests, 16 deterministic PWA tests and a separate live-backend E2E; see [session states](docs/SESSION_STATES.md). This document does not claim a new test run. See [online PWA](docs/ONLINE_PWA.md), [local game](docs/LOCAL_GAME.md), [rule review](docs/BASE_RULES.md) and [session E2E](docs/SESSION_E2E.md). Existing global lint debt remains in OpenCatan.
+## 5. Release candidate and controlled cutover
 
-## 4. Game scope
+- [ ] **P0 / QA-01 — Automated release gates from clean checkout.** Depends on migration/backend/UI slices. Link tests to M-01–16. Require clean scoped lint/typecheck/build, rule and privacy invariants, 100 seeded bot games with triaged caps/failures, deterministic browser/storage/update tests and one natural full two-identity/managed-bot internet game on the candidate. Keep privileged fixture tests distinct from natural play; migrate relevant legacy tests, not their unrelated debt.
+- [ ] **P0 / QA-02 — Real iPad acceptance.** Depends on QA-01/UX-03. Record devices/OS, both orientations and two physical networks. User plus friend finish a complete game with bot; test full close/reopen, Wi-Fi loss, update with unresolved action and accessible controls. Capture issues; no open blocking correctness, privacy, data-loss or game-stall defects. This is separate from automatically driving human seats in browsers.
+- [ ] **P0 / REL-01 — Review the release package.** Depends on LEG-01, requirements/design agreement, QA-01/02 and OPS-01/02. Assemble versioned requirements/design links, test evidence, rights/notices, known limitations, support/expiry/identity guidance and rollback instructions. Confirm private audience and remaining limitations are accepted. Do not call the prototype an MVP simply because deployment succeeds.
+- [ ] **P0 / REL-02 — Deploy private MVP with continuity checks.** Depends on REL-01. Push versioned source, deploy compatible backend/frontend, verify every published cache asset and old installed-client upgrade. Open/resume from both original and invited links, monitor the pilot and verify cost/error signals. Keep previous compatible release available.
+- [ ] **P1 / REL-03 — Retire the fork's development role.** Depends on stable cutover and tested rollback. Link the new source and preserve audit/history/notices. Archive legacy development only after the chosen deployment/old-install strategy no longer requires writes there. Do not delete historical assets/saves or abandon old installed URLs as cleanup.
 
-E2 includes 19 hexes, five resources, snake-order setup, randomized turn order, dice and resource production, finite bank supply, roads/settlements/cities, development cards/deck, robber/seven/discard/steal, bank/port trading, player trading, Longest Road, Largest Army and victory on the active player's turn (normally 10 points). Invalid moves must not change state. The authority generates randomness from an appropriate secure source; clients cannot choose dice outcomes or cards.
+## Critical path and deferred work
 
-Document the rule reference and explicit variants; an ambition to match Colonist is neither a specification nor a license. Finalize map/robber variants before E2. Start with unlimited turns; timers and automatic actions need explicit rules and cannot depend on client background execution. Expansions and their variants are outside E2.
+Requirements agreement → UI concept → hi-fi/prototype → design agreement → UI slices → candidate/device acceptance → release review → deployment. Rights resolution, type isolation and reproducible backend work can proceed alongside design within agreed scope; release requires all P0 gates. Estimates follow agreement/design, not a speculative date before those deliverables exist.
 
-## 5. User stories and acceptance criteria
+Full offline Catan, LAN/Bluetooth/native, additional internet seat configurations/solo bots, accounts/friends, expansions, random maps, public matchmaking, advanced AI and a public launch are later backlog. Preserve their architectural seams; do not implement them to finish this MVP.
 
-Requirement IDs are stable. A = mandatory for the stated stage; B = later improvement. Map each row to verification under §8 and the HLD. Target design is not implementation status.
-
-| ID / stage / priority | Story | Acceptance criteria |
-|---|---|---|
-| UX-01 / E0 / A | As a player, I want to install and open the app offline. | Given a complete verified resource package, a cold offline start opens the library and local play. Show “Ready for offline” only after checking every required file. An interrupted first download cannot show readiness. |
-| UX-02 / E1 / A | I want to resume a local game. | Persist state durably after each completed move. Full shutdown/restart restores the latest accepted move. Denied storage/quota failure prevents a new move and offers a clear error/retry. |
-| UX-03 / E1 / A | I want to invite and join without a registration form. | Creating a room provides a shareable invitation. Two reference players or 3–4 base-game players get unique seats. Invalid/full rooms give a clear message. Rejoining with the same identity consumes no additional seat. |
-| UX-04 / E1 / A | I want to know whether my move happened. | Distinguish pending, accepted, rejected and unknown outcome. Retrying the same command after timeout returns its durable result without an additional move. A stale revision refreshes the view without automatically reinterpreting the player's choice. |
-| UX-05 / E1 / A | I want to return after a network interruption or iPad sleep. | The same identity regains its seat; resolve pending commands and fetch the current authorized view before allowing new moves. No background execution is required. Explain lost identity; never silently replace it and claim a reconnection. |
-| UX-06 / E2 / A | I want my secret cards to stay private. | Other clients receive no private hands/decks through state, messages, errors, logs or statistics. Show public counts and the player's own cards correctly. Explicit visibility rules also apply to reconnect/end-game behavior. |
-| UX-07 / E1 / A | I want to update without losing my game. | A broken candidate package preserves the working version. Activation is controlled; finish in-flight storage and preserve pending commands. Unknown save/protocol versions preserve data and stop clearly. Migrations are tested or deferred without destructive changes. |
-| UX-08 / E2 / A | I want to play a correct base game on iPad. | All scoped base rules work with touch, clear turn/error feedback and no hover requirement. Complete natural 3- and 4-player games finish without manually manipulating state. |
-| UX-09 / E3 / A | I want local play without a service account. | An offline local identity participates through an available native transport; show capabilities/limitations. Do not contact internet authentication. Host loss gives an honest pause/recovery flow, not unsafe automatic migration. |
-| UX-10 / E1 / A | I want to understand how my save is protected. | Request persistent browser storage where supported, handle denial and offer a safe backup for local games. Distinguish cloud saves from local copies. Copies containing secrets have an explicit audience and warning. |
-| UX-11 / B1–B3 / A | I want to play with fewer human participants and reproduce bot-driven failures. | Explicit bot seats fill a 3-/4-seat game without taking human turns or seeing extra information. B1 supports local setup; B2 covers all base-game phases and seeded replay; B3 supports two invited human devices plus one bot. Meet [BOT-01–18 and staged acceptance gates](docs/BOT_REQUIREMENTS.md); no full internet-game promise is introduced by setup bots. |
-
-## 6. Cross-cutting requirements
-
-### Architecture and data integrity
-
-| ID | Requirement and observable behavior |
-|---|---|
-| ARC-01 | Separate UI, rule engine, session, transport and storage. The engine must not import UI, PartyKit, networking or storage; supply randomness/time explicitly. Authorities use the same rule implementation. |
-| ARC-02 | Transport declares internet requirements, delivery/ordering, targeted messages, payload limits, discovery and update mode. Session correctness cannot depend on a transport's automatic reconnect. |
-| DATA-01 | Stable identity, unique command IDs, revisions and version fields. Authority verifies identity/permissions, binds IDs to content and protects concurrent writes. Reusing an ID with different content returns a conflict. |
-| DATA-02 | Acceptance means atomic durable state and receipt before acknowledgment. A crash after commit but before reply recovers without repeating the move. Full internal recovery snapshots are distinct from player views. |
-| DATA-03 | Version protocol, save format and rules. Unsupported versions fail explicitly without overwriting data. Recovery includes necessary internal phase/randomness information without exposing it to unauthorized players. |
-| DATA-04 | IndexedDB is the first normal local game store, behind a replaceable interface. Prototype localStorage for online identity/outbox is temporary. Cloud storage, local copies and drafts have explicit authority and retention. |
-
-### Authentication, security and privacy
-
-| ID | Requirement and observable behavior |
-|---|---|
-| SEC-01 | Internet play uses verified authentication even without a registration form. Derive identity from a verified token/connection, not a trusted client parameter. Local identity requires no server. Refresh must not silently replace identity. |
-| SEC-02 | Check membership/permissions on every read, command and subscription. Room IDs/invitations are not read permission or player identity. Validate joining; reconnect never takes another player's seat. |
-| SEC-03 | Authority validates message format, version, size and action; clients cannot write authoritative state directly. Allow public/private fields explicitly per recipient. Protect secrets in logs/telemetry too. |
-| SEC-04 | Internet TLS, least-privilege backend, server secrets only on the server, script-injection protection, dependency review and restrictive CSP where supported. CORS is not a substitute for authentication/authorization. |
-| SEC-05 | Bound identity/room creation, join attempts, reads, commands, concurrent connections and payload sizes. Combine identity/IP/room limits where appropriate; NAT must not block ordinary game nights. Overload gives defined waiting behavior without dropping a pending command. |
-| SEC-06 | Threat model includes malicious participants, outsiders, leaked links/tokens, replay, mass creation and misconfigured permissions. Cloud service/local host is trusted and can read internal secrets; protection against a malicious authority is out of scope. |
-| SEC-07 | Document data types, retention, cleanup, access and deletion, including receipts and backups. Minimize personal data. Deleted/expired sessions produce a terminal state, not endless reconnect. |
-
-### Operations, usability and distribution
-
-| ID | Requirement and observable behavior |
-|---|---|
-| OPS-01 | Managed hosting, separate test/production environments, versioned deployment and recovery plan. No self-managed VPS required. Backend changes must not inadvertently break older installed clients. |
-| OPS-02 | Measure latency, reconnects, rejections, rate limits, storage errors and costs without secrets. Set budgets/alerts and responsibility; an alert is not a hard spending cap. |
-| OPS-03 | Cleanup/quotas must not unexpectedly delete active games. Explain inactivity, completion, retention and loss-of-access conditions before the relevant action. |
-| NFR-01 | Internet games block new moves until synchronized. Offline-package readiness, device network status and game connection are distinct UI concepts. Errors explain what happened and the player's next action. |
-| NFR-02 | Proposed E1 acceptance targets: p95 durable command acknowledgment ≤1 s and opponent-visible update ≤6 s, under a declared healthy test network with 20 concurrent reference rooms. Report measurement boundaries, network latency and load; these are targets, not measured guarantees or public capacity commitments. |
-| NFR-03 | iPad/Safari and installed PWA are mandatory verification targets. Before wider release, test current and previous available major iOS/iPadOS versions, Android Chrome and desktop Chromium; record exact versions. Touch, keyboard, focus and status announcements must work. |
-| LEG-01 | Inventory actual code licenses and rights to images, audio, fonts, names and other assets. Preserve attribution. Distribute only assets with documented rights or original replacements; README text alone is insufficient evidence. |
-
-## 7. States and errors as product requirements
-
-Connection, command and game states are separate. A game may remain active at its authority while a player is disconnected. HLD must specify triggers, guards, effects and states surviving restart.
-
-| Situation | Required behavior |
-|---|---|
-| Timeout/unknown outcome | Keep the command ID/payload; look up or resend after reconnect. Timeout alone does not mean rejected. |
-| Stale revision/illegal move | Show the latest authorized view or reason. Do not reinterpret the input as a new move automatically. |
-| Storage failure | No success acknowledgment before durable commit. If server outcome is unknown, retain the intent for resolution/retry. |
-| Auth failure/lost identity | Attempt safe refresh; otherwise block and explain recovery without taking another player's seat. |
-| Rate limit/overload | Honor `Retry-After`, exponential delay and jitter; suspend background polling and avoid reconnect storms. |
-| Lost authority | Cloud: restore latest durable state when the service returns. Local host: pause until the correct host restores; no automatic migration in the first version. |
-| Version mismatch/expired room | Preserve data, provide an explicit terminal explanation and prevent endless retry/destructive migration. |
-
-## 8. Verification plan and release gates
-
-Unit tests verify pure rules/states; integration tests verify atomic storage/protocol/permissions; E2E tests verify player flows and injected failures. Real devices are required for installation, sleep and return. The cases below specify required future coverage, not a list of passing tests.
-
-| Case | Requirements | Required scenarios / level |
-|---|---|---|
-| T-01 | UX-01, UX-07, NFR-03 | Cold offline start; broken first download; interrupted update; previous version and save survive. E2E + iPad. |
-| T-02 | UX-02, UX-10, DATA-02/03/04 | Quota failure/denied persistence, concurrent local writers, crash before/after commit, corrupt/future schema, safe export/import. Integration + E2E. |
-| T-03 | UX-03/05, SEC-01/02 | Same identity, full/invalid room, third player, seat theft, token refresh/loss, Safari versus installed storage. Integration + two devices. |
-| T-04 | UX-04, DATA-01/02 | Duplicate delivery, changed payload with the same ID, concurrent moves, lost receipt, server crash after commit, delayed/reordered views. Integration + failure-injected E2E. |
-| T-05 | UX-05, ARC-02, NFR-01 | Different networks, network switching, sleep/full shutdown, service failure/recovery. Not merely a simulated offline flag. Devices + E2E. |
-| T-06 | UX-06, SEC-02/03/06 | Inspect actual client payloads, subscriptions, logs, errors and recovery. No opponents' cards/internal snapshots; deny forged identities and direct database access. Integration + E2E. |
-| T-07 | UX-08, ARC-01 | Rule invariants (resource conservation, legal phases, deck, victory), natural full 3-/4-player games and all base-game flows including trading. Unit + integration + devices. |
-| T-08 | SEC-04/05, OPS-02, NFR-02 | Oversized/unknown payload, auth/room/join spam, NAT, reconnect storm, 429/Retry-After, measured load and budget alerts. Bounded test environment, no unannounced production load. |
-| T-09 | UX-07, DATA-03, OPS-01 | Old client/new backend and inverse, controlled update with pending move, migration failure and rollback. Integration + E2E. |
-| T-10 | UX-09, SEC-06, OPS-03/SEC-07 | Local host loss/recovery with protected secrets; expiry, cleanup/deletion and receipt retention with explicit recovery error. Integration/devices by stage. |
-| T-11 | LEG-01 | Asset inventory with licensing evidence/attribution and inspection of the actual distribution package. Document/package review. |
-
-Bot-specific coverage BT-01–12 and B1/B2/B3 gates are maintained in [BOT_REQUIREMENTS.md](docs/BOT_REQUIREMENTS.md). They supplement T-01–11 and do not replace privacy, persistence, rights or real-device requirements.
-
-E1 closes only after implementing contracts/states in the reference game, verifying T-01–05 and relevant T-08–10, documenting the threat model/measurement limits and demonstrating managed shared-rule execution. E2 additionally requires T-06/07/11, complete scoped base gameplay, secrecy review and full internal snapshot recovery. A prototype on GitHub Pages does not satisfy these gates by itself.
-
-## 9. Decisions and open questions
-
-Established direction: PWA first, TypeScript reuse, replaceable layers, managed internet hosting, local play without an authentication server, and no Bluetooth/host-migration implementation now. Resolve before the relevant implementation:
-
-- Execute the same engine online/locally: Lovable experiment or another managed runtime. Duplicated SQL/TypeScript rules are not OpenCatan's target architecture.
-- Recover lost anonymous identity without leaking secrets; optional future account linking, then friends. Friendship never grants automatic access to sessions/private cards.
-- Exact rate limits, receipt/game retention, budget, backup/RPO/RTO and operational responsibility. Restart recovery is not protection from provider data loss.
-- Base-game rule reference/variants, distribution rights and final product naming. The current English display name is Game Shelf.
-
-[HLD](docs/HLD.md) and later decisions must reference requirement IDs; update product requirements here first. Historical review reports retain their dates and scope.
-
-## Design prototype note — 2026-11-02
-
-An original standalone Calm Table UI prototype is available in [the prototype guide](docs/design/CLICKABLE_PROTOTYPE.md). It illustrates responsive layouts and scripted interaction/recovery states only. This adds no real multiplayer, rule execution, offline installation or production data migration. Existing engine/backend/device release gates remain open, and final design agreement follows the owner/friend walkthrough.
+- [ ] **P1 / MOBILE-01 — Certify later phone release.** After the iPad MVP, verify actual iPhone/iOS and Android browser/PWA install, safe areas, virtual keyboard, orientation, board pan/zoom, performance and suspend/reconnect. Phone designs are required during UX-01/02 now; device certification remains a separate later gate.

@@ -1,6 +1,6 @@
 # MVP UI design brief and review plan
 
-Version 0.3 · 2026-11-02. This is a **design brief and screen/state inventory**, not an approved final visual design. An initial clickable prototype is now available for review, not for real play. Scope: [private MVP requirements](MVP_REQUIREMENTS.md), two humans plus one bot on iPad, with future phone support designed in from the start. The product baseline is agreed. A — Calm Table is the selected visual direction; detailed design and prototype review remain pending. Do not implement a large UI rewrite before requirements and the resulting design are agreed.
+Version 0.3 · 2026-11-02. This is a **design brief and screen/state inventory**, not an approved final visual design. An initial clickable prototype is now available for review, not for real play. Scope: [private MVP requirements](MVP_REQUIREMENTS.md), two humans plus one bot on iPad, with future phone support designed in from the start. The product baseline is agreed. A — Calm Table is the selected visual direction; the owner reported the prototype working and approved its layout on 2026-11-02. Implementation may proceed; physical device/OS details, a second-person walkthrough and accessibility/release validation remain open. Do not implement a large UI rewrite before requirements and the resulting design are agreed.
 
 ## Design goals
 
@@ -53,3 +53,7 @@ First review artifacts: [visual concepts and annotated low-fi journey](design/UI
 Suggested prototype tasks: join a friend's room; place second settlement; identify own resources; build without an accidental commit; send/decline/cancel a trade; discard exactly the required number; move the robber and choose a victim; recover after a lost acknowledgment; recognize victory. The product owner can approve this brief's direction without treating it as approval of a visual design that does not yet exist.
 
 Implementation should then proceed flow by flow using the shared engine as authority. Do not couple rules to drawing components or switch framework as a side effect of choosing a visual direction. Framework choice remains a small technical decision after the design needs are understood.
+
+## Owner decision — real-game integration
+
+The owner answered that the layout was satisfactory and authorized continuing with the real game on 2026-11-02. This closes the owner design-direction/implementation gate for the reviewed prototype; it does not imply an exhaustive device or second-person test. [ONLINE_INTEGRATION.md](ONLINE_INTEGRATION.md) records the actual client connection and separate verification.

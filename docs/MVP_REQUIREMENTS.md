@@ -1,6 +1,6 @@
 # Private MVP requirements — agreed product baseline
 
-Version 0.2 · 2026-11-02. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
+Version 0.3 · 2026-11-02. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
 
 ## Product outcome
 
@@ -44,6 +44,6 @@ Full offline Catan, LAN/Bluetooth/WebRTC/native packaging; one-human/two-bot or 
 | Reference games | Keep existing data; move Hello world, tic-tac-toe and local setup to experiments; prioritize Catan/resume | Agreed |
 | Naming/visual style | A — Calm Table selected: warm light surfaces, pine-green primary action, original tabletop-inspired visuals; working name Game Shelf | Direction agreed; detailed design/name/asset review still needed |
 | Expiry, budget and operation | Start from explicit pilot limits; choose retention/deletion period, monthly runtime cap and operational owner | Open |
-| Requirements/design agreement | Product baseline agreed; operational acceptance details and hi-fi prototype still need review | Partly agreed; visual design pending |
+| Requirements/design agreement | Owner approved the working prototype layout and authorized real-game integration on 2026-11-02; operational/device/second-person acceptance remains | Owner UI baseline agreed; release gates open |
 
 The next step is UI concepts against the agreed product baseline, including phone adaptation. Resolve remaining release/operational decisions alongside design; do not reopen agreed scope without a reason. Tasks, dependencies and release gates: [migration/MVP todo](MIGRATION_MVP_TODO.md). Design deliverables: [UI design brief](MVP_UI_DESIGN.md).

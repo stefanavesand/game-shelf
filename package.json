@@ -6,7 +6,14 @@
   "scripts": {
     "prototype:dev": "node scripts/serve-prototype.mjs",
     "prototype:check": "node --check prototype/app.js && node --check prototype/board.js && node --check scripts/serve-prototype.mjs",
-    "prototype:test": "playwright test"
+    "prototype:test": "playwright test --project=prototype",
+    "play:dev": "node scripts/serve-prototype.mjs",
+    "test:core": "node tests/core/client.test.js",
+    "test:browser": "playwright test",
+    "play:test": "playwright test --project=play",
+    "check": "node scripts/check.mjs"
   },
-  "devDependencies": { "@playwright/test": "1.64.1" }
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
 }

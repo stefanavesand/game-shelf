@@ -1,0 +1,5 @@
+# Synthetic API projection vectors
+
+`setup-trace.json` and `main-view.json` are synthetic, recipient-specific API packets generated locally from the previous pilot's already-built reference runtime (engine 1.0.0, SHA-256 `134e4bde70212752518acbd6e0680ff6e9ec5cd68acfdbfe14af7e6b5d1f9348`). The previous source provenance is recorded in MIGRATION_INVENTORY.md. They contain invented room/player names, no credentials, no production sessions and no complete authoritative snapshot or secret deck. Each packet contains only its named recipient's view; separate synthetic recipients are deliberately present for network-boundary tests.
+
+These are wire-conformance/test-data vectors, not copied runtime code or an independent rules implementation. Main-phase hands were explicitly prepared for UI coverage while preserving resource-bank totals. Scripted network tests do not certify gameplay rules. Live-service tests are separate. Future engine migration still requires LEG-01 and new-repository rule/trace parity verification.

@@ -4,12 +4,13 @@ An independent board-game collection, starting with a private Catan-style intern
 
 ## Current status
 
-This public, independent repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. The owner created the remote and explicitly chose public visibility on 2026-11-02. Public source visibility does not change the private, invitation-based MVP audience. It is not a fork. Application code, rule engine, managed backend and deployment automation have **not yet been migrated**. A separate, original clickable design prototype is now runnable; it is not the migrated game or an MVP release.
+This public, independent repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. The owner created the remote and explicitly chose public visibility on 2026-11-02. Public source visibility does not change the private, invitation-based MVP audience. It is not a fork. The original Calm Table client in play/ now connects to the existing managed game authority for real internet games. Rule-engine source, managed backend reproducibility and installed-PWA cutover have not yet been migrated. The separate prototype/ review remains scripted. This is an early browser playtest, not an MVP release.
 
-Selected visual direction: **A — Calm Table**. The first clickable prototype is available for review; physical-device walkthrough and final design agreement remain pending.
+Selected visual direction: **A — Calm Table**. The owner reported the prototype working, approved its layout and authorized real-game integration. Physical device/OS, second-participant, accessibility and MVP operational acceptance remain pending.
 
 Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-shelf/prototype/`. Run `npm run prototype:check` and `npm run prototype:test` for its isolated checks (install Chromium with `npx playwright install chromium` if needed). See the [prototype guide](docs/design/CLICKABLE_PROTOTYPE.md) for scenarios and verification limits. Twelve prototype browser tests pass. [Open the published Calm Table prototype](https://stefanavesand.github.io/game-shelf/prototype/). GitHub Pages is enabled on main / (root); the five public HTML/CSS/JS files were verified against the committed source with SHA-256 hashes.
 
+- [Real internet integration and evidence](docs/ONLINE_INTEGRATION.md)
 - [MVP requirements](docs/MVP_REQUIREMENTS.md)
 - [UI design brief](docs/MVP_UI_DESIGN.md)
 - [Visual concepts and user journey](docs/design/UI_CONCEPTS.md)
@@ -17,6 +18,10 @@ Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-she
 - [Dependency/provenance inventory](docs/MIGRATION_INVENTORY.md)
 - [Wider product roadmap](PRD.md)
 - [Bootstrap and source provenance](SOURCE_PROVENANCE.md)
+
+## Real client development
+
+Run `npm ci`, then `npm run play:dev`, and open `http://127.0.0.1:4176/game-shelf/play/`. `npm run check`, `npm run test:core` and `npm run test:browser` run syntax checks, core tests and deterministic browser tests. The live service test is opt-in; see ONLINE_INTEGRATION.md. The real client uses persistent anonymous identity and saved server games; it is not a scripted demo. Its new browser URL does not yet provide installable/offline PWA startup.
 
 ## Existing pilot
 

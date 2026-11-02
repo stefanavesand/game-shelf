@@ -6,11 +6,11 @@ Use English for maintained source, comments, UI, tests, documentation and commit
 
 ## Product baseline
 
-Read PRD.md and docs/MVP_REQUIREMENTS.md. The private MVP is two humans plus one bot online, iPad first, both orientations, with phone-ready responsive design. A — Calm Table is the selected visual direction; detailed prototype/design acceptance remains open.
+Read PRD.md and docs/MVP_REQUIREMENTS.md. The private MVP is two humans plus one bot online, iPad first, both orientations, with phone-ready responsive design. A — Calm Table is the selected visual direction; the owner approved the prototype layout and authorized real-game integration on 2026-11-02. Device/operations release gates remain open.
 
 ## Migration and compatibility
 
-Read SOURCE_PROVENANCE.md and docs/MIGRATION_MVP_TODO.md. The initial bootstrap contained planning/design artifacts only. It now also contains an original standalone UI prototype in prototype/, with isolated Playwright tests. Its scripted fixtures are not a second authoritative engine or proof of actual multiplayer. Do not claim that historical prototype tests ran here. Preserve upstream attribution, the verified bot MIT notice and an auditable origin for moved code. Resolve applicable rights before importing runtime code or assets. Do not copy the entire legacy application as a shortcut.
+Read SOURCE_PROVENANCE.md and docs/MIGRATION_MVP_TODO.md. The initial bootstrap contained planning/design artifacts only. It now also contains an original standalone UI prototype in prototype/, with isolated Playwright tests. Its scripted fixtures are not a second authoritative engine or proof of actual multiplayer. The original real client in play/ connects to the existing managed authority; see docs/ONLINE_INTEGRATION.md for new execution evidence and remaining migration gates. Do not claim that historical prototype tests ran here. Preserve upstream attribution, the verified bot MIT notice and an auditable origin for moved code. Resolve applicable rights before importing runtime code or assets. Do not copy the entire legacy application as a shortcut.
 
 Keep rules, authorized private views, sessions, transports, storage and UI separate. Do not let viewport or provider APIs enter the rule engine. Preserve installed app identity, original serving path, persisted player IDs, saves, pending command IDs and active room links during migration. Publishing or moving hosting is a distinct deployment step.
 
