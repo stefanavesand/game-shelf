@@ -8,7 +8,7 @@ This public, independent repository starts with the agreed product baseline, mig
 
 Selected visual direction: **A — Calm Table**. The first clickable prototype is available for review; physical-device walkthrough and final design agreement remain pending.
 
-Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-shelf/prototype/`. Run `npm run prototype:check` and `npm run prototype:test` for its isolated checks (install Chromium with `npx playwright install chromium` if needed). See the [prototype guide](docs/design/CLICKABLE_PROTOTYPE.md) for scenarios and verification limits. Twelve prototype browser tests pass. Public preview deployment awaits the owner enabling GitHub Pages from main / (root); the integration cannot enable it (HTTP 403).
+Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-shelf/prototype/`. Run `npm run prototype:check` and `npm run prototype:test` for its isolated checks (install Chromium with `npx playwright install chromium` if needed). See the [prototype guide](docs/design/CLICKABLE_PROTOTYPE.md) for scenarios and verification limits. Twelve prototype browser tests pass. [Open the published Calm Table prototype](https://stefanavesand.github.io/game-shelf/prototype/). GitHub Pages is enabled on main / (root); the five public HTML/CSS/JS files were verified against the committed source with SHA-256 hashes.
 
 - [MVP requirements](docs/MVP_REQUIREMENTS.md)
 - [UI design brief](docs/MVP_UI_DESIGN.md)

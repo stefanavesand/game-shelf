@@ -2,7 +2,7 @@
 
 Version 0.1 · 2026-11-02. Implements an original, buildless design preview in `prototype/` in the new Game Shelf repository. It is separate from the running OpenCatan pilot. All interactions use disposable scripted example data; there is no networked authority, authentication, real room, rule engine, service worker or production save migration.
 
-Intended review URL: `https://stefanavesand.github.io/game-shelf/prototype/`. Deployment status and executed checks are recorded below when confirmed. This is a UI review artifact, not an MVP release or an installable replacement for the existing PWA.
+Verified review URL: [Open Calm Table](https://stefanavesand.github.io/game-shelf/prototype/). Deployment and executed checks are recorded below. This is a UI review artifact, not an MVP release or an installable replacement for the existing PWA.
 
 ## Try the design
 
@@ -60,4 +60,6 @@ Existing historical full-game tests in this repository describe the old pilot. P
 
 Local verification on 2026-11-02: syntax checks passed; **12 Playwright/Chromium tests passed** in 27.8 seconds, including all four viewport cases. Relative documentation links and dependency lock were validated. The final screenshots were inspected for tablet/phone layout and saved as [iPad](prototype-ipad.png) and [phone](prototype-phone.png). These are rendered prototype screenshots, separate from the generated concept images.
 
-Source commit `0c1dedc` was pushed to main. GitHub Pages activation is **blocked by integration permissions**: REST POST /repos/stefanavesand/game-shelf/pages returned HTTP 403, Resource not accessible by integration. The owner must enable Pages once in repository Settings → Pages, Deploy from a branch → main → / (root) → Save. Then verify the public prototype HTML/CSS/JS against the committed files before claiming deployment. No live URL verification is claimed yet. The runtime remains original static prototype code; no production game was migrated.
+Source commit `0c1dedc` introduced the prototype. Pages activation initially returned HTTP 403 through the integration; the owner enabled main / (root). This blocker is resolved. GitHub Pages run `41429203511` succeeded for commit `d1db69e010b98663f204080d52479b58945290ae`. Verified on 2026-11-02: the root redirect plus all four prototype HTML/CSS/JS files returned HTTP 200 and matched the local committed SHA-256 hashes. The live URL is https://stefanavesand.github.io/game-shelf/prototype/.
+
+This publication adds only the standalone design preview. No actual multiplayer/rule engine, production storage migration or service worker is included. Real iPad/phone walkthrough and final design acceptance remain pending; the old pilot stays unchanged.
