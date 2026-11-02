@@ -19,3 +19,7 @@ Added after bootstrap on 2026-11-02: prototype/ HTML, CSS, controller, board art
 ## Original real-game client
 
 Added 2026-11-02 after owner approval of the prototype: play/ connects the original Calm Table UI to the existing managed API without importing the old runtime, types, geometry or artwork. The coordinate adapter was independently written from standard hex geometry and checked against the deployed v1 wire contract. Shared original presentation assets now live in ui/. Synthetic test projections were generated locally from the old reference for contract tests; they contain no real credentials/game data or full snapshots. The actual rules/bot still run in the existing managed service. This does not close its licensing, source-extraction or backend-reproducibility work. See docs/ONLINE_INTEGRATION.md.
+
+## Solo extension
+
+Requested 2026-11-02. The original client adds solo creation, mode-aware UI and replay coverage without importing an engine or bot runtime. The existing Lovable managed project was updated in place for two-bot scheduling and atomic solo creation; backend source revision `0705b861ea677b0c1a211b9bb40a8644022a9b91`, migration `drizzle/migrations/0004_catan_solo_mode.sql`. This additive managed deployment preserves existing rooms/identity contracts; it does not complete backend source migration or resolve engine rights. See docs/SOLO_INTEGRATION.md for execution and publication evidence.

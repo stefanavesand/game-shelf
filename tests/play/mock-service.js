@@ -5,8 +5,9 @@ export const roomId=main.p1.roomId;
 export const AUTH='spelhyllan-online-auth-v1',STATE='game-shelf-catan-online-v1';
 const endpoint='https://stefan-game-shelf.lovable.app/api/public/catan';
 export const auth=principal=>({access_token:principal,refresh_token:`refresh-${principal}`,expires_at:9999999999,user:{id:principal}});
-export function service({phase='setup',loseReply=false,futureReply=false}={}){
+export function service({phase='setup',loseReply=false,futureReply=false,loseCreateReply=false}={}){
   let host=phase==='main'?'alice':'',guest=phase==='main'?'bob':'',started=phase==='main',index=0,current=phase==='main'?structuredClone(main):null,dropped=false,accepted=0;
+  let solo=false,createDropped=false;const creates=[],createReceipts=new Map();
   const receipts=new Map(),commands=[];let authCalls=0;
   const packet=seat=>started?structuredClone(current[seat]):{ok:true,apiVersion:1,roomId,status:'waiting',you:seat,revision:0,members:[{id:'p1',name:'Alice',kind:'human',level:'standard'},{id:'p3',name:'Bot',kind:'bot',level:'standard'}],view:null};
   const error=(code,message=code)=>({ok:false,apiVersion:1,error:{code,message}});
@@ -17,9 +18,23 @@ export function service({phase='setup',loseReply=false,futureReply=false}={}){
       const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','cache-control':'no-store'};
       if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return;}
       const body=route.request().postDataJSON();let seat=principal===host?'p1':principal===guest?'p2':null,reply;
-      if(body.op==='create'){host=principal;seat='p1';reply=packet(seat);}
+      if(body.op==='create'){
+        creates.push(structuredClone(body));const key=`${principal}:${body.commandId}`,hash=JSON.stringify(body),prior=createReceipts.get(key);
+        if(prior&&prior!==hash)reply=error('command_id_conflict');else{
+          if(!prior){
+            host=principal;solo=body.mode==='solo';
+            if(solo){
+              started=true;current=structuredClone(main);
+              for(const peer of ['p1','p2'])for(const seats of [current[peer].members,current[peer].view.seats])for(const s of seats)if(s.id!=='p1'){s.kind='bot';s.name=s.id==='p2'?'Bot 1':'Bot 2';s.level=body.botLevel;}
+            }
+            createReceipts.set(key,hash);
+          }
+          seat='p1';reply=packet(seat);
+          if(loseCreateReply&&!createDropped){createDropped=true;await route.abort('failed');return;}
+        }
+      }
       else if(body.op==='join'){
-        if(body.roomId!==roomId)reply=error('room_not_found');else if(guest&&guest!==principal)reply=error('room_full');else{guest=principal;seat='p2';started=true;current=structuredClone(trace[index]);reply=packet(seat);}
+        if(body.roomId!==roomId)reply=error('room_not_found');else if(solo)reply=error('room_full');else if(guest&&guest!==principal)reply=error('room_full');else{guest=principal;seat='p2';started=true;current=structuredClone(trace[index]);reply=packet(seat);}
       }else if(!seat)reply=error('room_not_found');
       else if(body.op==='command'){
         commands.push(structuredClone(body));const key=`${principal}:${body.commandId}`,prior=receipts.get(key),hash=JSON.stringify(body);
@@ -46,5 +61,5 @@ export function service({phase='setup',loseReply=false,futureReply=false}={}){
       await route.fulfill({headers,json:reply||error('bad_request')});
     });
   }
-  return {attach,get accepted(){return accepted;},get commands(){return commands;},get authCalls(){return authCalls;},get current(){return current;}};
+  return {attach,get creates(){return creates;},get accepted(){return accepted;},get commands(){return commands;},get authCalls(){return authCalls;},get current(){return current;}};
 }

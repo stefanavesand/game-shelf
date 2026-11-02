@@ -61,3 +61,7 @@ Requirements agreement → UI concept → hi-fi/prototype → design agreement �
 Full offline Catan, LAN/Bluetooth/native, additional internet seat configurations/solo bots, accounts/friends, expansions, random maps, public matchmaking, advanced AI and a public launch are later backlog. Preserve their architectural seams; do not implement them to finish this MVP.
 
 - [ ] **P1 / MOBILE-01 — Certify later phone release.** After the iPad MVP, verify actual iPhone/iOS and Android browser/PWA install, safe areas, virtual keyboard, orientation, board pan/zoom, performance and suspend/reconnect. Phone designs are required during UX-01/02 now; device certification remains a separate later gate.
+
+## Optional solo internet addition (owner request, 2026-11-02)
+
+- [x] SOLO-01 — M-17: expose Solo with Easy/Standard, atomically create one-human/two-bot rooms, schedule both bot seats fairly, reject guests, preserve friend/legacy receipt compatibility, verify full managed game and resume. Track execution and delivery in [solo integration](SOLO_INTEGRATION.md). Full live solo game passed (111 human commands, 6.5 minutes), with Easy start and legacy friend flow checked. Public delivery is tracked in the integration report. Physical iPad acceptance remains separate from automated execution.

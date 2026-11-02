@@ -1,0 +1,23 @@
+# Solo internet games
+
+Owner request: 2026-11-02. Requirements: PRD 3.6 / M-17. This adds one human and two bots to the existing managed-authority design; it does not add offline play or a second engine.
+
+## Contract and behavior
+
+- The home screen offers Play solo. The create form selects friend or solo mode and Easy/Standard; solo starts directly with no invitation or open guest seat.
+- Solo creation sends `mode: "solo"` as part of the original durable create intent. Friend creation omits mode to preserve old request/receipt hashes. An unresolved request retains its exact mode, UUID and payload after reload.
+- API 1 / engine 1.0.0 and three-seat authorized views remain the contract. The client renders seat kinds supplied by the authority; solo has p1 human and p2/p3 bots. Both bots use the selected level, distinct names, and their own private observation.
+- The managed service owns atomic creation, hidden state, scheduling and receipts. No frontend bot executes rule transitions. The scheduler must handle either eligible bot and bounded work with subsequent foreground polling; it never takes over the human seat.
+- Existing browser identity, IndexedDB records, pending commands and friend room links remain compatible. Solo has no share-invitation action. Internet loss pauses gameplay; reconnect restores the same room/principal.
+
+## Execution and delivery
+
+Backend build: Lovable revision `0705b861ea677b0c1a211b9bb40a8644022a9b91`, migration `drizzle/migrations/0004_catan_solo_mode.sql`. Published managed service verified through deployment `45cb2f37-2e6e-4afb-ad87-bba295fda990`. The migration adds a default-friends mode column, an atomic solo-create RPC, mode-aware bot membership checks and a SQL guest-join guard; functions remain service-role only. Scheduler actor selection and per-bot projections were reviewed from the provider change report. The engine runtime is unchanged.
+
+Executed here: 12 core tests and 23 deterministic Chromium tests passed. Added tests cover immediate solo start, both labeled bot seats, Easy selection, phone overflow, reload without a second create, no solo invitation, and exact solo create retry after a lost response. That retry also exposed and fixed entry recovery staying on the home screen after successful outbox resolution.
+
+Provider-reported execution (separate from local tests): 5 solo unit tests, 3 runtime tests, 4 routing/tic-tac-toe unit tests, 5 live solo integration tests, 9 live friends integration tests and 5 recovery tests passed. Reported live solo coverage includes concurrent bot reads with unique receipts, human/bot discards, bot trade responses and guest denial. Lovable reported 7.5 editor credits for this build; hosting/runtime costs are separate.
+
+The first public-service solo browser checks failed before sign-in because the test browser did not trust the environment proxy CA. Direct browser requests confirmed ERR_CERT_AUTHORITY_INVALID for both services. Importing the configured proxy CA restored verified TLS (no certificate-validation bypass). The managed solo live browser test then **passed in 6.5 minutes**: 111 human commands to natural victory at ten or more VP, both bot seats placed buildings and advanced, a bot responded to a human trade offer, and offline/online plus reload retained the original principal and room. The same test checked exact create replay without reset, changed-mode conflict, invalid-mode rejection and non-member join/view/command denial without a view leak. It then started an Easy solo room and created/joined a legacy-shaped friends room successfully. The human test driver uses only the player's authorized choices; this is automated execution, not physical-device usability approval.
+
+Run `GAME_SHELF_SOLO_LIVE=1 npm run play:test -- live.spec.js --grep 'LIVE SOLO'` to opt in. This creates real anonymous users and three saved managed rooms (Standard solo, Easy solo, friends); it consumes normal service quotas. Browser TLS in a managed proxy environment must trust the configured CA. No private snapshots or credentials are committed. Static frontend publication verification remains the final delivery step. Existing physical-device, PWA cutover, licensing and operations gates remain open.

@@ -71,3 +71,23 @@ test('a newly bought card stays unavailable even when an older card of the same 
     await page.getByRole('button',{name:'Knight →',exact:true}).click();await expect(page.getByRole('button',{name:'Play Knight',exact:true})).toBeEnabled();expect(backend.commands).toHaveLength(0);
   }finally{await context.close();}
 });
+
+// These tests verify UI/outbox integration with synthetic authorized views.
+// Actual two-bot scheduling and seat security are covered by the live test.
+test('solo starts immediately with two bots, retains level and room after reload on a phone',async({browser})=>{
+  const backend=service(),context=await browser.newContext({viewport:{width:390,height:844}});
+  try{
+    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
+    await page.getByRole('button',{name:'Play solo',exact:true}).click();await expect(page.getByLabel('Players',{exact:true})).toHaveValue('solo');await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await ready(page);
+    expect(backend.creates[0]).toMatchObject({mode:'solo',name:'Alice',botLevel:'easy'});expect(backend.current.p1.view.seats.filter(s=>s.kind==='bot')).toHaveLength(2);await expect(page.locator('.players .bot-tag')).toHaveCount(2);await expect(page.getByRole('heading',{name:'One seat for a friend.'})).toHaveCount(0);
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.reload();await ready(page);await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect((await state(page)).roomId).toBe(roomId);expect(backend.creates).toHaveLength(1);
+    await page.locator('#room').click();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);await expect(page.getByText('Solo · you and two bots. No invitation is needed.')).toBeVisible();
+  }finally{await context.close();}
+});
+test('a lost solo creation reply retries the same mode and UUID rather than creating a friends lobby',async({browser})=>{
+  const backend=service({loseCreateReply:true}),context=await browser.newContext();
+  try{
+    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Create a room',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Players',{exact:true}).selectOption('solo');await expect(page.getByText('Play against two bots. Your game starts right away.')).toBeVisible();await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
+    const pending=(await state(page)).pending;expect(pending.body.mode).toBe('solo');await page.reload();await expect.poll(()=>backend.creates.length,{timeout:15000}).toBeGreaterThanOrEqual(2);await ready(page);expect(backend.creates[1]).toEqual(backend.creates[0]);expect((await state(page)).pending).toBeNull();await expect(page.locator('.players .bot-tag')).toHaveCount(2);
+  }finally{await context.close();}
+});

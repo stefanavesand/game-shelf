@@ -15,7 +15,7 @@ Use an existing open-source policy where practical. Selection/adaptation follows
 | B2 — base-game bots and simulation | Bots complete every decision phase supported by the scoped base game; a headless runner produces reproducible games and failure artifacts. | Requires complete shared base rules, legal-decision discovery, durable session state and private views. Add coverage alongside each phase rather than waiting for a large rewrite. |
 | B3 — internet mixed games | Two people on separate devices invite each other and play against one bot; support three/four total seats. | Requires Catan rooms, managed authority, identity binding, recovery and privacy controls. Bots do not solve networking by themselves. |
 
-Human play supports one or more humans with enough bots to make three or four seats; the required mixed case is two humans plus one bot. All-bot games are mandatory for automated tests, not a requirement to expose an unattended simulator in the public app. Expansion rules, automatic takeover of disconnected humans, mid-game seat conversion and expansion-specific bots are out of scope initially. The first internet pilot supports exactly two humans and one bot; other seat configurations remain follow-up requirements.
+Human play supports one or more humans with enough bots to make three or four seats; the required mixed case is two humans plus one bot. All-bot games are mandatory for automated tests, not a requirement to expose an unattended simulator in the public app. Expansion rules, automatic takeover of disconnected humans, mid-game seat conversion and expansion-specific bots are out of scope initially. The original internet pilot supported exactly two humans and one bot. On 2026-11-02 the owner added optional solo internet play with one human and two bots (M-17); four-seat configurations remain follow-up requirements.
 
 ## 2. User stories
 
@@ -131,4 +131,4 @@ These are explicit targets, not all verified capabilities. Selection is made bef
 | Pacing | Cosmetic delay must not change choice or randomness. Never depend on iOS background execution. | Server commits promptly; clients synchronize in foreground. No artificial delay. |
 | Failure | Pause on unknown/incompatible policy rather than silently changing strategy. Preserve pending command ID on unknown network outcome. Surface stalled bot decisions, with no retry storm. | Backend stops a failed drain; richer visible bot-failure status remains follow-up. |
 
-The one-human/multiple-bot UI and offline local bot scheduler are not part of the first internet pilot. Existing local setup saves remain supported independently.
+The one-human/two-bot internet UI is now an owner-requested addition; see [solo integration](SOLO_INTEGRATION.md). The offline local bot scheduler is still outside this pilot. Existing local setup saves remain supported independently.

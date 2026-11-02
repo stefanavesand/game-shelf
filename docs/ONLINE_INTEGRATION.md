@@ -10,6 +10,8 @@ The initial playtest address is `https://stefanavesand.github.io/game-shelf/play
 
 The rendering layer follows the approved Calm Table composition. It displays real room occupancy, randomized setup order, legal placement previews, own hand/cards, public opponent counts, builds, dice, player/bank/port trades, discards, robber/victim choices, development cards and actual victory. It derives action availability from the authenticated player's server choices. Local UI selection is never applied as a game-state mutation.
 
+A later owner-requested [solo extension](SOLO_INTEGRATION.md) adds one-human/two-bot rooms and a managed backend update; the original two-human integration evidence below retains its scope.
+
 ## Boundaries and contracts
 
 | Area | Implementation and limits |

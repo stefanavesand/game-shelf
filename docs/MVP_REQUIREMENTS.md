@@ -1,6 +1,8 @@
 # Private MVP requirements — agreed product baseline
 
-Version 0.3 · 2026-11-02. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
+Version 0.4 · 2026-11-02. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
+
+Owner scope addition on 2026-11-02: an optional solo internet mode with one human and two bots (M-17). The friend invitation flow remains supported.
 
 ## Product outcome
 
@@ -28,15 +30,17 @@ The MVP is a private pilot for invited friends, not an app-store or public match
 | M-14 | Provide accessible iPad controls: touch targets at least 44 CSS px, labels beyond player color alone, readable contrast/text, keyboard focus and visible commit/selection feedback. | Design specifications plus manual touch/VoiceOver/keyboard spot checks and automated checks where applicable. Resolve accidental double-tap/build/turn-end behavior. |
 | M-15 | Complete release verification on the supported device matrix with no known blocking defect. | Clean scoped lint/typecheck/build, mapped unit/integration/browser tests, old-save/update compatibility and a complete two-human/one-bot physical-device game. Separate historical passes from tests rerun on the release candidate. No open data-loss, secret-leak, wrong-rule, duplication or deadlock defect. |
 | M-16 | Design responsive layouts for later phone support from the start, while iPad remains the first release/device gate. Keep rules/session/transport independent of viewport, orientation and touch layout. | Review compact phone designs around 360–390 CSS px with readable board/hand/action access, touch targets, safe areas and overflow behavior. Use trays/sheets or deliberate board pan/zoom rather than shrinking the iPad screen. Full iOS/Android phone certification is a later gate; do not claim it from a mockup. |
+| M-17 | Start a saved solo internet game with one human and two distinct visibly labeled bots. Easy/Standard applies to both bots. Start directly without an invitation. Both bots act only on their own fair observation and handle all eligible phases; guests cannot claim a bot seat or read the room. | Real solo creation/full game, both bot seats advance, denied non-member view/join/command, exact create replay/mode conflict, unchanged identity/room on reload and interruption, deterministic UI/outbox checks at tablet/phone sizes. Keep existing friend rooms and legacy create receipts compatible. Physical device acceptance remains required. |
 
 ## Deliberately outside this MVP
 
-Full offline Catan, LAN/Bluetooth/WebRTC/native packaging; one-human/two-bot or configurable four-seat internet rooms; expansions/random maps; accounts/friends directory/matchmaking/chat/spectators; host transfer or disconnected-human takeover; competitive bot ratings; public-service scale. Preserve existing local setup/tic-tac-toe saves and behavior during migration. Hello world, tic-tac-toe and local setup entrypoints move to a separate experiments area; Catan and resume are primary.
+Full offline Catan, LAN/Bluetooth/WebRTC/native packaging; configurable four-seat internet rooms; expansions/random maps; accounts/friends directory/matchmaking/chat/spectators; host transfer or disconnected-human takeover; competitive bot ratings; public-service scale. Preserve existing local setup/tic-tac-toe saves and behavior during migration. Hello world, tic-tac-toe and local setup entrypoints move to a separate experiments area; Catan and resume are primary.
 
 ## Decisions needed before implementation scope is fixed
 
 | Decision | Proposed baseline | Status |
 |---|---|---|
+| Optional solo internet mode | One human plus two bots; Easy/Standard; managed authority and normal save/reconnect | Requested by owner on 2026-11-02 |
 | Private MVP audience and two-human/one-bot internet flow | Confirmed by user on 2026-11-02 | Agreed scope |
 | Supported devices/orientations | iPad first, portrait and landscape; phone support later, responsive design now. Exact device/OS acceptance matrix still to record. | Product direction agreed |
 | Rules/map | Base game, ten VP, fixed beginner board, no timer; document the specific rules reference and edge cases | Product rules agreed; reference to record |
