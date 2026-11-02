@@ -1,6 +1,6 @@
 # Migration and private MVP release todo
 
-2026-11-02. Scope agreed: **two humans plus one bot, private internet play, iPad PWA**. This list plans work; it does not authorize declaring unreviewed requirements/design complete. A private independent repository was bootstrapped on 2026-11-02 at the user's request. It currently contains planning/design artifacts only; application migration and hosting cutover remain pending. See ../SOURCE_PROVENANCE.md.
+2026-11-02. Scope agreed: **two humans plus one bot, private internet play, iPad PWA**. This list plans work; it does not authorize declaring unreviewed requirements/design complete. An independent repository was prepared locally on 2026-11-02 at the user's request; creating its private GitHub remote is blocked by integration permissions. It currently contains planning/design artifacts only; application migration and hosting cutover remain pending. See ../SOURCE_PROVENANCE.md.
 
 Read [inventory](MIGRATION_INVENTORY.md), [requirements draft](MVP_REQUIREMENTS.md) and [UI design brief](MVP_UI_DESIGN.md). Existing wider PRD/bot stages remain roadmap items. `bd` is unavailable in this environment, so these stable IDs are the local issue ledger; transfer them into the chosen tracker later without losing acceptance criteria.
 
@@ -22,7 +22,7 @@ UX-01 first artifacts are available in [design/UI_CONCEPTS.md](design/UI_CONCEPT
 
 ## 2. Extract a small independent codebase
 
-- [x] **MIG-00 — Bootstrap independent repository.** Created `stefanavesand/game-shelf` (private, main branch) with product/design/migration documents and source provenance. No engine/UI/backend code moved; no app deployment changed. This does not complete MIG-01–05.
+- [ ] **MIG-00 — Bootstrap independent repository (remote creation blocked).** Prepared local `game-shelf` (main branch) with product/design/migration documents and source provenance. GraphQL and REST repository creation were denied by the integration; the owner must create the empty private `stefanavesand/game-shelf` remote before push. No engine/UI/backend code moved; no app deployment changed. This does not complete MIG-01–05.
 
 - [ ] **P0 / MIG-01 — Select repository and compatibility deployment strategy.** Depends on REQ-01; informed by LEG-01. Choose repository name/history strategy and ownership, engine/UI/server package boundaries, hosting adapter, secret handling and rollback. Keep the installed origin/path initially. Do not assume moving a GitHub Pages repo or redirect transfers service workers, local data or identities. Done when old installs and room links have an explicit supported route through cutover.
 - [ ] **P0 / MIG-02 — Remove legacy type coupling.** Depends on MIG-01. Define engine-owned snapshot/player-view/command types; replace imports of Redux slice state and broad type barrels. Preserve wire shapes, coordinates and rule behavior. Done when domain/session/bot packages typecheck without React/Redux/PartyKit/network/UI modules and privacy tests still pass.

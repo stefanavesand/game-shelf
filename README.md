@@ -4,7 +4,7 @@ An independent board-game collection, starting with a private Catan-style intern
 
 ## Current status
 
-This repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. It is not a fork. Application code, rule engine, managed backend and deployment automation have **not yet been migrated**. There is no runnable app or build command in this initial commit.
+This local repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. Creating its intended private GitHub remote is blocked by the integration's repository-creation permission (HTTP 403); an empty remote must first be created by the owner. It is not a fork. Application code, rule engine, managed backend and deployment automation have **not yet been migrated**. There is no runnable app or build command in this initial commit.
 
 Selected visual direction: **A — Calm Table**. Detailed design and a clickable prototype remain to be completed.
 
