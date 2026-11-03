@@ -1,9 +1,10 @@
+import {uuid} from './protocol.js';
 import {PlayError,locked} from './errors.js';
 import {createStore} from './store.js';
 import {createTransport,capabilities} from './transport.js';
 export function createClient({store=createStore(),transport=createTransport(),locks=globalThis.navigator?.locks,now=Date.now,id=()=>crypto.randomUUID(),sample=Math.random}={}){
   const lock=work=>locked('game-shelf-catan-command',work,locks);
-  function cooldown(state){if((state.retryAt||0)>now())throw new PlayError('RATE_LIMITED','Please wait before checking the table again.',{retryable:true,retryAfterMs:state.retryAt-now()});}
+  function cooldown(state){if((state.retryAt||0)>now())throw new PlayError('RATE_LIMITED','Please wait before checking the game again.',{retryable:true,retryAfterMs:state.retryAt-now()});}
   async function rememberFailure(state,error){
     if(!error.retryable)return;
     const count=(state.retryCount||0)+1,delay=Math.max(error.retryAfterMs||0,Math.min(30000,1000*2**Math.min(count,5))*(.8+sample()*.4));
@@ -11,7 +12,7 @@ export function createClient({store=createStore(),transport=createTransport(),lo
   }
   async function send(state,op,args={},replace=false){
     cooldown(state);
-    if(state.roomId&&!state.pending&&['create','join'].includes(op)&&!replace&&!(op==='join'&&args.roomId===state.roomId))throw new PlayError('ROOM_SWITCH','Confirm that you want to switch tables before creating or joining another room.');
+    if(state.roomId&&!state.pending&&['create','join'].includes(op)&&!replace&&!(op==='join'&&args.roomId===state.roomId))throw new PlayError('ROOM_SWITCH','Confirm that you want to switch games before creating or joining another room.');
     let principal;try{principal=await transport.identity({allowCreate:!state.roomId&&!state.pending});}catch(error){await rememberFailure(state,error);throw error;}
     const pending=state.pending||{principalId:principal.user.id,body:{apiVersion:1,op,...args,commandId:id()}};
     if(pending.principalId!==principal.user.id)throw new PlayError('AUTH_REQUIRED','This unresolved move belongs to another player identity. It has been kept.');
@@ -33,5 +34,19 @@ export function createClient({store=createStore(),transport=createTransport(),lo
     return packet;
   });}
   async function inspect(){return lock(async()=>{const state=await store.state(),principal=transport.savedIdentity();return {state,principalId:principal?.user.id||null,packet:state.roomId&&principal?await store.cached(state.roomId,principal.user.id):null};});}
-  return {execute,refresh,inspect,capabilities};
+  async function games(){return lock(async()=>{const principal=transport.savedIdentity();return principal&&store.games?store.games(principal.user.id):[];});}
+  async function resume(roomId){return lock(async()=>{
+    const state=await store.state();
+    if(!uuid(roomId))throw new PlayError('ROOM_SWITCH','Choose a valid saved game.');
+    if(state.pending)throw new PlayError('ROOM_SWITCH','Resolve your original move before opening another game.');
+    cooldown(state);
+    let principal,packet;
+    try{principal=await transport.identity({allowCreate:false});packet=await transport.request({apiVersion:1,op:'view',roomId},principal);}catch(error){await rememberFailure(state,error);throw error;}
+    if(!packet.ok)return packet;
+    if(packet.roomId!==roomId)throw new PlayError('UNSUPPORTED_VERSION','The response did not match the selected game. Your current game has been kept.');
+    await store.cache(packet,principal.user.id);
+    await store.save({...state,roomId,retryAt:0,retryCount:0});
+    return packet;
+  });}
+  return {execute,refresh,inspect,games,resume,capabilities};
 }

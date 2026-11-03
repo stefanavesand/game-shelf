@@ -61,3 +61,7 @@ The owner answered that the layout was satisfactory and authorized continuing wi
 ## Solo addition (2026-11-02)
 
 Keep the Calm Table composition. Add Play solo to the home actions and a labeled Players selector in the create form (friend plus one bot, or solo plus two bots). Solo retains name and Easy/Standard selection and labels the primary action Start solo game. Start directly on the server's current setup decision; do not show a waiting guest or invitation action. Both bot panels retain the Bot and level labels, public card counts and ordinary turn status. Resume, unknown-outcome recovery, offline pause and results use the same components and privacy boundaries as friend games. Compact phone layouts remain supported; physical iPad acceptance is still pending.
+
+## Product navigation revision (2026-11-03)
+
+The owner removed the old design name and table metaphors from product copy. Keep the warm light palette as styling only. The primary home is a simple Catan page with New game, Join a game and saved-game cards (Resume game or View result). One new-game form selects supported player composition and bot level; do not duplicate solo/friends actions on home. No illustrative board appears on entry. Legal locations are picked on the actual SVG board, with focusable/touchable targets and preview/Confirm/Cancel, without external Location buttons. The root URL now opens the real app; the separately labeled design prototype is retained for historical interaction review, and its entry illustration is removed too.

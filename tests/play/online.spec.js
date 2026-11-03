@@ -7,12 +7,12 @@ test('two browsers join separate seats and finish both setup rounds from authori
   const backend=service(),a=await browser.newContext(),b=await browser.newContext();
   try{
     await backend.attach(a,'alice');await backend.attach(b,'bob');const x=await a.newPage(),y=await b.newPage();await x.goto('http://127.0.0.1:4176'+url);await ready(x);
-    await x.getByRole('button',{name:'Create a room',exact:true}).click();await x.getByLabel('Your name',{exact:true}).fill('Alice');await x.getByRole('button',{name:'Create room',exact:true}).click();await expect(x.getByRole('heading',{name:'One seat for a friend.'})).toBeVisible();
-    await x.getByRole('button',{name:'Share invitation',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();await y.goto(invite);await ready(y);await expect(y.getByLabel('Room ID',{exact:true})).toHaveValue(roomId);await y.getByLabel('Your name',{exact:true}).fill('Bob');await y.getByRole('button',{name:'Join the table',exact:true}).click();await ready(y);
+    await x.getByRole('button',{name:'New game',exact:true}).click();await x.getByLabel('Your name',{exact:true}).fill('Alice');await x.getByRole('button',{name:'Create game',exact:true}).click();await expect(x.getByRole('heading',{name:'One seat for a friend.'})).toBeVisible();
+    await x.getByRole('button',{name:'Share invitation',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();await y.goto(invite);await ready(y);await expect(y.getByLabel('Room ID',{exact:true})).toHaveValue(roomId);await y.getByLabel('Your name',{exact:true}).fill('Bob');await y.getByRole('button',{name:'Join game',exact:true}).click();await ready(y);
     for(let i=0;i<8;i++){
       const actor=backend.current.p1.view.state.game.currentPlayerId,page=actor==='p1'?x:y;
       await page.locator('#refresh').click();await ready(page);const before=backend.accepted;
-      await page.getByRole('button',{name:'Location 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>backend.accepted).toBe(before+1);await ready(page);
+      await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect.poll(()=>backend.accepted).toBe(before+1);await ready(page);
     }
     await x.locator('#refresh').click();await ready(x);await expect(x.getByRole('button',{name:'Roll dice',exact:true})).toBeVisible();expect(backend.accepted).toBe(8);
     await x.reload();await ready(x);await expect(x.locator('.players')).toContainText('Alice · You');
@@ -22,14 +22,14 @@ test('legacy identity/room migrate to IndexedDB and a lost reply retries one ori
   const backend=service({phase:'main',loseReply:true}),context=await browser.newContext();
   try{
     await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);expect(backend.authCalls).toBe(0);
-    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
     const original=(await state(page)).pending;expect(original.body.commandId).toBeTruthy();await page.evaluate(key=>localStorage.removeItem(key),STATE);expect((await state(page)).pending.body.commandId).toBe(original.body.commandId);await page.reload();await expect.poll(async()=>backend.commands.length,{timeout:12000}).toBeGreaterThanOrEqual(2);await ready(page);expect(backend.accepted).toBe(1);expect(backend.commands[1]).toEqual(backend.commands[0]);expect((await state(page)).pending).toBeNull();
     expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).user.id,AUTH)).toBe('alice');
   }finally{await context.close();}
 });
 test('unsupported reply keeps unresolved move and stops automatic retry',async({browser})=>{
   const backend=service({phase:'main',futureReply:true}),context=await browser.newContext();
-  try{await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'A compatible app is needed'})).toBeVisible();expect((await state(page)).pending).not.toBeNull();expect(backend.commands).toHaveLength(1);await expect(page.getByRole('button',{name:'Resolve move',exact:true})).toBeDisabled();}finally{await context.close();}
+  try{await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();await expect(page.getByRole('heading',{name:'A compatible app is needed'})).toBeVisible();expect((await state(page)).pending).not.toBeNull();expect(backend.commands).toHaveLength(1);await expect(page.getByRole('button',{name:'Resolve move',exact:true})).toBeDisabled();}finally{await context.close();}
 });
 test('missing saved identity never creates a replacement principal',async({browser})=>{
   const backend=service({phase:'main'}),context=await browser.newContext();
@@ -37,7 +37,7 @@ test('missing saved identity never creates a replacement principal',async({brows
 });
 test('IndexedDB refusal prevents creating an identity or sending a game mutation',async({browser})=>{
   const backend=service(),context=await browser.newContext();
-  try{await backend.attach(context,'alice');await context.addInitScript(()=>{IDBFactory.prototype.open=()=>{throw new DOMException('Denied','SecurityError');};});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await expect(page.getByText('Your player data could not be saved or read. No new move was sent. Keep this installation and fix storage before continuing.')).toBeVisible();expect(backend.authCalls).toBe(0);expect(backend.commands).toHaveLength(0);await expect(page.getByRole('button',{name:'Create a room',exact:true})).toBeDisabled();}finally{await context.close();}
+  try{await backend.attach(context,'alice');await context.addInitScript(()=>{IDBFactory.prototype.open=()=>{throw new DOMException('Denied','SecurityError');};});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await expect(page.getByText('Your player data could not be saved or read. No new move was sent. Keep this installation and fix storage before continuing.')).toBeVisible();expect(backend.authCalls).toBe(0);expect(backend.commands).toHaveLength(0);await expect(page.getByRole('button',{name:'New game',exact:true})).toBeDisabled();}finally{await context.close();}
 });
 test('real-view layout reflows on compact phone and pauses offline',async({browser})=>{
   const backend=service({phase:'main'}),context=await browser.newContext({viewport:{width:390,height:844}});
@@ -49,7 +49,7 @@ test('a failed legacy mirror sends nothing and IndexedDB recovers the original p
   try{
     await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
     await page.evaluate(key=>{window.originalSet=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k===key)throw new DOMException('Quota','QuotaExceededError');return window.originalSet.call(this,k,v);};},STATE);
-    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();
     await expect(page.getByText('Your player data could not be saved or read. No new move was sent. Keep this installation and fix storage before continuing.')).toBeVisible();expect(backend.commands).toHaveLength(0);
     await page.evaluate(()=>{Storage.prototype.setItem=window.originalSet;});const pending=(await state(page)).pending;expect(pending.body.commandId).toBeTruthy();await page.locator('#refresh').click();await ready(page);expect(backend.commands[0].commandId).toBe(pending.body.commandId);expect(backend.accepted).toBe(1);
   }finally{await context.close();}
@@ -78,7 +78,7 @@ test('solo starts immediately with two bots, retains level and room after reload
   const backend=service(),context=await browser.newContext({viewport:{width:390,height:844}});
   try{
     await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
-    await page.getByRole('button',{name:'Play solo',exact:true}).click();await expect(page.getByLabel('Players',{exact:true})).toHaveValue('solo');await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await ready(page);
+    await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Players',{exact:true}).selectOption('solo');await expect(page.getByLabel('Players',{exact:true})).toHaveValue('solo');await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await ready(page);
     expect(backend.creates[0]).toMatchObject({mode:'solo',name:'Alice',botLevel:'easy'});expect(backend.current.p1.view.seats.filter(s=>s.kind==='bot')).toHaveLength(2);await expect(page.locator('.players .bot-tag')).toHaveCount(2);await expect(page.getByRole('heading',{name:'One seat for a friend.'})).toHaveCount(0);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.reload();await ready(page);await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect((await state(page)).roomId).toBe(roomId);expect(backend.creates).toHaveLength(1);
     await page.locator('#room').click();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);await expect(page.getByText('Solo · you and two bots. No invitation is needed.')).toBeVisible();
@@ -87,7 +87,7 @@ test('solo starts immediately with two bots, retains level and room after reload
 test('a lost solo creation reply retries the same mode and UUID rather than creating a friends lobby',async({browser})=>{
   const backend=service({loseCreateReply:true}),context=await browser.newContext();
   try{
-    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Create a room',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Players',{exact:true}).selectOption('solo');await expect(page.getByText('Play against two bots. Your game starts right away.')).toBeVisible();await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
+    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Players',{exact:true}).selectOption('solo');await expect(page.getByText('Play against two bots. Your game starts right away.')).toBeVisible();await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
     const pending=(await state(page)).pending;expect(pending.body.mode).toBe('solo');await page.reload();await expect.poll(()=>backend.creates.length,{timeout:15000}).toBeGreaterThanOrEqual(2);await ready(page);expect(backend.creates[1]).toEqual(backend.creates[0]);expect((await state(page)).pending).toBeNull();await expect(page.locator('.players .bot-tag')).toHaveCount(2);
   }finally{await context.close();}
 });
@@ -96,20 +96,20 @@ test('unchanged automatic polls preserve board nodes, preview, focus and expande
   const backend=service({phase:'main'}),context=await browser.newContext();
   try{
     await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.clock.install();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
-    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');
     await page.locator('.public-log summary').click();await page.getByRole('button',{name:'Confirm',exact:true}).focus();
     await page.evaluate(()=>{window.oldBoard=document.querySelector('#board');window.oldTile=oldBoard.firstChild;window.oldFocus=document.activeElement;window.changes=0;window.watch=new MutationObserver(records=>window.changes+=records.length);watch.observe(document.querySelector('#app'),{subtree:true,childList:true,attributes:true,characterData:true});});
     let reads=0;await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().op==='view')reads++;await route.fallback();});
     for(let i=0;i<3;i++){await page.clock.runFor(5000);await expect.poll(()=>reads).toBe(i+1);await ready(page);}
     expect(await page.evaluate(()=>({board:oldBoard===document.querySelector('#board'),tile:oldTile===oldBoard.firstChild,focus:oldFocus===document.activeElement,history:document.querySelector('.public-log').open,changes}))).toEqual({board:true,tile:true,focus:true,history:true,changes:0});
-    await expect(page.getByRole('button',{name:'Location 1',exact:true})).toHaveAttribute('aria-pressed','true');expect(backend.commands).toHaveLength(0);
+    await expect(page.locator('#board [role=button]').first()).toHaveAttribute('aria-pressed','true');expect(backend.commands).toHaveLength(0);
   }finally{await context.close();}
 });
 test('a command clicked during a slow poll is sent once after the read, with a real board update',async({browser})=>{
   const backend=service({phase:'main'}),context=await browser.newContext();let release;
   try{
     await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
-    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();const before=backend.current.p1.view.state.board.roads.length;
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');const before=backend.current.p1.view.state.board.roads.length;
     let held=false;const gate=new Promise(resolve=>release=resolve);await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(!held&&route.request().method()==='POST'&&route.request().postDataJSON().op==='view'){held=true;await gate;}await route.fallback();});
     await page.locator('#refresh').click();await expect.poll(()=>held).toBe(true);await ready(page);await expect(page.getByRole('button',{name:'Confirm',exact:true})).toBeEnabled();await page.getByRole('button',{name:'Confirm',exact:true}).click();expect(backend.commands).toHaveLength(0);release();
     await expect.poll(()=>backend.accepted).toBe(1);await ready(page);expect(backend.commands).toHaveLength(1);expect(backend.current.p1.view.state.board.roads).toHaveLength(before+1);await expect(page.getByRole('button',{name:'Build',exact:true})).toBeVisible();
@@ -135,9 +135,41 @@ test('a new board revision is painted even when the surrounding panel markup is 
 test('a queued placement keeps its original revision and is rejected safely if a poll reveals a newer turn',async({browser})=>{
   const backend=service({phase:'main'}),context=await browser.newContext();let release;
   try{
-    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();const revision=backend.current.p1.revision,edge=structuredClone(backend.current.p1.view.choices.find(c=>c.type==='BUILD_ROAD').edge);
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');const revision=backend.current.p1.revision,edge=structuredClone(backend.current.p1.view.choices.find(c=>c.type==='BUILD_ROAD').edge);
     let held=false;const gate=new Promise(resolve=>release=resolve);await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(!held&&route.request().method()==='POST'&&route.request().postDataJSON().op==='view'){held=true;await gate;}await route.fallback();});await page.locator('#refresh').click();await expect.poll(()=>held).toBe(true);await page.getByRole('button',{name:'Confirm',exact:true}).click();
     for(const seat of ['p1','p2']){const p=backend.current[seat];p.revision++;p.view.revision=p.revision;p.view.state.game.phase='roll';p.view.choices=seat==='p1'?[{type:'ROLL_DICE'}]:[];}release();
     await expect(page.getByRole('button',{name:'Roll dice',exact:true})).toBeVisible();await ready(page);expect(backend.accepted).toBe(0);expect(backend.commands).toHaveLength(1);expect(backend.commands[0]).toMatchObject({expectedRevision:revision,action:{type:'BUILD_ROAD',edge}});expect((await state(page)).pending).toBeNull();
   }finally{release?.();await context.close();}
+});
+
+test('home has one new-game flow, explicit configuration and no decorative board or design branding',async({browser})=>{
+  const backend=service(),context=await browser.newContext({viewport:{width:390,height:844}});
+  try{
+    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url+'#home');await ready(page);await expect(page.getByRole('heading',{name:'Catan',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'New game',exact:true})).toHaveCount(1);await expect(page.locator('svg')).toHaveCount(0);expect(await page.locator('body').innerText()).not.toMatch(/\btable\b|calm table/i);
+    await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByLabel('Players',{exact:true}).selectOption('solo');await expect(page.getByLabel('Your name',{exact:true})).toHaveValue('Alice');await expect(page.getByLabel('Bot level',{exact:true})).toHaveValue('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect(backend.creates[0]).toMatchObject({mode:'solo',botLevel:'easy'});
+    await expect(page.getByRole('button',{name:/^Location \d+$/})).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  }finally{await context.close();}
+});
+
+test('saved games are principal-bound and an earlier game resumes without joining or overwriting the other save',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext(),older='1b70d78a-0aba-4ccf-b640-ecdc63095dea',foreign='2b70d78a-0aba-4ccf-b640-ecdc63095dea';
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
+    const old=structuredClone(backend.current.p1);old.roomId=older;old.view.id=older;await page.evaluate(async({old,foreign})=>{const{createStore}=await import('/game-shelf/play/core/store.js'),store=createStore();await store.cache(old,'alice');await store.cache({...old,roomId:foreign,view:{...old.view,id:foreign}},'another-player');},{old,foreign});
+    let joins=0;await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(route.request().method()==='POST'){const body=route.request().postDataJSON();if(body.op==='join')joins++;if(body.op==='view'&&body.roomId===older){await route.fulfill({headers:{'access-control-allow-origin':'*'},json:old});return;}}await route.fallback();});
+    await page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await expect(page.locator('.saved-game')).toHaveCount(2);await page.locator(`[data-action="resume-game:${older}"]`).click();await expect(page.locator('.players')).toBeVisible();expect((await state(page)).roomId).toBe(older);expect(joins).toBe(0);
+    await page.goto('http://127.0.0.1:4176'+url+'#home');await ready(page);await expect(page.locator('.saved-game')).toHaveCount(2);await expect(page.locator(`[data-action="resume-game:${roomId}"]`)).toBeVisible();expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key)).user.id,AUTH)).toBe('alice');
+    await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().roomId===roomId){await route.fulfill({status:404,headers:{'access-control-allow-origin':'*'},json:{ok:false,apiVersion:1,error:{code:'room_not_found',message:'This saved game is unavailable.'}}});return;}await route.fallback();});
+    await page.locator(`[data-action="resume-game:${roomId}"]`).click();await expect(page.getByText('This saved game is unavailable.')).toBeVisible();await expect(page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();expect((await state(page)).roomId).toBe(older);
+  }finally{await context.close();}
+});
+
+for(const viewport of [{width:1024,height:768},{width:768,height:1024},{width:390,height:844}])test(`board taps and number-token alignment at ${viewport.width}×${viewport.height}`,async({browser},testInfo)=>{
+  const backend=service({phase:'main'}),context=await browser.newContext({viewport,hasTouch:true});
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
+    const offsets=await page.locator('#board').evaluate(svg=>[...svg.querySelectorAll('g[aria-hidden="true"]')].flatMap(g=>{const circle=g.querySelector(':scope > circle'),text=g.querySelector(':scope > text');if(!circle||!text)return [];const b=text.getBBox(),cy=Number(circle.getAttribute('cy'));return [Math.abs(b.y+b.height/2-cy)];}));expect(offsets).toHaveLength(18);expect(Math.max(...offsets)).toBeLessThan(3);
+    await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();const targetSize=await page.locator('#board [role=button]').first().boundingBox();expect(targetSize.width).toBeGreaterThanOrEqual(43.9);expect(targetSize.height).toBeGreaterThanOrEqual(43.9);await page.locator('#board [role=button]').first().tap();await expect(page.getByRole('button',{name:'Confirm',exact:true})).toBeEnabled();await expect(page.locator('#board [aria-pressed="true"]')).toHaveCount(1);await expect(page.getByRole('button',{name:/^Location \d+$/})).toHaveCount(0);expect(backend.commands).toHaveLength(0);await page.screenshot({path:testInfo.outputPath(`board-${viewport.width}.png`),fullPage:true});
+    await page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await expect(page.getByRole('button',{name:'Resume game',exact:true})).toBeVisible();await page.screenshot({path:testInfo.outputPath(`home-${viewport.width}.png`),fullPage:true});
+  }finally{await context.close();}
 });

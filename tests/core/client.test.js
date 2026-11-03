@@ -67,3 +67,17 @@ test('authentication rate limits persist a cooldown even before a room exists',a
   const h=harness();h.transport.identity=async()=>{throw new PlayError('RATE_LIMITED','Wait',{retryable:true,retryAfterMs:12000});};
   await assert.rejects(h.client.execute('create',{name:'Alice'}),e=>e.code==='RATE_LIMITED');assert.ok(h.state.retryAt>=13000);assert.equal(h.state.pending,null);assert.equal(h.sent.length,0);
 });
+
+test('resume opens a selected old game by authorized view without creating or joining a seat',async()=>{
+  const older='1b70d78a-0aba-4ccf-b640-ecdc63095dea',h=harness({request:async body=>{const p=structuredClone(fixtures.p1);p.roomId=body.roomId;p.view.id=body.roomId;return p;}});
+  await h.store.save({schemaVersion:1,roomId,pending:null});await h.client.resume(older);assert.equal(h.state.roomId,older);assert.deepEqual(h.sent,[{apiVersion:1,op:'view',roomId:older}]);assert.equal(h.state.pending,null);
+});
+test('resume preserves the active room on guest denial or a mismatched response',async()=>{
+  const older='1b70d78a-0aba-4ccf-b640-ecdc63095dea',h=harness({request:async()=>({ok:false,apiVersion:1,error:{code:'room_not_found',message:'Unavailable'}})});
+  await h.store.save({schemaVersion:1,roomId,pending:null});assert.equal((await h.client.resume(older)).ok,false);assert.equal(h.state.roomId,roomId);
+  h.transport.request=async()=>structuredClone(fixtures.p1);await assert.rejects(h.client.resume(older),e=>e.code==='UNSUPPORTED_VERSION');assert.equal(h.state.roomId,roomId);
+});
+test('an unresolved move blocks a game switch and remains unchanged',async()=>{
+  const pending={principalId:'principal',body:{apiVersion:1,op:'command',commandId:id,roomId,expectedRevision:1,action:{type:'END_TURN'}}},h=harness({pending});
+  await assert.rejects(h.client.resume('1b70d78a-0aba-4ccf-b640-ecdc63095dea'),e=>e.code==='ROOM_SWITCH');assert.deepEqual(h.state.pending,pending);assert.equal(h.sent.length,0);
+});

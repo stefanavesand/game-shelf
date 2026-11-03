@@ -3,7 +3,7 @@ const base='/game-shelf/prototype/';
 const data=page=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('game-shelf-ui-prototype-v1')));
 async function scene(page,label){await page.getByRole('button',{name:'Explore scenarios'}).click();await page.getByRole('button',{name:label,exact:false}).click();}
 async function settled(page){await expect.poll(async()=>!!(await data(page)).pending).toBe(false);}
-async function location(page){await page.getByRole('button',{name:'Location 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();await settled(page);}
+async function location(page){await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();await settled(page);}
 
 test('create, invitation lobby and both human setup rounds are clickable',async({page})=>{
   await page.goto(base);await page.getByRole('button',{name:'Create a room',exact:true}).click();await page.getByLabel('Your name', {exact:true}).fill('Sam');await page.getByLabel('Bot level').selectOption('easy');await page.getByRole('button',{name:'Create room',exact:true}).click();
@@ -17,7 +17,7 @@ test('create, invitation lobby and both human setup rounds are clickable',async(
 
 test('unresolved placement survives reload, blocks switching, and resolves once',async({page})=>{
   await page.goto(base+'?scenario=main');await page.getByRole('button',{name:'Explore scenarios'}).click();await page.getByRole('button',{name:'Lose the next response',exact:true}).click();
-  await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Settlement/}).click();await page.getByRole('button',{name:'Location 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();
+  await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Settlement/}).click();await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();
   await expect(page.getByRole('heading',{name:'Waiting to resolve your move'})).toBeVisible();const pending=(await data(page)).pending;expect((await data(page)).pieces).toHaveLength(0);
   await page.getByRole('link',{name:'Game Shelf home'}).click();await expect(page.getByRole('heading',{name:'Resolve your move first'})).toBeVisible();await page.getByRole('button',{name:'Stay here',exact:true}).click();
   await page.reload();expect((await data(page)).pending.id).toBe(pending.id);await page.getByRole('button',{name:'Resolve move',exact:true}).click();await settled(page);await expect(page.getByRole('heading',{name:'Your turn',exact:true})).toBeVisible();
@@ -35,7 +35,7 @@ test('player trade review, acceptance and stale-offer example preserve explicit 
 test('off-turn discard enforces the quantity and leads to robber and victim decisions',async({page})=>{
   await page.goto(base+'?scenario=discard');await page.getByRole('button',{name:'Choose cards to discard'}).click();await page.getByRole('button',{name:'Confirm discard'}).click();await expect(page.getByRole('alert')).toHaveText('Select exactly five cards from your hand.');
   await page.locator('#discard-brick').fill('4');await page.locator('#discard-wood').fill('1');await expect(page.getByText('5 of 5 selected')).toBeVisible();await page.getByRole('button',{name:'Confirm discard'}).click();await settled(page);
-  await expect(page.getByRole('heading',{name:'Move the robber'})).toBeVisible();await page.getByRole('button',{name:'Tile 1',exact:true}).click();await page.getByRole('button',{name:'Confirm',exact:true}).click();await settled(page);
+  await expect(page.getByRole('heading',{name:'Move the robber'})).toBeVisible();await page.locator('#board [role=button]').first().press('Enter');await page.getByRole('button',{name:'Confirm',exact:true}).click();await settled(page);
   await page.getByRole('button',{name:'Choose a player',exact:true}).click();await page.getByRole('button',{name:'Alex 4 resource cards'}).click();await settled(page);await expect(page.getByRole('heading',{name:'Your turn',exact:true})).toBeVisible();expect((await data(page)).hand.ore).toBe(1);
 });
 
@@ -49,7 +49,7 @@ test('recovery, permanent failure, victory and resume are distinct review states
   await page.goto(base+'?scenario=offline');await expect(page.getByRole('button',{name:'Build',exact:true})).toBeDisabled();await page.getByRole('button',{name:'Reconnect',exact:true}).click();await expect(page.getByRole('button',{name:'Build',exact:true})).toBeEnabled();
   await scene(page,'Missing identity');await expect(page.getByRole('heading',{name:'Your saved identity is missing'})).toBeVisible();await expect(page.getByRole('button',{name:'Build',exact:true})).toBeDisabled();
   await scene(page,'Rate cooldown');await expect(page.getByRole('button',{name:'Retry',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Retry',exact:true})).toBeEnabled({timeout:6000});
-  await scene(page,'Victory');await expect(page.getByRole('heading',{name:'You win.'})).toBeVisible();await page.getByRole('button',{name:'View the board'}).click();await page.getByRole('link',{name:'Game Shelf home'}).click();await page.getByRole('button',{name:'Resume your table'}).click();await expect(page.getByRole('button',{name:'See the results'})).toBeVisible();
+  await scene(page,'Victory');await expect(page.getByRole('heading',{name:'You win.'})).toBeVisible();await page.getByRole('button',{name:'View the board'}).click();await page.getByRole('link',{name:'Game Shelf home'}).click();await page.getByRole('button',{name:'Resume your game'}).click();await expect(page.getByRole('button',{name:'See the results'})).toBeVisible();
 });
 
 test('buying a card preserves the existing card and explains the new-card restriction',async({page})=>{

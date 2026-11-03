@@ -327,3 +327,7 @@ PWA 1.2.1 implements a first pure client policy for connection/command outcomes,
 ### Responsive design direction (2026-11-02)
 
 The MVP product baseline is agreed in [MVP_REQUIREMENTS.md](MVP_REQUIREMENTS.md). iPad portrait/landscape is the first release target; compact phone layouts must be designed now for later mobile support. Keep viewport, safe areas, board navigation and hand/action presentation inside the UI boundary. Shared rules, private projections, session recovery and transport contracts must remain independent of screen size. Full phone/device certification and Capacitor packaging retain their separate later gates. Visual design and operational acceptance details remain under review.
+
+## Browser game history and resume (2026-11-03)
+
+M-18/19 keep API/engine/storage versions unchanged. The IndexedDB adapter enumerates existing authorized view records for the saved principal and projects summaries for home; optional lastSeenAt metadata sorts new records without a schema migration. Other principals' cached views are excluded. A selected old game resumes via an authenticated view request under the existing session lock, without claiming a guest seat. Only success caches the recipient view and changes current room; network denial/mismatched room keeps current state, and unresolved mutations block switching. This is browser-local discovery, not server listing or identity recovery. Product navigation uses plain game terms and board targets; style identifiers and historical design artifacts may retain old internal names for compatibility.

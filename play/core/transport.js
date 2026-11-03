@@ -14,7 +14,7 @@ export function createTransport({fetcher=globalThis.fetch,local,locks=globalThis
       const response=await fetcher(url,{method:'POST',cache:'no-store',signal:controller.signal,headers:{apikey:PUBLISHABLE_KEY,'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(body)});
       if(response.status===429)throw new PlayError('RATE_LIMITED','A short pause is needed before reconnecting.',{retryable:true,retryAfterMs:retryDelay(response.headers.get('Retry-After'),now())||5000});
       if(response.status===401||response.status===403||(response.status===400&&url.includes('/auth/')))throw new PlayError('AUTH_REQUIRED','Your player sign-in could not be verified. Your identity and move have been kept.');
-      if(response.status>=500||response.status===408)throw new PlayError('SERVER_UNAVAILABLE','The table could not be reached. Your unresolved move has been kept.',{retryable:true});
+      if(response.status>=500||response.status===408)throw new PlayError('SERVER_UNAVAILABLE','The game could not be reached. Your unresolved move has been kept.',{retryable:true});
       try{return await response.json();}catch{throw new PlayError('UNSUPPORTED_VERSION','The response could not be read. Your unresolved move has been kept.');}
     }catch(error){if(error instanceof PlayError)throw error;throw new PlayError('NETWORK_UNAVAILABLE','The connection was interrupted. Reconnect to check your original move.',{retryable:true});}finally{clearTimeout(timer);}
   }

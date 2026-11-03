@@ -8,7 +8,7 @@ const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8'
 http.createServer(async(req,res)=>{
   try{
     const pathname=new URL(req.url,'http://localhost').pathname;
-    if(pathname==='/'||pathname==='/game-shelf/'){res.writeHead(302,{location:prefix+'prototype/'});res.end();return;}
+    if(pathname==='/'||pathname==='/game-shelf/'){res.writeHead(302,{location:prefix+'play/#home'});res.end();return;}
     if(!pathname.startsWith(prefix)){res.writeHead(404);res.end('Not found');return;}
     const relative=decodeURIComponent(pathname.slice(prefix.length));
     if(!/^(prototype|play|ui)\//.test(relative)||!(/\.(html|css|js)$/.test(relative)||relative.endsWith('/'))){res.writeHead(404);res.end('Not found');return;}

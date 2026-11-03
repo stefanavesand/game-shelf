@@ -27,7 +27,18 @@ export function createStore({idb,local}={}){
     const raw=JSON.stringify(next);try{(local??globalThis.localStorage).setItem(LEGACY_STATE,raw);}catch{throw failure();}
     await record('current',{state:next,legacyMirror:raw});
   }
-  async function cache(packet,principalId){validatePacket(packet);if(packet.ok)await record(`view:${principalId}:${packet.roomId}`,{packet,principalId});}
+  async function cache(packet,principalId){validatePacket(packet);if(packet.ok)await record(`view:${principalId}:${packet.roomId}`,{packet,principalId,lastSeenAt:Date.now()});}
   async function cached(roomId,principalId){const cached=await record(`view:${principalId}:${roomId}`);if(!cached||cached.principalId!==principalId)return null;return validatePacket(cached.packet);}
-  return {state,save,cache,cached};
+  async function games(principalId){
+    if(!principalId)return [];
+    try{
+      const connection=await db();
+      const rows=await new Promise((resolve,reject)=>{const tx=connection.transaction('records','readonly'),req=tx.objectStore('records').getAll();let rows;req.onsuccess=()=>{rows=req.result;};tx.oncomplete=()=>resolve(rows);tx.onabort=tx.onerror=()=>reject(failure());});
+      return rows.filter(r=>r.principalId===principalId&&r.packet?.ok).map(r=>{
+        const p=validatePacket(r.packet),bots=p.members.filter(m=>m.kind==='bot');
+        return {roomId:p.roomId,status:p.status,players:p.members.map(m=>m.name),mode:bots.length===2?'solo':'friends',botLevel:bots[0]?.level||'standard',lastSeenAt:r.lastSeenAt||0};
+      }).sort((a,b)=>b.lastSeenAt-a.lastSeenAt);
+    }catch(e){if(e instanceof PlayError)throw e;throw failure();}
+  }
+  return {state,save,cache,cached,games};
 }

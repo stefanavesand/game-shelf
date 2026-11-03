@@ -6,7 +6,7 @@ Use English for maintained source, comments, UI, tests, documentation and commit
 
 ## Product baseline
 
-Read PRD.md and docs/MVP_REQUIREMENTS.md. The private MVP is two humans plus one bot online, plus optional one-human/two-bot solo internet play requested on 2026-11-02, iPad first, both orientations, with phone-ready responsive design. A — Calm Table is the selected visual direction; the owner approved the prototype layout and authorized real-game integration on 2026-11-02. Device/operations release gates remain open.
+Read PRD.md and docs/MVP_REQUIREMENTS.md. The private MVP is two humans plus one bot online, plus optional one-human/two-bot solo internet play requested on 2026-11-02, iPad first, both orientations, with phone-ready responsive design. The owner approved the warm light visual style and real-game integration on 2026-11-02. On 2026-11-03 they removed its design name/table metaphors from product copy, requested a plain new/resume home, and replaced numbered location shortcut buttons with direct board targets. Device/operations release gates remain open.
 
 ## Migration and compatibility
 

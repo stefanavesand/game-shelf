@@ -35,7 +35,7 @@ export function drawBoard(root,{phase,selection,pieces=[],roads=[],winner=false,
   for(const[x,y]of[[49,145],[550,77],[80,450],[565,410]])water.append(node('path',{d:`M${x} ${y}q12 6 24 0t24 0`,fill:'none',stroke:'#8db6b0','stroke-width':2,opacity:.6}));root.append(water);
   hexes.forEach((h,i)=>{const p=point(h.q,h.r),type=terrain[i],group=node('g',{'aria-hidden':'true'});group.append(node('polygon',{points:corners(p).map(v=>`${v.x},${v.y}`).join(' '),fill:palettes[type],stroke:'#f7efd9','stroke-width':3}));
     const scene=node('g',{transform:`translate(${p.x} ${p.y+11})`});scene.innerHTML=tileArt(type);group.append(scene);
-    if(numbers[i]){group.append(node('circle',{cx:p.x,cy:p.y-13,r:17,fill:'#fff8e9',stroke:'#e4d6b7'}));group.append(node('text',{x:p.x,y:p.y-7,'text-anchor':'middle','font-size':27,'font-weight':700,class:'number-token',fill:[6,8].includes(numbers[i])?'#9b3c2b':'#2b3f34'},numbers[i]));}
+    if(numbers[i]){group.append(node('circle',{cx:p.x,cy:p.y-13,r:17,fill:'#fff8e9',stroke:'#e4d6b7'}));group.append(node('text',{x:p.x,y:p.y-13,'text-anchor':'middle','dominant-baseline':'central','font-size':24,'font-weight':700,class:'number-token',fill:[6,8].includes(numbers[i])?'#9b3c2b':'#2b3f34'},numbers[i]));}
     group.append(node('text',{x:p.x,y:p.y+36,'text-anchor':'middle','font-size':10,'font-weight':600,class:'terrain-label',fill:'#263d30'},names[type]||'Desert'));root.append(group);
   });
   for(const[x,y,label]of[[214,56,'3:1'],[440,56,'2:1 wood'],[575,270,'2:1 wool'],[425,503,'3:1'],[205,503,'2:1 grain'],[62,270,'3:1']])root.append(node('text',{x,y,fill:'#456b65','font-size':12,'text-anchor':'middle'},label));
