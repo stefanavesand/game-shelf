@@ -1,6 +1,6 @@
 # Lovable implementation brief: identity and private relay
 
-Prepared 2026-11-03. Reviewable instructions only; not yet sent to Lovable.
+Prepared 2026-11-03. Owner-approved scope sent to Lovable for implementation, without publication.
 
 Implement stages 1–2 of [the identity and relay spec](SESSION_API_SPEC.md) in the existing connected project. Treat the spec as the contract and this brief as scope guidance. If the chosen platform cannot support a guarantee, report that limitation rather than silently weakening it.
 
@@ -26,3 +26,7 @@ Implement and report RELAY-01–09 and RELAY-14 from the spec, marking each as e
 Run appropriate existing unit/lint/typecheck/build checks and distinguish pre-existing failures from new ones. Deliver source commit IDs, migrations, schema/examples, test commands/results, limits/expiry behavior and rollback instructions. No credentials, invitation tokens or private messages in logs or GitHub.
 
 Keep pushed history intact so GitHub–Lovable synchronization remains usable. Do not publish automatically. First provide the concrete testable implementation and evidence; production publication is a separate step after review.
+
+## Dispatch record
+
+Sent 2026-11-03 to the existing Game Shelf Server project (`cdbab9d4-9c51-4ab0-89d9-feb24af9b7ce`), message `umsg_01m6gx47xafpvsn3xpt05jfpp0`, thread `main`. Included the complete approved Draft 0.3 specification. Explicitly prohibited production test traffic/schema experiments, automatic publishing and paid resource provisioning. If no isolated database exists, deliver migrations/offline tests and report live integration as not run. Future Google/Microsoft OAuth is AUTH-01; anonymous verified auth remains required now.
