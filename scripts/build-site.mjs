@@ -1,4 +1,6 @@
 import {readdir,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
+import {catanManifest} from './catan-manifest.mjs';
+await catanManifest();
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';

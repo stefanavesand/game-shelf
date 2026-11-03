@@ -10,6 +10,10 @@ The owner approved [the identity and relay contract](docs/SESSION_API_SPEC.md) f
 
 This approved direction applies to new relay-mode work. Existing managed Catan/tic-tac-toe sessions, their server authority, private projections, identities and pending intents remain unchanged. The older architecture below describes that existing mode and broader roadmap. Implementation, privacy/expiry disclosure and release verification for the new mode remain separate gates.
 
+## Current trade presentation (2026-11-03)
+
+The owner superseded the resource-card composer with a compact resource-row layout: one row per resource, own holdings, Give and Request columns, and a recipient dropdown. Bank & ports uses Give/Receive with actual rates. The budget-prioritized delivery supports existing single-recipient/single-exchange commands; All-recipient offers and atomic bank batches remain explicit follow-ups, without pretending the managed engine supports them.
+
 ## 1. Goals and audience
 
 Build a board-game collection for friends on tablets, phones and computers. OpenCatan is the first substantial game. Tic-tac-toe is a small reference game for verifying installation, sessions and transports before adding complexity.

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Catan engine test · Game Shelf</title><link rel="stylesheet" href="../relay/style.css"><style>select{font:inherit;min-height:44px;padding:8px;max-width:100%;width:100%;background:#fffef9;border:1px solid #c6c6b5;border-radius:8px}#board{display:block;width:100%;min-height:260px}#game{padding:14px}#turn{font-weight:700}#selection{min-height:24px}</style></head>
+<body class="catan-engine"><main>
+<header><a href="../#home">Game Shelf</a><span>Developer test</span></header>
+<h1>Catan in both browsers.</h1>
+<p>A developer playtest of the PWA rule engine: two friends and one bot. Create a channel, invite a friend and start. This is not the finished game interface.</p>
+<form id="connection"><label>Relay endpoint<input id="endpoint" type="url" required value="https://stefan-game-shelf.lovable.app/api/public/relay/v1"></label><label>Your name<input id="name" maxlength="30" value="Player" required></label><button>Connect</button></form>
+<p id="identity">Not connected</p>
+<section id="admission" hidden><button id="create">Create channel</button><label>Invitation token<input id="token" autocomplete="off"></label><button id="join">Join channel</button><button id="retry-admission" hidden>Retry pending request</button><p>Channel access lasts seven days. Local saves depend on this browser's storage.</p></section>
+<section id="game" hidden><label>Share invitation<input id="invite" readonly></label><p id="channel"></p><p id="storage"></p><button id="begin">Start Catan</button><label>Bot level<select id="level"><option value="standard">Standard</option><option value="easy">Easy</option></select></label><p id="turn">Waiting to start</p><p id="hand"></p><svg id="board" role="group" aria-label="Catan board" viewBox="0 0 640 550"></svg><p id="selection">Tap a board target or choose an action.</p><label>Other actions<select id="action"><option>No actions available</option></select></label><div class="actions"><button id="confirm">Confirm action</button><button id="sync">Synchronize / retry</button></div><dl><dt>Game revision</dt><dd id="revision">—</dd><dt>Message position</dt><dd id="cursor">0</dd><dt>Pending messages</dt><dd id="pending">0</dd><dt>Verification</dt><dd id="verification">Waiting</dd></dl><p id="hash"></p></section>
+<p id="status" role="status">Connect explicitly to create or restore your anonymous player identity.</p>
+<p id="error" role="alert"></p>
+</main><script type="module" src="./app.js"></script></body></html>
