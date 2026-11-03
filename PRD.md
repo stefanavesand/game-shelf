@@ -1,6 +1,6 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
-Version 3.7 · 2026-11-03 · Product baseline and Calm Table layout owner-approved; real managed internet integration implemented; device and operational release gates remain open.
+Version 3.8 · 2026-11-03 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
 
@@ -15,6 +15,8 @@ Local games must work without internet or an authentication server. Internet gam
 The app and all maintained repository content must be in English. Conversation with the user may be in Swedish. Language changes must preserve installation identity, saved games, player identities and compatibility with existing links.
 
 ## 2. Stages and scope
+
+Trade UX addition approved on 2026-11-03: replace the numeric offer matrix with separate give/request resource-card areas, explicit own holdings and quantities retained, recipient buttons and a live offer summary. Show the complete projected own hand before acceptance, without transferring cards while drafting. Separate Players from Bank & ports; display and submit only authoritative available exchanges and rates. Keep review before Send offer/Confirm trade, hidden opponent types, revision checks and durable submission.
 
 Owner UI revision (2026-11-03): use plain game terminology, without the old design name or “table” metaphors in product copy. Home explicitly offers New game, Join a game and resume entries for games known to the current browser/principal. New game selects supported player configuration and Easy/Standard in one form. Explicit #home links must open home even with an active game. Select legal locations directly on the board (touch or keyboard); remove numbered shortcut buttons while keeping preview/confirm safety. Remove the decorative example board from entry screens and align all number tokens consistently. Persisted identity, old games and unresolved commands must survive these UI changes.
 

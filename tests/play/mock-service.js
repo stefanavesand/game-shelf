@@ -5,7 +5,7 @@ export const roomId=main.p1.roomId;
 export const AUTH='spelhyllan-online-auth-v1',STATE='game-shelf-catan-online-v1';
 const endpoint='https://stefan-game-shelf.lovable.app/api/public/catan';
 export const auth=principal=>({access_token:principal,refresh_token:`refresh-${principal}`,expires_at:9999999999,user:{id:principal}});
-export function service({phase='setup',loseReply=false,futureReply=false,loseCreateReply=false}={}){
+export function service({phase='setup',loseReply=false,futureReply=false,loseCreateReply=false,expectedAction=null}={}){
   let host=phase==='main'?'alice':'',guest=phase==='main'?'bob':'',started=phase==='main',index=0,current=phase==='main'?structuredClone(main):null,dropped=false,accepted=0;
   let solo=false,createDropped=false;const creates=[],createReceipts=new Map();
   const receipts=new Map(),commands=[];let authCalls=0;
@@ -43,10 +43,16 @@ export function service({phase='setup',loseReply=false,futureReply=false,loseCre
         else if(phase==='setup'){
           const next=trace[index].next;if(!next||next.actor!==seat||JSON.stringify(next.action)!==JSON.stringify(body.action))reply=error('rule_rejected');else{index++;current=structuredClone(trace[index]);accepted++;receipts.set(key,{hash});reply=packet(seat);}
         }else{
-          if(!current[seat].view.choices.some(c=>JSON.stringify(c)===JSON.stringify(body.action)))reply=error('rule_rejected');else{
+          if(!(expectedAction&&JSON.stringify(body.action)===JSON.stringify(expectedAction))&&!current[seat].view.choices.some(c=>JSON.stringify(c)===JSON.stringify(body.action)))reply=error('rule_rejected');else{
             accepted++;receipts.set(key,{hash});
             for(const peer of ['p1','p2']){
               const p=current[peer];p.revision++;p.view.revision=p.revision;
+              if(body.action.type==='TRADE_OFFER'){
+                const {to,give,receive}=body.action;p.view.offer={from:seat,to,give,receive};p.view.choices=peer===seat?[{type:'TRADE_CANCEL'}]:[{type:'TRADE_ACCEPT'},{type:'TRADE_DECLINE'}];
+              }
+              if(body.action.type==='BANK_TRADE'){
+                const {give,receive}=body.action,actor=p.view.state.players.players.find(s=>s.id===seat);actor.resourceCount+=receive.amount-give.amount;if(peer===seat){actor.resources[give.resource]-=give.amount;actor.resources[receive.resource]+=receive.amount;}
+              }
               if(body.action.type==='BUILD_ROAD'){
                 p.view.state.board.roads.push({id:`mock-road-${accepted}`,type:'road',playerId:seat,edge:body.action.edge});const actor=p.view.state.players.players.find(s=>s.id===seat);actor.resourceCount-=2;actor.roadsRemaining--;if(peer===seat){actor.resources.brick--;actor.resources.lumber--;}
                 p.view.choices=p.view.choices.filter(c=>JSON.stringify(c)!==JSON.stringify(body.action));

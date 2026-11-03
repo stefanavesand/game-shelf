@@ -1,3 +1,4 @@
+import {offerDraft,offerIssue,handAfter,bankChoices,bankBundles} from '../../play/trade.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -80,4 +81,18 @@ test('resume preserves the active room on guest denial or a mismatched response'
 test('an unresolved move blocks a game switch and remains unchanged',async()=>{
   const pending={principalId:'principal',body:{apiVersion:1,op:'command',commandId:id,roomId,expectedRevision:1,action:{type:'END_TURN'}}},h=harness({pending});
   await assert.rejects(h.client.resume('1b70d78a-0aba-4ccf-b640-ecdc63095dea'),e=>e.code==='ROOM_SWITCH');assert.deepEqual(h.state.pending,pending);assert.equal(h.sent.length,0);
+});
+
+test('trade preview uses only own holdings and public opponent totals without changing the hand',()=>{
+  const v=structuredClone(fixtures.p1.view),before=structuredClone(v),d=offerDraft(v);d.give.brick=2;d.receive.ore=1;
+  assert.equal(offerIssue(v,d),'');assert.equal(v.state.players.players.find(p=>p.id==='p2').resources.ore,0);const after=handAfter(v.state.players.players[0].resources,d.give,d.receive);assert.equal(after.brick,1);assert.equal(after.ore,4);assert.deepEqual(v,before);
+});
+test('trade validation bounds the offer, rejects both-sided resources and handles empty hands',()=>{
+  const v=structuredClone(fixtures.p1.view),d=offerDraft(v);d.give.brick=4;d.receive.ore=1;assert.match(offerIssue(v,d),/available/);d.give.brick=2;d.receive.brick=1;assert.match(offerIssue(v,d),/different/);d.receive.brick=0;d.receive.ore=6;assert.match(offerIssue(v,d),/only 5/);v.state.players.players.find(p=>p.id==='p2').resourceCount=0;assert.match(offerIssue(v,d),/no resource cards/);
+});
+test('a trade draft is retained only for its original room and revision',()=>{
+  const v=structuredClone(fixtures.p1.view),d=offerDraft(v);d.give.brick=2;assert.equal(offerDraft(v,d),d);assert.equal(offerDraft({...v,revision:v.revision+1},d).give.brick,0);assert.equal(offerDraft({...v,id:'different-room'},d).give.brick,0);assert.equal(offerDraft({...v,you:'p2'},d).give.brick,0);assert.match(offerIssue({...v,revision:v.revision+1},d),/game changed/);
+});
+test('bank preview preserves the exact authoritative exchange and port rate',()=>{
+  const v=fixtures.p1.view,c=bankChoices(v).find(c=>c.give.resource==='ore'&&c.receive.resource==='brick');assert.ok(v.choices.includes(c));assert.equal(c.give.amount,2);const b=bankBundles(c),after=handAfter(v.state.players.players[0].resources,b.give,b.receive);assert.equal(after.ore,1);assert.equal(after.brick,4);
 });

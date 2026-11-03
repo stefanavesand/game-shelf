@@ -1,3 +1,4 @@
+import {offerDraft,offerIssue,handAfter,tradeLabel,bankChoices,bankBundles} from './trade.js';
 import {client} from './session.js';
 import {draw} from './board.js';
 import {symbol} from '../ui/art.js';
@@ -7,8 +8,9 @@ const $=id=>document.getElementById(id),sheet=$('sheet');
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 const button=(label,action,classes='',disabled=false)=>`<button type="button" data-action="${action}" class="${classes}" ${disabled?'disabled':''}>${label}</button>`;
 const art=r=>symbol(r==='lumber'?'wood':r);
-let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
+let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[];
+let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null;
 let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={name:'',room:null,level:'standard',gameMode:'friends'};
 function announce(s){$('announcement').textContent=s;}
@@ -19,10 +21,11 @@ const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Pla
 const blocked=()=>busy||!ready||!!saved?.pending||!navigator.onLine||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const incoming=()=>view()?.offer?.to===view()?.you;
-function closeSheet(){sheet.close();modalAction=null;modalRevision=null;if(opener?.isConnected)opener.focus();}
-function openSheet(title,body){opener=document.activeElement;modalRevision=packet?.revision??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)sheet.showModal();(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
+function closeSheet(){sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
+function openSheet(title,body){sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)sheet.showModal();(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
 $('close-sheet').onclick=closeSheet;
-function staleModal(){if(modalRevision!==null&&modalRevision!==packet?.revision){closeSheet();notice='The game changed while this panel was open. Please review your choice again.';render();return true;}return false;}
+const modalChanged=()=>modalRevision!==null&&(modalRevision!==packet?.revision||modalRoom!==packet?.roomId||modalYou!==packet?.you);
+function staleModal(){if(modalChanged()){closeSheet();notice='The game changed while this panel was open. Please review your choice again.';render();return true;}return false;}
 function setScreen(next){screen=next;history.replaceState(null,'',`${location.pathname}#${next==='table'?'game':next}${next==='join'&&uuid(invitedRoom())?'?room='+invitedRoom():''}`);render();$('app').focus({preventScroll:true});}
 function money(bundle){return bundleLabel(bundle).replaceAll('lumber','wood');}
 function recovery(){
@@ -95,6 +98,7 @@ function render(){
   if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}},{zoom,pan});renderedBoard=boardKey;}
   if(replaced)for(const[action,label]of Object.entries({'zoom-in':'Zoom in on board','zoom-out':'Zoom out on board','zoom-reset':'Reset board view','pan-left':'Move board view left','pan-right':'Move board view right','pan-up':'Move board view up','pan-down':'Move board view down'}))document.querySelector(`[data-action="${action}"]`)?.setAttribute('aria-label',label);
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
+  if(sheet.open&&sheet.dataset.trade)updateTradeStatus();
 }
 function apply(next){
   if(!next)return;
@@ -135,9 +139,46 @@ function choose(candidates,titleText){openSheet(titleText,`<p class="muted">Choo
 function actionLabel(c){if(c.type==='BANK_TRADE')return `${c.give.amount} ${RESOURCE_NAMES[c.give.resource]} → ${c.receive.amount} ${RESOURCE_NAMES[c.receive.resource]}`;if(c.type==='PLAY_YEAR_OF_PLENTY')return c.resources.map(r=>RESOURCE_NAMES[r]).join(' + ');if(c.type==='PLAY_MONOPOLY')return RESOURCE_NAMES[c.resource];return c.type.toLowerCase().replaceAll('_',' ');}
 function buildPanel(){const choices=view().choices,costs={BUILD_ROAD:'1 brick + 1 wood',BUILD_SETTLEMENT:'1 brick + 1 wood + 1 grain + 1 wool',BUILD_CITY:'3 ore + 2 grain',BUY_DEVELOPMENT_CARD:'1 ore + 1 grain + 1 wool'};openSheet('Make your next move',`<p class="muted">Preview a piece before committing it. Unavailable builds need more resources, a legal location, or an available piece.</p><div class="scenario-list">${[['BUILD_ROAD','Road'],['BUILD_SETTLEMENT','Settlement'],['BUILD_CITY','City'],['BUY_DEVELOPMENT_CARD','Development card']].map(([type,label])=>button(`${label}<span class="build-cost">${costs[type]}</span>`,`build:${type}`,'',!choices.some(c=>c.type===type))).join('')}</div>`);}
 function offerPanel(){const v=view(),o=v.offer;if(!o)return;const mine=o.from===v.you;openSheet(mine?'Your offer is waiting':`${name(o.from)} has an offer`,`<p class="muted">${mine?'No cards move until the recipient accepts.':'Review the exact terms before accepting.'}</p><div class="offer-bundle"><span>${mine?'You give':'You receive'}</span><strong>${esc(money(o.give))}</strong></div><div class="offer-bundle"><span>${mine?'You receive':'You give'}</span><strong>${esc(money(o.receive))}</strong></div><div class="sheet-actions">${mine?button('Cancel offer','offer:TRADE_CANCEL','quiet',blocked()):button('Decline','offer:TRADE_DECLINE','quiet',blocked())+button('Accept trade','offer:TRADE_ACCEPT','primary',blocked()||!v.choices.some(c=>c.type==='TRADE_ACCEPT'))}</div>`);}
-function tradePanel(){
-  const me=ownPlayer(view());openSheet('A little give and take',`<p class="muted">Choose both sides of the offer. Nothing changes hands before acceptance.</p><form id="trade-form"><label for="trade-to">Offer to</label><select id="trade-to">${view().seats.filter(s=>s.id!==view().you).map(s=>`<option value="${s.id}" ${tradeDraft?.to===s.id?'selected':''}>${esc(s.name)}${s.kind==='bot'?' · Bot':''}</option>`).join('')}</select><div class="trade-grid"><span></span><span class="column-label">You give</span><span class="column-label">You receive</span>${RESOURCES.map(r=>`<label for="give-${r}">${art(r)}${RESOURCE_NAMES[r]}</label><input id="give-${r}" name="give-${r}" aria-label="Give ${RESOURCE_NAMES[r]}" type="number" inputmode="numeric" min="0" max="${me.resources[r]}" value="${tradeDraft?.give[r]||0}"><input name="receive-${r}" aria-label="Receive ${RESOURCE_NAMES[r]}" type="number" inputmode="numeric" min="0" max="19" value="${tradeDraft?.receive[r]||0}">`).join('')}</div><p id="form-error" class="error-text" role="alert"></p><div class="sheet-actions">${button('Bank or port','bank','quiet',!view().choices.some(c=>c.type==='BANK_TRADE'))}<button class="primary" type="submit">Review offer</button></div></form>`);
+const tradeButton=(label,action,disabled=false,classes='')=>`<button type="button" data-trade-control data-base-disabled="${disabled}" data-action="${action}" class="${classes}" ${disabled?'disabled':''}>${label}</button>`;
+function updateTradeStatus(){
+  const unavailable=blocked()||modalChanged();
+  for(const el of sheet.querySelectorAll('[data-trade-control]'))el.disabled=unavailable||el.dataset.baseDisabled==='true';
+  const status=$('trade-status');if(status){const text=modalChanged()?'The game changed. Close and reopen Trade to review your cards.':blocked()?'Reconnect and resolve any pending move before trading.':status.dataset.hint||'';if(status.textContent!==text)status.textContent=text;}
 }
+function selectedTradeBank(){return bankChoices(view()).find(c=>c.give.resource===bankGive&&c.receive.resource===bankReceive);}
+function tradePanel(nextMode='players'){
+  const v=view();tradeDraft=offerDraft(v,tradeDraft);tradeMode=nextMode;
+  if(bankRevision!==`${v.id}:${v.revision}`){bankGive=bankReceive=null;bankRevision=`${v.id}:${v.revision}`;}
+  openSheet('Trade','');sheet.dataset.trade='composer';modalAction=null;renderTradeComposer(`trade-mode:${nextMode}`);
+}
+function renderTradeComposer(focusAction=null){
+  const scrollTop=sheet.querySelector('.trade-scroll')?.scrollTop||0;
+  const v=view(),hand=ownPlayer(v).resources,peers=v.seats.filter(s=>s.id!==v.you),target=player(tradeDraft.to),isBank=tradeMode==='bank',choices=bankChoices(v),bank=selectedTradeBank();
+  const provisional=bank||choices.find(c=>c.give.resource===bankGive),bundles=isBank?bankBundles(provisional):tradeDraft;
+  const issue=isBank?(bank?'':!choices.length?'No affordable bank or port trade is available.':!bankGive?'Choose a resource to give.':'Choose a resource to receive.'):offerIssue(v,tradeDraft);
+  const cards=side=>RESOURCES.map(r=>{
+    const amount=isBank?(side==='give'&&bankGive===r?provisional?.give.amount||0:side==='receive'&&bankReceive===r?bank?.receive.amount||0:0):tradeDraft[side][r];
+    const rate=choices.find(c=>c.give.resource===r),allowed=isBank?(side==='give'?!!rate:!!bankGive&&choices.some(c=>c.give.resource===bankGive&&c.receive.resource===r)):(side==='give'?tradeDraft.give[r]<hand[r]&&!tradeDraft.receive[r]:!tradeDraft.give[r]&&tradeDraft.receive[r]<19&&handCount(tradeDraft.receive)<(target?.resourceCount||0));
+    const action=isBank?`trade-bank:${side}:${r}`:`trade-add:${side}:${r}`;
+    const detail=side==='give'?`${hand[r]} in hand`:isBank?(bankGive?(allowed?'Available':'Unavailable'):'Choose give first'):(tradeDraft.give[r]?'In your offer':amount?`${amount} requested`:'Request');
+    const kept=side==='give'?`Keep ${hand[r]-(isBank?(bankGive===r?provisional?.give.amount||0:0):tradeDraft.give[r])}`:'';
+    return tradeButton(`${art(r)}<span class="trade-card-name">${RESOURCE_NAMES[r]}</span><strong>${side==='give'?hand[r]:amount||'+'}</strong><small id="trade-info-${side}-${r}">${detail}</small>${side==='give'?`<small id="trade-kept-${r}" class="trade-kept">${kept}</small>`:''}${isBank&&side==='give'&&rate?`<small class="trade-rate">${rate.give.amount} → ${rate.receive.amount}</small>`:''}`,action,!allowed,`trade-resource-card ${amount?'selected':''} ${side==='give'&&!hand[r]?'empty':''}`).replace('data-trade-control',`aria-pressed="${amount>0}" aria-describedby="trade-info-${side}-${r}${side==='give'?' trade-kept-'+r:''}" aria-label="${isBank?'Select':side==='give'?'Choose':'Request'} ${RESOURCE_NAMES[r]}${side==='give'?' to give':' to receive'}" data-trade-control`);
+  }).join('');
+  const selections=side=>isBank?'':RESOURCES.filter(r=>tradeDraft[side][r]).map(r=>`<div class="trade-selected"><span>${art(r)}${RESOURCE_NAMES[r]}</span><div class="trade-stepper">${tradeButton('−',`trade-remove:${side}:${r}`,false,'icon-button').replace('data-trade-control',`aria-label="Remove ${RESOURCE_NAMES[r]} ${side==='give'?'from offer':'from request'}" data-trade-control`)}<output aria-label="${RESOURCE_NAMES[r]} ${side==='give'?'offered':'requested'}">${tradeDraft[side][r]}</output>${tradeButton('+',`trade-add:${side}:${r}`,side==='give'?tradeDraft.give[r]>=hand[r]:tradeDraft.receive[r]>=19||handCount(tradeDraft.receive)>=(target?.resourceCount||0),'icon-button').replace('data-trade-control',`aria-label="Add ${RESOURCE_NAMES[r]} ${side==='give'?'to offer':'to request'}" data-trade-control`)}</div></div>`).join('');
+  const summaryGive=isBank?bankBundles(provisional).give:tradeDraft.give,summaryReceive=isBank?bankBundles(bank).receive:tradeDraft.receive;
+  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,tradeMode==='players'?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div><p class="trade-intro">${isBank?'Your best available exchange rates are shown.':'Choose an offer. Cards only move if the other player accepts.'}</p>${isBank?'':`<div class="trade-partners" role="group" aria-label="Offer to">${peers.map(s=>tradeButton(`<strong>${esc(s.name)}</strong><small>${count(s.id)} cards · contents hidden</small>`,`trade-to:${s.id}`,false,s.id===tradeDraft.to?'selected':'').replace('data-trade-control',`aria-pressed="${s.id===tradeDraft.to}" data-trade-control`)).join('')}</div>`}<div class="trade-areas"><section aria-label="Cards you give"><h3>You give <small>${handCount(hand)} cards in hand</small></h3><p class="trade-help">Tap a card to ${isBank?'select it.':'add it. Counts show what you keep.'}</p><div class="trade-card-row">${cards('give')}</div>${selections('give')}</section><section aria-label="Cards you request"><h3>${isBank?'You receive':'You request'}</h3><p class="trade-help">${isBank?'Choose from the available exchanges.':`${esc(target?.name||'Your opponent')} has ${target?.resourceCount||0} cards. Their resource types are private.`}</p><div class="trade-card-row">${cards('receive')}</div>${selections('receive')}</section></div></div><div class="trade-footer"><p class="trade-live-summary" aria-live="polite">${esc(tradeLabel(summaryGive))} <span aria-hidden="true">→</span><span class="sr-only">for</span> ${esc(tradeLabel(summaryReceive))}</p><p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>Review trade</button></div></form>`;
+  sheet.querySelector('.trade-scroll').scrollTop=scrollTop;
+  updateTradeStatus();
+  if(focusAction){const el=[...sheet.querySelectorAll('[data-action]')].find(e=>e.dataset.action===focusAction&&!e.disabled);(el||sheet.querySelector('.trade-stepper button:not(:disabled)')||sheet.querySelector('.trade-tabs button:not(:disabled)'))?.focus({preventScroll:true});}
+}
+function reviewTrade(){
+  const v=view(),isBank=tradeMode==='bank',action=isBank?selectedTradeBank():null;
+  const issue=isBank?(action?'':'Choose an available bank exchange.'):offerIssue(v,tradeDraft);if(issue)return;
+  const {give,receive}=isBank?bankBundles(action):tradeDraft,after=handAfter(ownPlayer(v).resources,give,receive);
+  openSheet(isBank?'Review bank trade':'Review trade',`<p class="muted">${isBank?'Bank or port exchange':`Offer to ${esc(name(tradeDraft.to))}`}. Nothing has moved yet.</p><div class="offer-bundle"><span>You give</span><strong>${esc(tradeLabel(give))}</strong></div><div class="offer-bundle"><span>You receive</span><strong>${esc(tradeLabel(receive))}</strong></div><h3 class="trade-after-title">Your hand after ${isBank?'the exchange':'acceptance'}</h3><div class="trade-after">${RESOURCES.map(r=>`<div>${art(r)}<span>${RESOURCE_NAMES[r]}</span><strong aria-label="${RESOURCE_NAMES[r]} after trade">${after[r]}</strong></div>`).join('')}</div><p id="trade-status" data-hint="" class="trade-help" role="status"></p><div class="sheet-actions">${tradeButton('Edit trade',`trade-mode:${tradeMode}`,false,'quiet')}${tradeButton(isBank?'Confirm trade':'Send offer','modal-confirm',false,'primary')}</div>`);
+  sheet.dataset.trade='review';modalAction=isBank?action:{type:'TRADE_OFFER',to:tradeDraft.to,give:{...give},receive:{...receive}};updateTradeStatus();
+}
+
 function discardPanel(){const v=view(),me=ownPlayer(v);openSheet(`Return ${v.state.game.discardAmounts[v.you]} cards`,`<p class="muted">Choose exactly the required number from your own hand. Their types stay private.</p><form id="discard-form"><div class="trade-grid"><span></span><span class="column-label">Return</span><span class="column-label">In hand</span>${RESOURCES.map(r=>`<label for="discard-${r}">${art(r)}${RESOURCE_NAMES[r]}</label><input id="discard-${r}" name="${r}" type="number" inputmode="numeric" min="0" max="${me.resources[r]}" value="0"><span class="column-label">${me.resources[r]}</span>`).join('')}</div><p id="discard-total" class="muted">0 selected</p><p id="form-error" class="error-text" role="alert"></p><div class="sheet-actions"><button class="primary" type="submit">Confirm discard</button></div></form>`);}
 function cardPanel(index){const v=view(),card=ownPlayer(v).developmentCards.filter(c=>!c.isPlayed)[index];if(!card)return;const choices=v.choices.filter(c=>c.type===CARD_ACTION[card.type]);if(card.type==='victoryPoint'){openSheet('A private victory point','<p class="muted">This point counts toward your total and stays hidden from other players until the game ends. It is not an action card.</p>');return;}if(card.turnBought===v.state.game.turn){openSheet(CARD_NAMES[card.type],'<p class="muted">This card was bought this turn. It becomes playable on a later turn.</p>');return;}if(!choices.length){openSheet(CARD_NAMES[card.type],`<p class="muted">${card.turnBought===v.state.game.turn?'This card was bought this turn. It becomes playable on a later turn.':'This card cannot be played right now. You may have played another card this turn, or its effect is unavailable.'}</p>`);return;}if(choices.length>1){choose(choices,CARD_NAMES[card.type]);return;}openSheet(CARD_NAMES[card.type],`<p class="muted">${card.type==='knight'?'Move the robber, then choose an eligible victim.':'Place two free roads, one at a time.'}</p><div class="sheet-actions">${button('Not now','close','quiet')}${button(`Play ${CARD_NAMES[card.type]}`,'modal-confirm','primary',blocked())}</div>`);modalAction=choices[0];}
 function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<div class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP</span></div>`).join('')}<div class="sheet-actions">${button('View the board','close','quiet')}${button('New game','create','primary')}</div></div>`);}
@@ -148,6 +189,20 @@ function begin(next){
   setScreen(next);
 }
 async function dispatch(action,el){
+  if(action.startsWith('trade-')){
+    if(blocked()||staleModal())return;
+    if(action.startsWith('trade-mode:')){const next=action.slice(11);if(sheet.dataset.trade==='review'){tradePanel(next);return;}tradeMode=next;renderTradeComposer(action);return;}
+    if(action.startsWith('trade-to:')){tradeDraft.to=action.slice(9);renderTradeComposer(action);return;}
+    const [kind,side,r]=action.split(':');if(!RESOURCES.includes(r)||!['give','receive'].includes(side))return;
+    if(kind==='trade-bank'){if(side==='give'){bankGive=r;bankReceive=null;}else bankReceive=r;renderTradeComposer(action);return;}
+    if(kind==='trade-add'){
+      const hand=ownPlayer(view()).resources,target=player(tradeDraft.to);
+      if(side==='give'&&(tradeDraft.receive[r]||tradeDraft.give[r]>=hand[r]))return;
+      if(side==='receive'&&(tradeDraft.give[r]||tradeDraft.receive[r]>=19||handCount(tradeDraft.receive)>=(target?.resourceCount||0)))return;
+      tradeDraft[side][r]++;
+    }else if(kind==='trade-remove')tradeDraft[side][r]=Math.max(0,tradeDraft[side][r]-1);
+    renderTradeComposer(action);return;
+  }
   if(action==='close'){closeSheet();return;}
   if(action==='refresh'){closeSheet();botSince=0;botRevision=-1;await sync();return;}
   if(action.startsWith('resume-game:')){closeSheet();await sync('resume',{roomId:action.slice(12)});return;}
@@ -169,7 +224,7 @@ async function dispatch(action,el){
   if(action==='cancel-preview'){selection=null;mode='';render();return;}
   if(action.startsWith('quick:')){const choice=view().choices.find(c=>c.type===action.slice(6));if(choice)await sendAction(choice);return;}
   if(action==='trade'){tradePanel();return;}
-  if(action==='bank'){choose(view().choices.filter(c=>c.type==='BANK_TRADE'),'Trade with the bank or port');return;}
+  if(action==='bank'){tradePanel('bank');return;}
   if(action==='discard'){discardPanel();return;}
   if(action==='victim'){const choices=view().choices.filter(c=>c.type==='STEAL_RESOURCE');openSheet('Who will you steal from?',`<p class="muted">Resource types stay hidden.</p><div class="scenario-list">${choices.map((c,i)=>button(`${esc(name(c.victimId))}<span>${count(c.victimId)} resource cards</span>`,`victim:${i}`)).join('')}</div>`);modalAction=choices;return;}
   if(action.startsWith('victim:')){if(staleModal())return;const choice=modalAction?.[Number(action.slice(7))];if(choice)await sendAction(choice);return;}
@@ -184,9 +239,7 @@ document.addEventListener('submit',e=>{
   if(form.id==='choice-form'){const choice=modalAction?.[Number($('move-choice').value)];if(choice)sendAction(choice);return;}
   const data=new FormData(form),me=ownPlayer(view());
   if(form.id==='discard-form'){const resources=Object.fromEntries(RESOURCES.map(r=>[r,Number(data.get(r))]));if(handCount(resources)!==view().state.game.discardAmounts[view().you]||RESOURCES.some(r=>!Number.isSafeInteger(resources[r])||resources[r]<0||resources[r]>me.resources[r])){$('form-error').textContent='Select exactly the required number of cards from your hand.';return;}sendAction({type:'DISCARD_RESOURCES',resources});return;}
-  const give=Object.fromEntries(RESOURCES.map(r=>[r,Number(data.get(`give-${r}`))])),receive=Object.fromEntries(RESOURCES.map(r=>[r,Number(data.get(`receive-${r}`))]));
-  if(!handCount(give)||!handCount(receive)||RESOURCES.some(r=>!Number.isSafeInteger(give[r])||!Number.isSafeInteger(receive[r])||give[r]<0||receive[r]<0||give[r]>me.resources[r]||receive[r]>19||(give[r]&&receive[r]))){$('form-error').textContent='Offer at least one card on each side, using different resources. Give only cards you own.';return;}
-  tradeDraft={to:$('trade-to').value,give,receive};openSheet('Review your offer',`<p class="muted">To ${esc(name(tradeDraft.to))}</p><div class="offer-bundle"><span>You give</span><strong>${esc(money(give))}</strong></div><div class="offer-bundle"><span>You receive</span><strong>${esc(money(receive))}</strong></div><div class="sheet-actions">${button('Edit offer','trade','quiet')}${button('Send offer','modal-confirm','primary')}</div>`);modalAction={type:'TRADE_OFFER',...tradeDraft};
+  if(form.id==='trade-form'){reviewTrade();return;}
 });
 document.addEventListener('input',e=>{if(e.target.id==='player-name')formDraft.name=e.target.value;if(e.target.id==='room-id')formDraft.room=e.target.value;if(e.target.id==='bot-level')formDraft.level=e.target.value;if(e.target.id==='game-mode'){formDraft.gameMode=e.target.value;render();}if(e.target.closest('#discard-form'))$('discard-total').textContent=`${handCount(Object.fromEntries(RESOURCES.map(r=>[r,Number($(`discard-${r}`).value)])))} selected`;});
 $('refresh').onclick=()=>sync();$('room').onclick=()=>dispatch('room');

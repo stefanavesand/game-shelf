@@ -27,3 +27,7 @@ Requested 2026-11-02. The original client adds solo creation, mode-aware UI and 
 ## Navigation revision (2026-11-03)
 
 Original work adds browser-local authorized game history/resume, plain product copy, new-game configuration, direct SVG targets and explicit number-token baselines. No engine, upstream geometry or art was imported. The root now opens the real client instead of the historical scripted prototype; the latter remains separately accessible and labeled. Existing storage keys/database version, identities and server contracts are preserved. Historical design names and internal CSS identifiers remain provenance/compatibility context, not product branding. See docs/ONLINE_INTEGRATION.md for current verification.
+
+## Original trade composer (2026-11-03)
+
+The resource-card trade UI and pure play/trade.js helpers are original presentation work. They consume the existing authenticated view/choices, derive own-hand previews and validate draft bounds, without importing a rules engine, upstream art or a provider dependency. Bank/port rates/actions remain authoritative server choices. Existing engine rights/reproducible backend gates remain open; no backend build was made for this UI update.
