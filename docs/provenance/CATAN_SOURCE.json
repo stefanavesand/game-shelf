@@ -1,0 +1,75 @@
+{
+  "sourceRepository": "https://github.com/stefanavesand/OpenCatan",
+  "sourceCommit": "e6695090a603e7c831ce8c24ccaecf77d0c130b6",
+  "conversion": {
+    "tool": "TypeScript 5.9.3 transpileModule",
+    "target": "ES2022",
+    "module": "ESNext",
+    "note": "One-time type erasure; emitted JavaScript is now maintained source. Imports remapped; five upstream helpers excluded/replaced. See CATAN_ENGINE.md."
+  },
+  "files": [
+    {
+      "source": "game/engine/base/board.ts",
+      "sourceSha256": "516bfd7e3b31305adf2e31ab865467e09fea66e7a5358a36a78f3187921d7073",
+      "target": "play/catan/rules/board.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Rendering-only floating positions removed."
+    },
+    {
+      "source": "game/engine/base/economy.ts",
+      "sourceSha256": "fdf472ea30ffc459efda5490986f2fd1307314573cfdc5fa4549ee72b0f20dfb",
+      "target": "play/catan/rules/economy.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Type erasure/import remapping."
+    },
+    {
+      "source": "game/engine/base/scoring.ts",
+      "sourceSha256": "248003ad17b83b80f98ab1a941ec77a42c91e748bd0cbf7897769d9403b0fa23",
+      "target": "play/catan/rules/scoring.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Type erasure/import remapping."
+    },
+    {
+      "source": "game/engine/base/turn.ts",
+      "sourceSha256": "0da1a42863862407c98855d77fd6a83910b2bf0aa20fcce618e9c6346a2eee5d",
+      "target": "play/catan/rules/turn.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Type erasure/import remapping."
+    },
+    {
+      "source": "game/engine/setupValidation.ts",
+      "sourceSha256": "8cce3b185911d1253b82b0035a0fbfde2924f5fa6e1cc41d8f527a3503190829",
+      "target": "play/catan/rules/setup.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Type erasure/import remapping."
+    },
+    {
+      "source": "game/session/catan.ts",
+      "sourceSha256": "85b84e8ab69f8a9c44e5de4327e246bca7540916baf00a7704b5461551a2e61d",
+      "target": "play/catan/rules/session.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "New engine version 2.0.0, no legacy session migration."
+    },
+    {
+      "source": "game/session/bot.ts",
+      "sourceSha256": "4bb19d3c51c4efa823185d7f52b52ac9d8495b1506bb72e38da23fc4db3868e6",
+      "target": "play/catan/rules/bot.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Settlement scoring includes the separately licensed MIT catan-ai adaptation."
+    },
+    {
+      "source": "game/session/index.ts",
+      "sourceSha256": "a1e9e38294aba6e574236b603a7f03ef455cc16a52fdf979da6589223ab77361",
+      "target": "play/catan/rules/index.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Type erasure/import remapping."
+    },
+    {
+      "source": "session/projectView.ts",
+      "sourceSha256": "68e3a3c888d38eca426b2c0e8f6ed09a3718d5603b115b4732696ed142ac9a64",
+      "target": "play/catan/rules/projection.js",
+      "origin": "added-in-owner-project-history",
+      "notes": "Omit private log data rather than serializing undefined."
+    }
+  ]
+}

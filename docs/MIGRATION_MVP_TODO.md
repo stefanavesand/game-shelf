@@ -85,3 +85,9 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 - [x] PWA-RELAY-01 — Original relay transport, neutral identity adapter, transactional IndexedDB checkpoint/outbox, deterministic fixture replica and separate developer UI. 20 new core and four mocked-HTTP browser tests passed; Catan engine/live relay/iPad work remain API-02/03. See [PWA relay foundation](PWA_RELAY.md).
 
 - [x] PWA-RELAY-02 — Live counter integration against the activated relay: two browser identities, invitation, deterministic move, peer verification and reload passed using the executor's TLS-verifying proxy. Physical iPad/direct browser networking and Catan engine/UI remain open. See [live evidence](PWA_RELAY.md#live-verification-after-backend-activation).
+
+- [x] CATAN-RELAY-01 — Extract the scoped owner-project rules/session/bot modules, replace upstream helpers, pin deterministic entropy and verify Node/browser replay plus three-seat simulation. 100 seeded games finished; see [Catan engine evidence](CATAN_ENGINE.md). Broad rights/distribution and main UI gates remain open.
+- [x] CATAN-RELAY-02 — Separate direct-board developer harness for two PWAs and a coordinator bot, with revision-bound confirmations and saved state. Mocked HTTP browser setup/reload passed; physical device/full human game acceptance remains separate.
+- [ ] CATAN-RELAY-03 — Integrate the engine into the approved main Catan workspace; complete trading/All/bank batches and special-phase UX, then real two-human/one-bot iPad acceptance and PWA install/update work. No server game rules required.
+
+- [x] UI-08 — Budget-prioritized resource-row composer in the normal game: compact recipient dropdown, own counts and Give/Request columns; same Bank/ports layout and reviewed exact exchanges. Seven targeted browser checks passed. All-recipient offers and atomic bank batches remain CATAN-RELAY-03; not available on the current managed engine.

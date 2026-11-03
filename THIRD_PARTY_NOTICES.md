@@ -9,3 +9,7 @@ Copyright (c) 2026 8910work-cell. MIT license; full notice in [licenses/catan-ai
 Adaptations: English comments, explicit player observation, canonical OpenCatan coordinates/resources, no global state, bounded legal-choice selection and injected tie-breaking randomness. No upstream UI, artwork, TensorFlow, learned weights or MCTS runtime is imported. Other action priorities and session integration are implemented here.
 
 This notice does not resolve licensing/asset questions for the pre-existing OpenCatan code. See PRD LEG-01 and the rights follow-up.
+
+## PWA Catan engine extraction
+
+play/catan/rules/bot.js retains the full catan-ai MIT notice for the settlement-scoring adaptation. It does not license the whole engine as catan-ai code. Other extracted module origins and newly authored replacement helpers are recorded in [the engine guide](docs/CATAN_ENGINE.md) and [source manifest](docs/provenance/CATAN_SOURCE.json). No original OpenCatan artwork or legacy helper implementations were imported in this extraction.

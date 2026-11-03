@@ -103,3 +103,7 @@ test('a guest cannot invent a die outcome in the coordinator-only fixture action
 test('local checkpoint corruption blocks play instead of advertising a restored game',async()=>{
  const h=harness();await h.alice.begin({start:0});const saved=await h.store.load('alice','channel');saved.game.state.value=123;await h.store.save(saved);await assert.rejects(h.alice.sync(),e=>e.code==='INVALID_SAVE');
 });
+test('an action bound to a displayed revision is never silently rebased after catch-up',async()=>{
+ const h=harness();await h.alice.begin({start:0});await h.bob.sync();const displayed=await h.alice.state();await h.bob.command({type:'ADD',amount:2});
+ await assert.rejects(h.alice.command({type:'ADD',amount:1},{},{revision:displayed.game.revision,hash:displayed.game.hash}),e=>e.code==='STALE_GAME');assert.equal((await h.alice.state()).game.state.value,2);assert.equal(h.server.messages.filter(m=>m.message.type==='game.command').length,1);
+});

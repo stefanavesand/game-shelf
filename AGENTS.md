@@ -19,3 +19,7 @@ Keep rules, authorized private views, sessions, transports, storage and UI separ
 Track follow-ups using the stable IDs in docs/MIGRATION_MVP_TODO.md; no external tracker or bd CLI is required. Run checks appropriate to the change. The frontend workflow tests the allowlisted dist/ package before Pages deployment and verifies public asset hashes; keep this gate intact. See docs/CI_DEPLOYMENT.md. Once a runnable project exists, establish clean lint/typecheck/test/build commands and document them. Validate relative documentation links and provenance on documentation-only changes; do not invent passing app tests.
 
 Never commit credentials, tokens, private game snapshots or environment files. Keep secrets on the managed server. Commit and push completed authorized work; verify branch status and report any real blocker. Do not merge or change the existing pilot as a side effect of repository setup.
+
+## Owner delivery decisions (2026-11-03)
+
+The owner authorizes merging finished PRs when appropriate checks pass and completing gated deployment without asking again. There are no current players or valuable pilot games; old-game/save migration is not a requirement. Keep secrets safe and follow actual source provenance. The current usage budget is tight: prioritize a playable Catan entrypoint and the resource-row trading UI; avoid unrelated refactors and repeated broad test runs. All-recipient/batch trades remain explicit follow-ups until the active game module supports them.

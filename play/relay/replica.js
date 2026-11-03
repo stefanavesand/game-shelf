@@ -4,7 +4,7 @@ export const SESSION_SCHEMA='game-shelf/session/1';
 export class RuleRejection extends Error {}
 const envelope=(type,payload)=>({schema:SESSION_SCHEMA,type,payload});
 export async function beginMessage(module,config,gameId) {
-  const state=module.initialize(clone(config));
+  const state=module.initialize(clone(config),{gameId});
   return envelope('game.begin',{gameId,moduleId:module.id,moduleVersion:module.version,moduleDigest:module.digest,config:clone(config),resultHash:await digest(state)});
 }
 export async function commandMessage(record,module,command,effects,intentId,context={}) {
@@ -28,7 +28,7 @@ export async function applyMessage(saved,item,{module,creatorId,members}) {
     invariant(item.senderId===creatorId&&!record.game,'INVALID_MESSAGE','Only the creator may initialize a game once.');
     invariant(p.moduleId===module.id&&p.moduleVersion===module.version&&p.moduleDigest===module.digest,'UNSUPPORTED_ENGINE','This game requires the exact same engine artifact.');
     invariant(typeof p.gameId==='string'&&p.gameId.length>0,'INVALID_MESSAGE','Missing game identity.');
-    const state=module.initialize(clone(p.config)),hash=await digest(state);
+    const state=module.initialize(clone(p.config),{gameId:p.gameId}),hash=await digest(state);
     record.game={id:p.gameId,revision:0,state,hash,moduleId:module.id,moduleVersion:module.version,moduleDigest:module.digest,hashes:{0:hash},seen:{},peerVerified:{}};
     if(hash!==p.resultHash)halt('initial_hash_mismatch');
     else notifications.push(envelope('game.verify',{gameId:p.gameId,revision:0,resultHash:hash}));

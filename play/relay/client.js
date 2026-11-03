@@ -72,7 +72,10 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
     state:()=>locked(load),
     sync:()=>locked(syncWork),
     begin:config=>submit(async record=>{invariant(principalId===creatorId&&!record.game,'NOT_CREATOR','Only the creator may start this game.');return beginMessage(module,config,id());}),
-    command:(command,effects={})=>submit(record=>commandMessage(record,module,command,effects,id(),{coordinatorId:creatorId})),
+    command:(command,effects={},expected={})=>submit(record=>{
+      invariant((expected.revision===undefined||expected.revision===record.game?.revision)&&(expected.hash===undefined||expected.hash===record.game?.hash),'STALE_GAME','The game changed. Review your action again.');
+      return commandMessage(record,module,command,effects,id(),{coordinatorId:creatorId});
+    }),
     async haltStatus(){return (await load()).halt;}
   };
 }

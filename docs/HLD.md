@@ -341,3 +341,7 @@ M-18/19 keep API/engine/storage versions unchanged. The IndexedDB adapter enumer
 ## Trade presentation (2026-11-03)
 
 M-20 adds a UI-only draft bound to room and revision, separate from submitted session commands. play/trade.js derives validation, retained/projected own counts and bank bundles; it neither applies game transitions nor calls a provider. Player requests use only public opponent card totals. Bank/port actions are selected directly from the authenticated view’s legal choices, retaining the exact rate/action. Draft changes do not mutate the authorized view; review copies the immutable offer/action before existing outbox/CAS submission. Polls retain same-revision drafts; changed revisions and offline/pending state disable stale modal controls. No protocol, engine, storage schema or backend migration is required.
+
+## Replicated Catan engine slice (2026-11-03)
+
+[The new engine](CATAN_ENGINE.md) runs shared rules 2.0.0 in the PWA with a pinned deterministic PRNG continuation, logical revision time and counter-based entity IDs. This is the selected concrete effect representation for the timer-free trusted-friend game; a separate per-action randomness tape/coordinator roundtrip is unnecessary. Human actions bind the displayed game revision/hash. Bot decisions run only on the creator, from the bot's seat projection, and are replicated as ordinary commands. The separate developer interface verifies the boundary; main UI, app-shell updates and physical acceptance remain open. Old-game migration is not a requirement per owner clarification.

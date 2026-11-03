@@ -35,3 +35,7 @@ The resource-card trade UI and pure play/trade.js helpers are original presentat
 ## Original replicated relay foundation (2026-11-03)
 
 play/relay/, its tests and docs are original work: game-independent transport, IndexedDB records/outbox, deterministic session replication and an independent counter fixture. Provider identity code was extracted from this repository's original client without importing backend/upstream engine code or art. Client wire shapes were independently implemented from the reviewed relay API. No private backend source or fixtures were copied into this public repository. The owner removed the old-data/old-game migration requirement; no new legacy save bridge is implemented. See [foundation evidence](docs/PWA_RELAY.md).
+
+## Scoped Catan engine extraction (2026-11-03)
+
+Nine owner-project modules are now maintained as native JavaScript under play/catan/rules/, with exact source commit/hashes and transformation notes in [the source manifest](docs/provenance/CATAN_SOURCE.json). The five previously inventoried upstream helper implementations were excluded and replaced with newly authored geometry/model helpers. No upstream types/art or private backend runtime were copied. The bot settlement adaptation includes its full verified MIT notice in the shipped module; no broader license is claimed. See [engine boundaries, deliberate version changes and executed evidence](docs/CATAN_ENGINE.md). The earlier bootstrap statements describe that earlier stage, not the current module inventory.

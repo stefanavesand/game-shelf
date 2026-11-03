@@ -26,6 +26,10 @@ Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-she
 
 See [CI and Pages deployment](docs/CI_DEPLOYMENT.md). Pull requests test the packaged client; main publishes only after checks pass and then verifies public asset hashes. Pages must use GitHub Actions as its source for this gate to be effective. `npm run build` creates dist/; `npm run test:package` verifies the distributable.
 
+## Catan engine development
+
+A separate [deterministic Catan engine test](docs/CATAN_ENGINE.md) runs rules in both PWAs over the relay. Open `/game-shelf/play/catan/` locally for two-human/one-bot setup and legal-action testing. This is a developer interface; main-game UI integration remains in progress.
+
 ## Relay development
 
 The new trusted-friend session foundation has a separate [developer counter and verification guide](docs/PWA_RELAY.md). It exercises relay communication, local saves and independent PWA validation; Catan engine integration and live API activation are separate steps.
