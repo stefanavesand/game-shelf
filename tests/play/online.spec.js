@@ -173,3 +173,10 @@ for(const viewport of [{width:1024,height:768},{width:768,height:1024},{width:39
     await page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await expect(page.getByRole('button',{name:'Resume game',exact:true})).toBeVisible();await page.screenshot({path:testInfo.outputPath(`home-${viewport.width}.png`),fullPage:true});
   }finally{await context.close();}
 });
+
+test('legacy-only home can resume without guessing players or bot level',async({browser})=>{
+  const backend=service({phase:'main'}),context=await browser.newContext();
+  try{
+    await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url+'#home');await ready(page);await expect(page.getByText('Open to check players and bot level')).toBeVisible();await expect(page.locator('.saved-game')).not.toContainText('Standard');expect(backend.authCalls).toBe(0);await page.getByRole('button',{name:'Resume game',exact:true}).click();await expect(page.locator('.players')).toBeVisible();expect((await state(page)).roomId).toBe(roomId);await page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await expect(page.locator('.saved-game')).toContainText('Standard');
+  }finally{await context.close();}
+});
