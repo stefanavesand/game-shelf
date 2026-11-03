@@ -81,3 +81,5 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 - [ ] API-03 — Reconcile new-mode PRD/HLD/privacy/operations acceptance, then integrate new Catan games behind a versioned opt-in. Trusted members can inspect full state; fixed relay access expiry must be disclosed. Preserve old identities, saves, endpoints and unresolved intents.
 
 - [ ] AUTH-01 — Add Google and Microsoft OAuth account sign-in after the anonymous pilot. Link/upgrade the existing principal without losing channel memberships, game seats, saves or unresolved mutation IDs; explicitly handle provider collisions, cancelled login, account switching and cross-device access. Anonymous token verification is already required now; OAuth UI/provider setup is deferred by owner agreement on 2026-11-03.
+
+- [x] PWA-RELAY-01 — Original relay transport, neutral identity adapter, transactional IndexedDB checkpoint/outbox, deterministic fixture replica and separate developer UI. 20 new core and four mocked-HTTP browser tests passed; Catan engine/live relay/iPad work remain API-02/03. See [PWA relay foundation](PWA_RELAY.md).

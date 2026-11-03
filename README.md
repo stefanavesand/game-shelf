@@ -26,6 +26,10 @@ Run `npm ci`, then `npm run prototype:dev`. Open `http://127.0.0.1:4176/game-she
 
 See [CI and Pages deployment](docs/CI_DEPLOYMENT.md). Pull requests test the packaged client; main publishes only after checks pass and then verifies public asset hashes. Pages must use GitHub Actions as its source for this gate to be effective. `npm run build` creates dist/; `npm run test:package` verifies the distributable.
 
+## Relay development
+
+The new trusted-friend session foundation has a separate [developer counter and verification guide](docs/PWA_RELAY.md). It exercises relay communication, local saves and independent PWA validation; Catan engine integration and live API activation are separate steps.
+
 ## Real client development
 
 Run `npm ci`, then `npm run play:dev`, and open `http://127.0.0.1:4176/game-shelf/play/`. `npm run check`, `npm run test:core` and `npm run test:browser` run syntax checks, core tests and deterministic browser tests. The live service test is opt-in; see ONLINE_INTEGRATION.md. The real client uses persistent anonymous identity and saved server games; it is not a scripted demo. Its new browser URL does not yet provide installable/offline PWA startup.

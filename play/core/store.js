@@ -1,7 +1,7 @@
 import {PlayError} from './errors.js';
 import {validateSaved,validatePacket} from './protocol.js';
 export const LEGACY_STATE='game-shelf-catan-online-v1';
-export const AUTH_KEY='spelhyllan-online-auth-v1';
+export {AUTH_KEY} from './identity.js';
 const blank=()=>({schemaVersion:1,roomId:null,pending:null});
 const failure=()=>new PlayError('STORAGE_FAILURE','Your player data could not be saved or read. No new move was sent. Keep this installation and fix storage before continuing.');
 export function createStore({idb,local}={}){

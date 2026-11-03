@@ -30,3 +30,7 @@ Keep pushed history intact so GitHub–Lovable synchronization remains usable. D
 ## Dispatch record
 
 Sent 2026-11-03 to the existing Game Shelf Server project (`cdbab9d4-9c51-4ab0-89d9-feb24af9b7ce`), message `umsg_01m6gx47xafpvsn3xpt05jfpp0`, thread `main`. Included the complete approved Draft 0.3 specification. Explicitly prohibited production test traffic/schema experiments, automatic publishing and paid resource provisioning. If no isolated database exists, deliver migrations/offline tests and report live integration as not run. Future Google/Microsoft OAuth is AUTH-01; anonymous verified auth remains required now.
+
+## Activation request
+
+Owner clarified there are no players or valuable pilot games/data and explicitly requested API activation. Message `umsg_01m6gy3yckf2jbd5s1d5jkwm1z` authorizes applying the additive relay migration to the existing managed backend, bounded smoke tests and publication. This supersedes the earlier test-environment-only/no-publish restriction for activation. No additional paid environment, load test, history rewrite or unrelated table deletion was requested. Implementation source: `5d6683467a6e5e601de42d6656d3f961344323cd`; applied/published status must still be verified.
