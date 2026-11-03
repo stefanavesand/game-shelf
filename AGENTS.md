@@ -16,6 +16,6 @@ Keep rules, authorized private views, sessions, transports, storage and UI separ
 
 ## Verification and delivery
 
-Track follow-ups using the stable IDs in docs/MIGRATION_MVP_TODO.md; no external tracker or bd CLI is required. Run checks appropriate to the change. Once a runnable project exists, establish clean lint/typecheck/test/build commands and document them. Validate relative documentation links and provenance on documentation-only changes; do not invent passing app tests.
+Track follow-ups using the stable IDs in docs/MIGRATION_MVP_TODO.md; no external tracker or bd CLI is required. Run checks appropriate to the change. The frontend workflow tests the allowlisted dist/ package before Pages deployment and verifies public asset hashes; keep this gate intact. See docs/CI_DEPLOYMENT.md. Once a runnable project exists, establish clean lint/typecheck/test/build commands and document them. Validate relative documentation links and provenance on documentation-only changes; do not invent passing app tests.
 
 Never commit credentials, tokens, private game snapshots or environment files. Keep secrets on the managed server. Commit and push completed authorized work; verify branch status and report any real blocker. Do not merge or change the existing pilot as a side effect of repository setup.

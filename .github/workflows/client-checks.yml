@@ -1,0 +1,90 @@
+name: Client checks and Pages
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: client-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+jobs:
+  checks:
+    name: Check, test and package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GAME_SHELF_LIVE: '0'
+      GAME_SHELF_SOLO_LIVE: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+      - run: npm run test:core
+      - run: npm run build
+      - run: npm run test:package
+      - name: Test the packaged site
+        run: npm run test:browser
+        env:
+          GAME_SHELF_STATIC_ROOT: dist
+      - name: Browser review artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-review
+          path: test-results/
+          retention-days: 7
+      - name: Tested site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tested-site
+          path: dist/
+          include-hidden-files: true
+          retention-days: 7
+      - name: Pages artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+  deploy:
+    name: Publish tested site
+    needs: checks
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Activate workflow-based Pages publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow --silent
+      - uses: actions/configure-pages@v5
+      - uses: actions/deploy-pages@v4
+        id: deployment
+  verify:
+    name: Verify public release
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run build
+      - run: npm run verify:deployment
+        env:
+          GAME_SHELF_DEPLOYMENT_URL: ${{ needs.deploy.outputs.page_url }}
