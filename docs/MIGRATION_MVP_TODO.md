@@ -73,3 +73,15 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 - [x] UI-07 — M-20: redesign resource trading with explicit own holdings/retained/projected counts, card selection and steppers, recipient buttons, separate authoritative bank/port choices, review/confirmation, revision-bound drafts and responsive fixed close/summary controls. 19 core / 42 browser tests passed; final eight trade regressions passed after scroll/layout adjustments. See [integration evidence](ONLINE_INTEGRATION.md). Physical iPad acceptance remains QA-02.
 
 - [ ] CI-01 — Owner priority 2026-11-03: tests and deployment before the table-based trading changes. Implement PR/main Actions checks against an allowlisted packaged site, gate Pages publication on tests and verify public hashes; activate Pages Actions source and record the first successful gated release. Frontend only; managed backend and physical iPad gates remain separate. See [CI deployment](CI_DEPLOYMENT.md).
+
+## Trusted-friend replicated mode (owner direction, 2026-11-03)
+
+- [ ] API-01 — Review and implement the game-independent identity/relay contract and RELAY-01–09/14 tests in an isolated environment. See [API spec](SESSION_API_SPEC.md) and [Lovable brief](LOVABLE_RELAY_BRIEF.md). Existing games and endpoints remain unchanged. This is a proposed spec, not a deployed backend.
+- [ ] API-02 — Extract one pinned deterministic PWA engine/session module with explicit effects and local persistence; validate replay, bot projection and halt-on-divergence (RELAY-10–13). No server game rules or automatic recovery. Resolve provenance before copying runtime.
+- [ ] API-03 — Reconcile new-mode PRD/HLD/privacy/operations acceptance, then integrate new Catan games behind a versioned opt-in. Trusted members can inspect full state; fixed relay access expiry must be disclosed. Preserve old identities, saves, endpoints and unresolved intents.
+
+- [ ] AUTH-01 — Add Google and Microsoft OAuth account sign-in after the anonymous pilot. Link/upgrade the existing principal without losing channel memberships, game seats, saves or unresolved mutation IDs; explicitly handle provider collisions, cancelled login, account switching and cross-device access. Anonymous token verification is already required now; OAuth UI/provider setup is deferred by owner agreement on 2026-11-03.
+
+- [x] PWA-RELAY-01 — Original relay transport, neutral identity adapter, transactional IndexedDB checkpoint/outbox, deterministic fixture replica and separate developer UI. 20 new core and four mocked-HTTP browser tests passed; Catan engine/live relay/iPad work remain API-02/03. See [PWA relay foundation](PWA_RELAY.md).
+
+- [x] PWA-RELAY-02 — Live counter integration against the activated relay: two browser identities, invitation, deterministic move, peer verification and reload passed using the executor's TLS-verifying proxy. Physical iPad/direct browser networking and Catan engine/UI remain open. See [live evidence](PWA_RELAY.md#live-verification-after-backend-activation).

@@ -31,3 +31,7 @@ Original work adds browser-local authorized game history/resume, plain product c
 ## Original trade composer (2026-11-03)
 
 The resource-card trade UI and pure play/trade.js helpers are original presentation work. They consume the existing authenticated view/choices, derive own-hand previews and validate draft bounds, without importing a rules engine, upstream art or a provider dependency. Bank/port rates/actions remain authoritative server choices. Existing engine rights/reproducible backend gates remain open; no backend build was made for this UI update.
+
+## Original replicated relay foundation (2026-11-03)
+
+play/relay/, its tests and docs are original work: game-independent transport, IndexedDB records/outbox, deterministic session replication and an independent counter fixture. Provider identity code was extracted from this repository's original client without importing backend/upstream engine code or art. Client wire shapes were independently implemented from the reviewed relay API. No private backend source or fixtures were copied into this public repository. The owner removed the old-data/old-game migration requirement; no new legacy save bridge is implemented. See [foundation evidence](docs/PWA_RELAY.md).

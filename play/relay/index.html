@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Relay test · Game Shelf</title><link rel="stylesheet" href="./style.css"></head>
+<body><main>
+<header><a href="../#home">Game Shelf</a><span>Developer test</span></header>
+<h1>Two browsers. One game.</h1>
+<p>This counter tests the new connection and local saves. It is not Catan. The relay must be configured before online testing.</p>
+<form id="connection"><label>Relay endpoint<input id="endpoint" type="url" required value="https://stefan-game-shelf.lovable.app/api/public/relay/v1"></label><label>Your name<input id="name" maxlength="30" value="Player" required></label><button>Connect</button></form>
+<p id="identity">Not connected</p>
+<section id="admission" hidden><button id="create">Create channel</button><label>Invitation token<input id="token" autocomplete="off"></label><button id="join">Join channel</button><button id="retry-admission" hidden>Retry pending request</button><p>Channel access lasts seven days. Local saves depend on this browser's storage.</p></section>
+<section id="game" hidden><label>Share invitation<input id="invite" readonly></label><p id="channel"></p><p id="storage"></p><button id="begin">Start counter</button><output id="value" aria-label="Counter value">0</output><div class="actions"><button id="add">Add 1</button><button id="roll">Roll a die</button><button id="sync">Synchronize / retry</button></div><dl><dt>Game revision</dt><dd id="revision">—</dd><dt>Message position</dt><dd id="cursor">0</dd><dt>Pending messages</dt><dd id="pending">0</dd><dt>Verification</dt><dd id="verification">Waiting</dd></dl><p id="hash"></p></section>
+<p id="status" role="status">Connect explicitly to create or restore your anonymous player identity.</p>
+<p id="error" role="alert"></p>
+</main><script type="module" src="./app.js"></script></body></html>

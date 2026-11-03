@@ -4,6 +4,12 @@ Version 3.8 · 2026-11-03 · Product baseline and warm light UI owner-approved; 
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
 
+## New relay mode: approved direction (2026-11-03)
+
+The owner approved [the identity and relay contract](docs/SESSION_API_SPEC.md) for a new trusted-friend mode. PWAs share a pinned deterministic engine and full game state; participants can technically inspect secrets, while the normal UI and bot observations remain seat-specific. The managed service verifies anonymous identities, controls private channel membership, orders messages and temporarily retains history. It does not run rules or bots. Reproducible divergence stops play with an error; automatic recovery is deferred. Google/Microsoft OAuth account sign-in and linking are AUTH-01 follow-up work; verified anonymous authentication is required now.
+
+This approved direction applies to new relay-mode work. Existing managed Catan/tic-tac-toe sessions, their server authority, private projections, identities and pending intents remain unchanged. The older architecture below describes that existing mode and broader roadmap. Implementation, privacy/expiry disclosure and release verification for the new mode remain separate gates.
+
 ## 1. Goals and audience
 
 Build a board-game collection for friends on tablets, phones and computers. OpenCatan is the first substantial game. Tic-tac-toe is a small reference game for verifying installation, sessions and transports before adding complexity.

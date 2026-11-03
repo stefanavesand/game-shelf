@@ -3,6 +3,12 @@
 Version 1.1 · 2026-11-01 · Proposed E1/E2 target design, not an implemented system.
 Requirements baseline: [PRD 3.2](../PRD.md). The PWA and OpenCatan preview are separate implementations to be unified incrementally. Version 1.1 translates the 1.0 baseline into English; it does not select a new provider or change the implementation scope.
 
+## New relay mode: approved direction (2026-11-03)
+
+The owner approved [the identity and relay contract](SESSION_API_SPEC.md) for a new trusted-friend mode. PWAs share a pinned deterministic engine and full game state; participants can technically inspect secrets, while the normal UI and bot observations remain seat-specific. The managed service verifies anonymous identities, controls private channel membership, orders messages and temporarily retains history. It does not run rules or bots. Reproducible divergence stops play with an error; automatic recovery is deferred. Google/Microsoft OAuth account sign-in and linking are AUTH-01 follow-up work; verified anonymous authentication is required now.
+
+This approved direction applies to new relay-mode work. Existing managed Catan/tic-tac-toe sessions, their server authority, private projections, identities and pending intents remain unchanged. The older architecture below describes that existing mode and broader roadmap. Implementation, privacy/expiry disclosure and release verification for the new mode remain separate gates.
+
 ## Solo extension (2026-11-02)
 
 PRD 3.6 / M-17 adds optional solo internet rooms to the existing managed implementation; the older target design below remains broader roadmap context. See [solo integration](SOLO_INTEGRATION.md). Creation includes an explicit solo mode in its durable intent and initializes the complete three-seat session atomically. Friends mode preserves the legacy request hash. The authority selects eligible actors from the current snapshot, intersects them with declared bot seats and commits each bot decision under revision CAS and a deterministic room/revision/actor receipt. Each policy receives only its own authorized projection. Bounded work continues on later view requests. Solo rooms have no guest admission; human identity is never assigned to a bot seat. API/engine and client-storage versions remain compatible.
