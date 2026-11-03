@@ -67,6 +67,10 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Activate workflow-based Pages publishing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow --silent
       - uses: actions/configure-pages@v5
       - uses: actions/deploy-pages@v4
         id: deployment
