@@ -11,7 +11,10 @@
     "test:core": "node tests/core/client.test.js",
     "test:browser": "playwright test",
     "play:test": "playwright test --project=play",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build-site.mjs",
+    "verify:deployment": "node scripts/verify-deployment.mjs",
+    "test:package": "node tests/package/site.test.js"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"
