@@ -4,9 +4,10 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f7f3e9"><meta name="description" content="A private internet game for two friends and one bot.">
   <title>Game Shelf · Catan</title><link rel="stylesheet" href="./style.css">
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="icon" href="./icon.svg"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Game Shelf">
 </head>
 <body>
-  <header class="app-header"><a class="brand" href="#home" aria-label="Game Shelf home"><span class="brand-mark" aria-hidden="true">⬡</span><span>Game Shelf</span><span class="early-label">Playtest</span></a><div class="header-actions"><button id="refresh" class="connection text-button" aria-label="Check the game"><span class="status-dot"></span><span id="connection">Connecting…</span></button><button id="room" class="icon-button" aria-label="Room details" hidden>☰</button></div></header>
+  <header class="app-header"><a class="brand" href="#home" aria-label="Game Shelf home"><span class="brand-mark" aria-hidden="true">⬡</span><span>Game Shelf</span><span class="early-label">Playtest</span></a><div class="header-actions"><button id="offline-status" class="text-button" type="button">Preparing offline…</button><button id="refresh" class="connection text-button" aria-label="Check the game"><span class="status-dot"></span><span id="connection">Connecting…</span></button><button id="room" class="icon-button" aria-label="Room details" hidden>☰</button></div></header>
   <main id="app" tabindex="-1"></main>
   <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
   <dialog id="sheet" aria-labelledby="sheet-title"><div class="sheet-handle" aria-hidden="true"></div><div class="sheet-heading"><h2 id="sheet-title"></h2><button id="close-sheet" class="icon-button" aria-label="Close panel">×</button></div><div id="sheet-body"></div></dialog>
