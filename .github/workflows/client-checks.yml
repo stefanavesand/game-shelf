@@ -67,10 +67,17 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Activate workflow-based Pages publishing
+      - name: Check workflow-based Pages publishing
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow --silent
+        run: |
+          pages_source=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type')
+          if [ "$pages_source" != "workflow" ]; then
+            if ! gh api --method PUT "repos/$GITHUB_REPOSITORY/pages" -f build_type=workflow --silent; then
+              echo "::error::Set Settings > Pages > Source to GitHub Actions, then rerun the failed deployment job. GitHub denied automatic source activation."
+              exit 1
+            fi
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/deploy-pages@v4
         id: deployment
