@@ -1,3 +1,4 @@
+import {setupPwa} from './pwa.js';
 import {offerDraft,offerIssue,handAfter,tradeLabel,bankChoices,bankBundles} from './trade.js';
 import {client} from './session.js';
 import {draw} from './board.js';
@@ -18,7 +19,8 @@ const view=()=>packet?.view;
 const solo=()=>packet?.members?.filter(s=>s.kind==='human').length===1&&packet?.members?.filter(s=>s.kind==='bot').length===2;
 const player=id=>view()?.state.players.players.find(p=>p.id===id);
 const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Player';
-const blocked=()=>busy||!ready||!!saved?.pending||!navigator.onLine||!!(saved?.retryAt>Date.now());
+const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
+const blocked=()=>busy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const incoming=()=>view()?.offer?.to===view()?.you;
 function closeSheet(){sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
@@ -29,11 +31,11 @@ function staleModal(){if(modalChanged()){closeSheet();notice='The game changed w
 function setScreen(next){screen=next;history.replaceState(null,'',`${location.pathname}#${next==='table'?'game':next}${next==='join'&&uuid(invitedRoom())?'?room='+invitedRoom():''}`);render();$('app').focus({preventScroll:true});}
 function money(bundle){return bundleLabel(bundle).replaceAll('lumber','wood');}
 function recovery(){
-  if(!error&&!saved?.pending&&navigator.onLine)return '';
+  if(!error&&!saved?.pending&&(navigator.onLine||offlineAllowed()))return '';
   const permanent=error&&['AUTH_REQUIRED','UNSUPPORTED_VERSION','SESSION_EXPIRED','UNSUPPORTED_BROWSER'].includes(error.code),pending=!!saved?.pending;
   const title=!navigator.onLine?'You’re offline':error?.code==='AUTH_REQUIRED'?'Your player identity needs attention':error?.code==='SESSION_EXPIRED'?'This room has expired':error?.code==='UNSUPPORTED_VERSION'?'A compatible app is needed':pending?'Let’s check your original move':busy?'Reconnecting…':'The game needs a moment';
   const text=!navigator.onLine?'Internet play is paused. Reconnect to check the game before making a move.':error?.message||(pending?'Your move is waiting for confirmation. We’ll resolve it before sending another.':'Check the connection to continue.');
-  return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${button(pending?'Resolve move':'Reconnect','refresh','',busy||!navigator.onLine||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
+  return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
 }
 function title(){
   const v=view(),g=v.state.game,me=v.you;
@@ -79,16 +81,16 @@ function render(){
   const focused=document.activeElement?.id;
   document.body.classList.toggle('table-screen',screen==='table'&&!!view());
   if($('room').hidden!==!packet)$('room').hidden=!packet;
-  const refreshDisabled=busy||!navigator.onLine||(saved?.retryAt||0)>Date.now(),connection=!navigator.onLine?'Offline':busy?'Checking table…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
+  const refreshDisabled=busy||!navigator.onLine||(saved?.retryAt||0)>Date.now(),connection=client.isLocal()?'Local · saved':!navigator.onLine?'Offline':busy?'Checking table…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
   if($('refresh').disabled!==refreshDisabled)$('refresh').disabled=refreshDisabled;
   if($('connection').textContent!==connection)$('connection').textContent=connection;
   let html='';
   if(screen==='home'){
     const games=[...knownGames];
     if(saved?.roomId&&!games.some(g=>g.roomId===saved.roomId))games.unshift({roomId:saved.roomId,status:packet?.status||'playing',players:packet?.members?.map(m=>m.name)||[],mode:packet?(solo()?'solo':'friends'):null,botLevel:packet?.members?.find(m=>m.kind==='bot')?.level||null});
-    html=`${recovery()}<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Catan</h1><p class="muted">Continue a saved game or start a new one.</p><div class="home-actions">${button('New game','create','primary',blocked())}${button('Join a game','join','',blocked())}</div><section class="saved-games" aria-label="Saved games"><h2>Your games</h2>${games.length?games.map(g=>`<article class="saved-game"><div><h3>${esc(g.players.join(' · ')||'Saved game')}</h3><p>${g.mode?(g.mode==='solo'?'Solo · you + two bots':'You + a friend + one bot'):'Open to check players and bot level'}${g.botLevel?' · '+(g.botLevel==='easy'?'Easy':'Standard'):''}</p><small>${g.status==='waiting'?'Waiting for your friend':g.status==='ended'?'Finished':'In progress'} · ${esc(g.roomId.slice(0,8))}</small></div>${button(g.status==='ended'?'View result':'Resume game',`resume-game:${g.roomId}`,'',blocked())}</article>`).join(''):'<p class="muted">No saved games yet. Choose New game to get started.</p>'}<p class="safe-hint">Games opened in this browser appear here. Keep its data to retain your player identity. Internet is required to play.</p></section></section>`;
+    html=`${recovery()}<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Catan</h1><p class="muted">Continue a saved game or start a new one.</p><div class="home-actions">${button('New game','create','primary',blocked())}${button('Join a game','join','',blocked())}</div><section class="saved-games" aria-label="Saved games"><h2>Your games</h2>${games.length?games.map(g=>`<article class="saved-game"><div><h3>${esc(g.players.join(' · ')||'Saved game')}</h3><p>${g.mode?(g.mode==='solo'?'Solo · you + two bots':'You + a friend + one bot'):'Open to check players and bot level'}${g.botLevel?' · '+(g.botLevel==='easy'?'Easy':'Standard'):''}</p><small>${g.status==='waiting'?'Waiting for your friend':g.status==='ended'?'Finished':'In progress'} · ${esc(g.roomId.slice(0,8))}</small></div>${button(g.status==='ended'?'View result':'Resume game',`resume-game:${g.roomId}`,'',blocked())}</article>`).join(''):'<p class="muted">No saved games yet. Choose New game to get started.</p>'}<p class="safe-hint">Games opened in this browser appear here. Keep its data to retain your player identity. Solo games work offline. Games with a friend require internet.</p></section></section>`;
   }
-  else if(['create','join'].includes(screen))html=`${recovery()}<section class="form-card">${button('← Back','home','back-link')}<p class="eyebrow">Catan</p><h1>${screen==='create'?'New game':'Join a game'}</h1><p class="muted">${screen==='create'?(formDraft.gameMode==='solo'?'Play against two bots. Your game starts right away.':'Choose players and bot level, then invite your friend.'):'The first invited friend takes the open seat.'}</p><form id="entry-form"><div class="form-fields"><label for="player-name">Your name</label><input id="player-name" maxlength="30" autocomplete="nickname" placeholder="Your name" value="${esc(formDraft.name)}" required>${screen==='create'?`<label for="game-mode">Players</label><select id="game-mode"><option value="friends" ${formDraft.gameMode==='friends'?'selected':''}>You + a friend + one bot</option><option value="solo" ${formDraft.gameMode==='solo'?'selected':''}>Solo · you + two bots</option></select><label for="bot-level">Bot level</label><select id="bot-level"><option value="standard" ${formDraft.level==='standard'?'selected':''}>Standard · resource priorities</option><option value="easy" ${formDraft.level==='easy'?'selected':''}>Easy · more varied choices</option></select>`:`<label for="room-id">Room ID</label><input id="room-id" value="${esc(formDraft.room??invitedRoom()??'')}" required autocomplete="off">`}</div><button class="primary" type="submit" ${blocked()?'disabled':''}>${screen==='create'?(formDraft.gameMode==='solo'?'Start solo game':'Create game'):'Join game'}</button></form><p class="safe-hint">No account form is needed. Clearing browser data loses access to your saved player identity.</p></section>`;
+  else if(['create','join'].includes(screen))html=`${recovery()}<section class="form-card">${button('← Back','home','back-link')}<p class="eyebrow">Catan</p><h1>${screen==='create'?'New game':'Join a game'}</h1><p class="muted">${screen==='create'?(formDraft.gameMode==='solo'?'Play offline against two bots. Saved on this device.':'Choose players and bot level, then invite your friend.'):'The first invited friend takes the open seat.'}</p><form id="entry-form"><div class="form-fields"><label for="player-name">Your name</label><input id="player-name" maxlength="30" autocomplete="nickname" placeholder="Your name" value="${esc(formDraft.name)}" required>${screen==='create'?`<label for="game-mode">Players</label><select id="game-mode"><option value="friends" ${formDraft.gameMode==='friends'?'selected':''}>You + a friend + one bot</option><option value="solo" ${formDraft.gameMode==='solo'?'selected':''}>Solo offline · you + two bots</option></select><label for="bot-level">Bot level</label><select id="bot-level"><option value="standard" ${formDraft.level==='standard'?'selected':''}>Standard · resource priorities</option><option value="easy" ${formDraft.level==='easy'?'selected':''}>Easy · more varied choices</option></select>`:`<label for="room-id">Room ID</label><input id="room-id" value="${esc(formDraft.room??invitedRoom()??'')}" required autocomplete="off">`}</div><button class="primary" type="submit" ${blocked()||(!navigator.onLine&&(screen==='join'||formDraft.gameMode!=='solo'))?'disabled':''}>${screen==='create'?(formDraft.gameMode==='solo'?'Start solo game':'Create game'):'Join game'}</button></form><p class="safe-hint">No account form is needed. Clearing browser data loses access to your saved player identity.</p></section>`;
   else if(packet?.status==='waiting')html=`${recovery()}<section class="form-card"><p class="eyebrow">Your game is ready</p><h1>One seat for a friend.</h1><p class="muted">Share the invitation. Your friend joins from their own browser or installed app.</p><div class="lobby-seats">${packet.members.map(m=>`<div class="lobby-seat"><span class="avatar ${m.kind==='bot'?'bot':''}">${m.kind==='bot'?'B':'Y'}</span><div><strong>${esc(m.name)}${m.kind==='bot'?` · Bot (${m.level})`:' · You'}</strong><p class="muted">Ready to play</p></div></div>`).join('')}<div class="lobby-seat"><span class="avatar alex">?</span><div><strong>Your friend</strong><p class="muted">Waiting for the invitation</p></div></div></div><div class="lobby-buttons">${button('Share invitation','share','primary',busy)}${button('Check the game','refresh','quiet',busy)}</div><p class="lobby-status">The board opens when your friend joins. You keep your own separate seats.</p></section>`;
   else if(view())html=drawTable();else html=`${recovery()}<section class="empty-state"><h1>Checking your game.</h1><p class="muted">Your saved room and player identity are being restored.</p>${button('Return to start','home','quiet',busy)}</section>`;
   if(notice)html=`<div class="notice-bar ${error?'error':''}" role="status">${esc(notice)}</div>`+html;
@@ -111,20 +113,20 @@ function apply(next){
   const bot=next.view?.seats.find(s=>s.id===next.view.state.game.currentPlayerId)?.kind==='bot';
   if(bot&&next.view.state.game.phase!=='discard'&&!next.view.offer){if(botRevision!==next.revision){botSince=Date.now();botRevision=next.revision;}if(Date.now()-botSince>20000)notice='The bot is taking longer than usual. Check the game to retry its next decision.';}else botSince=0;
 }
-function schedule(){clearTimeout(timer);if(['home','create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||!navigator.onLine||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
+function schedule(){clearTimeout(timer);if(['home','create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
 function sync(op,args={},options={}){
   if(activeSync){
     if(!op)return activeSync;
     // Keep the exact selected command while a read finishes; never drop a click.
     busy=true;ready=false;render();
-    return activeSync.then(()=>{if(error||!navigator.onLine)return;return sync(op,args,options);});
+    return activeSync.then(()=>{if(error||(!navigator.onLine&&!offlineAllowed()))return;return sync(op,args,options);});
   }
   activeSync=runSync(op,args,options).finally(()=>{activeSync=null;});
   return activeSync;
 }
 async function runSync(op,args={},options={}){
   clearTimeout(timer);
-  if(!navigator.onLine){ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your saved data is still here.',{retryable:true});render();return;}
+  if(!navigator.onLine&&!offlineAllowed()){ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your saved data is still here.',{retryable:true});render();return;}
   const background=!op&&ready&&!error&&!saved?.pending&&!!packet;
   if(!background){busy=true;ready=false;error=null;render();}
   try{
@@ -214,7 +216,7 @@ async function dispatch(action,el){
   if(action==='home'){if(saved?.pending){notice='Your original move still needs to be resolved.';render();return;}closeSheet();knownGames=await client.games();setScreen('home');return;}
   if(action==='resume'){closeSheet();setScreen('table');await sync();return;}
   if(action==='create'||action==='solo'||action==='join'){if(action!=='join')formDraft.gameMode=action==='solo'?'solo':'friends';begin(action==='solo'?'create':action);return;}
-  if(action==='room'){openSheet('Your game',`<p class="muted">${esc(packet?.members?.map(m=>m.name).join(', ')||'Your room')}</p><div class="scenario-list">${solo()?'<p class="muted">Solo · you and two bots. No invitation is needed.</p>':button('Invitation details','share')}${button('Check the game','refresh')}${button('Return to start','home')}</div><p class="safe-hint">Keep this browser or installation to retain your player identity. Internet play pauses without a connection.</p>`);return;}
+  if(action==='room'){openSheet('Your game',`<p class="muted">${esc(packet?.members?.map(m=>m.name).join(', ')||'Your room')}</p><div class="scenario-list">${solo()?'<p class="muted">Solo · you and two bots. No invitation is needed.</p>':button('Invitation details','share')}${button('Check the game','refresh')}${button('Return to start','home')}</div><p class="safe-hint">Keep this browser or installation to retain your player identity. ${client.isLocal()?'This game is saved locally and works offline.':'Internet play pauses without a connection.'}</p>`);return;}
   if(action==='share'){showInvitation();return;}
   if(action==='copy'){try{await navigator.clipboard.writeText($('invite-link').value);$('copy-result').textContent='Invitation copied.';}catch{$('invite-link').select();$('copy-result').textContent='Select and copy the invitation manually.';}return;}
   if(action==='results'){resultPanel();return;}
@@ -252,6 +254,8 @@ window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){
 window.addEventListener('offline',()=>{clearTimeout(timer);ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
 window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
 async function boot(){
-  try{const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if(navigator.onLine&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
+  try{const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if((navigator.onLine||client.isLocal())&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
 }
 boot();
+
+setupPwa({canUpdate:async artifact=>!busy&&!saved?.pending&&screen==='home'&&await client.canUpdate(artifact)});
