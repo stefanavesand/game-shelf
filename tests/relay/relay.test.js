@@ -34,7 +34,7 @@ test('CAS conflict synchronizes before re-enveloping the original game intent',a
   if(body.op==='message.append'&&body.message.type==='game.command'&&conflict){conflict=false;await h.bob.command({type:'ADD',amount:2});}
   return transport.request(body,p);
  }}});
- await raced.command({type:'ADD',amount:1});const settled=await raced.sync();assert.equal(settled.game.state.value,2);assert.equal(settled.halt,null);
+ const immediate=await raced.command({type:'ADD',amount:1});assert.equal(immediate.outbox.length,0);const settled=await raced.sync();assert.equal(settled.game.state.value,2);assert.equal(settled.halt,null);
  const attempts=h.server.sent.filter(x=>x.body.message?.type==='game.command'&&x.principal==='alice');assert.equal(attempts.length,2);assert.notEqual(attempts[0].body.mutationId,attempts[1].body.mutationId);assert.equal(attempts[0].body.message.payload.intentId,attempts[1].body.message.payload.intentId);
 });
 test('result mismatch durably halts locally and propagates to the other replica',async()=>{

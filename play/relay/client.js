@@ -43,7 +43,7 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
       catch(error) {
         if(error.code==='sequence_conflict') {
           // Definitive CAS rejection. Keep the game intent but generate a new relay ID next pass.
-          pending.request=null;await save(record);return catchUp(record);
+          pending.request=null;await save(record);record=await catchUp(record);continue;
         }
         record.retryAt=now()+Math.max(0,error.retryAfterMs||0);await save(record);throw error;
       }

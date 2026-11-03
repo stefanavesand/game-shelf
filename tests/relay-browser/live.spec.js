@@ -1,11 +1,20 @@
-import {test,expect} from '@playwright/test';
+import {test,expect as baseExpect} from '@playwright/test';
+const expect=baseExpect.configure({timeout:20000});
 // Explicit opt-in only. Never capture tokens, invitations or private HTTP traces.
 test.use({trace:'off',screenshot:'off',video:'off'});
 test('LIVE relay: two new identities create, join, replicate and reopen a counter',async({browser})=>{
  test.skip(process.env.GAME_SHELF_RELAY_LIVE!=='1','Requires explicit live relay authorization.');
- test.setTimeout(90000);
- const options=process.env.HTTPS_PROXY?{proxy:{server:process.env.HTTPS_PROXY,bypass:'localhost,127.0.0.1'}}:{};
- const a=await browser.newContext(options),b=await browser.newContext(options);
+ test.setTimeout(120000);
+ const a=await browser.newContext(),b=await browser.newContext();
+ // Some managed executors require the TLS-verifying Node proxy path for browser egress.
+ // The real auth/relay endpoints still receive every request; no responses are simulated.
+ if(process.env.GAME_SHELF_RELAY_NODE_PROXY==='1')for(const context of [a,b])await context.route(/^https:\/\//,async route=>{
+  const req=route.request();try{
+   const response=await fetch(req.url(),{method:req.method(),headers:req.headers(),...(req.postData()?{body:req.postData()}:{})});
+   const headers=Object.fromEntries(response.headers);for(const name of ['content-encoding','content-length','transfer-encoding'])delete headers[name];
+   await route.fulfill({status:response.status,headers,body:Buffer.from(await response.arrayBuffer())});
+  }catch{await route.abort();}
+ });
  try {
   const host=await a.newPage(),guest=await b.newPage();await host.goto('/game-shelf/play/relay/');await guest.goto('/game-shelf/play/relay/');
   await host.locator('#name').fill('Relay test A');await guest.locator('#name').fill('Relay test B');

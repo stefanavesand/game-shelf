@@ -57,3 +57,13 @@ The initial browser run exposed an incorrect requestId-sensitive hash in the tes
 3. Extract the shared Catan module with provenance; replace the fixture with deterministic initialization/effects and bot scheduling. Complete real-game UI integration and app-shell caching before claiming the new mode playable/installable.
 
 See [API contract](SESSION_API_SPEC.md), [Lovable brief](LOVABLE_RELAY_BRIEF.md) and [backlog](MIGRATION_MVP_TODO.md).
+
+## Live verification after backend activation
+
+The opt-in live browser test passed against `https://stefan-game-shelf.lovable.app/api/public/relay/v1` on 2026-11-03: two independent anonymous identities, profile setup, channel create/invitation join, deterministic counter initialization, a real ordered move, matching peer verification, and guest reload retaining identity/state. One test passed in 44 seconds. No private traces, video or screenshots were recorded; no tokens/invitations were printed. This is an actual service test, separate from mocked HTTP and physical-device acceptance.
+
+The managed executor requires proxy egress. Direct Node/browser attempts could not connect. The passing run used `NODE_USE_ENV_PROXY=1 GAME_SHELF_RELAY_NODE_PROXY=1 GAME_SHELF_RELAY_LIVE=1` plus the normal Playwright relay project, forwarding browser HTTPS requests through Node's TLS-verifying environment proxy. Responses came from the actual auth/relay services, with their headers preserved; no responses were simulated. Public OPTIONS independently returned 204. Direct Safari/iPad network/CORS behavior remains a device check.
+
+An initial reachable live run found that a verification append could win the relay CAS and postpone a proposed move until a later poll. The client now catches up and retries the unchanged game intent immediately within the bounded flush budget, using a fresh relay ID only after definitive sequence rejection. The core race assertion covers completion without needing another sync invocation. The subsequent live run passed.
+
+Backend activation: Lovable source `bf8ca74e95c9aa2f74262ef598f9b25ec0ccad98`, recorded migration `drizzle/migrations/0005_relay_v1.sql`. Lovable reports separate three-identity access/ordering smoke tests; quota saturation was intentionally not exercised.
