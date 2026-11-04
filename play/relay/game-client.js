@@ -33,7 +33,9 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
  }
  async function progress(index,replica,room){
   let record=await replica.sync();
-  if(!record.game&&room.creatorId===index.principalId&&room.members.length===2){const seed=new Uint32Array(1);do{crypto.getRandomValues(seed);}while(!seed[0]);record=await replica.begin(catanConfig(room.members.map((m,i)=>({id:m.playerId,name:m.displayName||`Player ${i+1}`})),{seed:seed[0],level:room.botLevel}));}
+  if(!record.game&&room.creatorId===index.principalId&&room.members.length===2){const seed=new Uint32Array(1);do{crypto.getRandomValues(seed);}while(!seed[0]);try{record=await replica.begin(catanConfig(room.members.map((m,i)=>({id:m.playerId,name:m.displayName||`Player ${i+1}`})),{seed:seed[0],level:room.botLevel}));}
+   catch(error){if(error.code!=='NOT_CREATOR')throw error;record=await replica.sync();if(!record.game)throw error;}
+  }
   for(let i=0;i<8&&record.game&&!record.halt&&!record.outbox.length&&room.creatorId===index.principalId;i++){
    const command=module.nextBot(record.game.state);if(!command)break;
    try{record=await replica.command(command,{}, {revision:record.game.revision,hash:record.game.hash});}catch(error){if(error.code!=='STALE_GAME')throw error;record=await replica.sync();}

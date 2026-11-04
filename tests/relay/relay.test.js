@@ -107,3 +107,20 @@ test('an action bound to a displayed revision is never silently rebased after ca
  const h=harness();await h.alice.begin({start:0});await h.bob.sync();const displayed=await h.alice.state();await h.bob.command({type:'ADD',amount:2});
  await assert.rejects(h.alice.command({type:'ADD',amount:1},{},{revision:displayed.game.revision,hash:displayed.game.hash}),e=>e.code==='STALE_GAME');assert.equal((await h.alice.state()).game.state.value,2);assert.equal(h.server.messages.filter(m=>m.message.type==='game.command').length,1);
 });
+
+
+test('concurrent creator refreshes adopt one started Catan game without a false failure',async()=>{
+ const {createOnlineGameClient}=await import('../../play/relay/game-client.js');
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{locks:createLocks()}});
+ try{
+  const server=fakeRelay(),store=createMemoryStore(),index=await store.load('alice','@index');
+  index.current='channel';index.rooms={channel:{botLevel:'standard'}};await store.save(index);
+  const auth={savedIdentity:()=>({user:{id:'alice'}}),identity:async()=>({user:{id:'alice'}})};
+  const client=createOnlineGameClient({auth,store,transport:server.transport()});
+  const packets=await Promise.all([client.refresh(),client.refresh()]);
+  assert.ok(packets.every(p=>p.ok&&p.view));
+  assert.equal(server.messages.filter(m=>m.message.type==='game.begin').length,1);
+  assert.equal(packets[0].roomId,packets[1].roomId);
+ }finally{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;}
+});

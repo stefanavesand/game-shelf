@@ -7,7 +7,7 @@ test('LIVE: two emulated humans and the normal PWA bot finish over the real rela
  test.skip(process.env.GAME_SHELF_FULL_RELAY_LIVE!=='1','Opt in: creates two anonymous identities and one real relay channel.');
  test.setTimeout(5400000);
  const contexts=await Promise.all([browser.newContext(),browser.newContext()]);
- let requests=0,forbidden=0,commands=0,reloaded=false,lastLog=Date.now();
+ let requests=0,forbidden=0,commands=0,staleRetries=0,reloaded=false,lastLog=Date.now();
  const counts={};
  try{
   for(const context of contexts){
@@ -49,6 +49,7 @@ test('LIVE: two emulated humans and the normal PWA bot finish over the real rela
    // replica when it needs to act, rather than polling both after every click.
    let ended=false;
    for(let i=0;i<2;i++){
+    if(packets[i]&&packets[1-i]&&packets[i].revision!==packets[1-i].revision)packets[i]=null;
     packets[i]??=await refresh(pages[i]);
     if(packets[i].status==='ended'){ended=true;break;}
     if(!packets[i].view?.choices.length)continue;
@@ -56,7 +57,11 @@ test('LIVE: two emulated humans and the normal PWA bot finish over the real rela
      const {client}=await import('./session.js'),{botDecision}=await import('./catan/rules/index.js');
      return client.execute('command',{roomId:packet.roomId,expectedRevision:packet.revision,action:botDecision(packet.view,'standard')});
     },packets[i]);
-    if(!outcome.ok)throw Error('Human command rejected: '+outcome.error?.code);
+    if(!outcome.ok){
+     const fresh=await refresh(pages[i]);
+     if(fresh.revision!==packets[i].revision&&staleRetries<30){staleRetries++;packets=[null,null];packets[i]=fresh;break;}
+     throw Error('Human command rejected: '+outcome.error?.code+'; '+outcome.error?.message);
+    }
     commands++;packets=[null,null];packets[i]=outcome;break;
    }
    if(ended)break;
@@ -74,7 +79,7 @@ test('LIVE: two emulated humans and the normal PWA bot finish over the real rela
   expect(checkpoints[0].hash===checkpoints[1].hash).toBe(true);expect(checkpoints.every(c=>!c.halt&&!c.pending)).toBe(true);
   expect(packets[0].members.filter(m=>m.kind==='human').length).toBe(2);expect(packets[0].members.filter(m=>m.kind==='bot').length).toBe(1);expect(reloaded).toBe(true);expect(forbidden).toBe(0);
   await host.reload();await expect(host.locator('#connection')).toHaveText('Up to date');expect((await refresh(host)).status==='ended').toBe(true);
-  const summary={commands,revision:packets.find(Boolean)?.revision,requests,operations:counts,guestReloaded:reloaded,forbiddenCalls:forbidden,transport:'real HTTPS auth and relay via TLS-verifying Node egress',actions:'production session API, seat-restricted heuristic'};
+  const summary={commands,staleRetries,revision:packets.find(Boolean)?.revision,requests,operations:counts,guestReloaded:reloaded,forbiddenCalls:forbidden,transport:'real HTTPS auth and relay via TLS-verifying Node egress',actions:'production session API, seat-restricted heuristic'};
   console.log('Live game complete:',JSON.stringify(summary));await testInfo.attach('live-game-summary',{body:JSON.stringify(summary),contentType:'application/json'});
  }finally{for(const context of contexts)await context.close();}
 });
