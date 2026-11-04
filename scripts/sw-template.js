@@ -39,6 +39,10 @@ self.addEventListener('fetch',event=>{
  const path=u.pathname.slice(ROOT.pathname.length);if(!path.startsWith('play/')&&!path.startsWith('ui/'))return;
  event.respondWith((async()=>{const cache=await caches.open(NAME),key=new URL(u);key.search='';key.hash='';
   if(request.mode==='navigate'&&key.pathname.endsWith('/'))key.pathname+='index.html';
-  return await cache.match(key.href)||fetch(request);
+  const cached=await cache.match(key.href);if(cached)return cached;
+  const expected=FILES.find(f=>url(f.path)===key.href);
+  if(!expected)return fetch(request);
+  try{const response=await fetch(request);if(!await valid(response.clone(),expected.sha256))return new Response('Compatible app resources unavailable. Saved games have not been deleted.',{status:503});await cache.put(key.href,response.clone());return response;}
+  catch{return new Response('App resource unavailable. Reconnect to restore compatible files.',{status:503});}
  })());
 });

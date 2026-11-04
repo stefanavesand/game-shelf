@@ -26,7 +26,7 @@ async function updateServer({differentEngine=false,workerOnly=false}={}){
   res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'}).end(body);
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- return {url:`http://127.0.0.1:${server.address().port}/game-shelf/play/`,version,nextVersion,failures:()=>failures,setFailure:value=>{fail=value;},upgrade:broken=>{next=true;fail=broken;},close:()=>new Promise(resolve=>{server.closeAllConnections();server.close(resolve);})};
+ return {url:`http://127.0.0.1:${server.address().port}/game-shelf/play/`,version,nextVersion,failures:()=>failures,downgrade:()=>{next=false;fail=false;},setFailure:value=>{fail=value;},upgrade:broken=>{next=true;fail=broken;},close:()=>new Promise(resolve=>{server.closeAllConnections();server.close(resolve);})};
 }
 async function open(browser,options){
  const server=await updateServer(options),context=await browser.newContext();await context.route(/^https:\/\//,route=>route.abort());const page=await context.newPage();await page.goto(server.url+'#home');await expect(page.locator('#offline-status')).toHaveText('Ready for offline',{timeout:30000});return {server,context,page};
@@ -70,6 +70,16 @@ test('repairing an active cache preserves remaining files on failure and restore
   f.server.setFailure(true);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Offline package incomplete · current files kept · retry');
   expect(await f.page.evaluate(async version=>!!await (await caches.open('game-shelf-offline-'+version)).match(new URL('./app.js',location.href).href),f.server.version)).toBe(true);expect((await status(f.page)).ready).toBe(false);
   f.server.setFailure(false);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');await f.context.setOffline(true);await f.page.reload();await expect(f.page.locator('#connection')).toHaveText('Local · saved');
+  const after=await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});expect(after).toEqual(before);
+ }finally{await cleanup(f);}
+});
+
+test('a cache miss rejects newer module bytes, shows recovery, and resumes after compatible files return',async({browser})=>{
+ const f=await open(browser);try{const before=await solo(f.page);await f.page.evaluate(async version=>{await (await caches.open('game-shelf-offline-'+version)).delete(new URL('./help.js',location.href).href);},f.server.version);f.server.upgrade(false);
+  // The old worker must not return the newer release's module as its own.
+  expect(await f.page.evaluate(async()=> (await fetch('./help.js')).status)).toBe(503);
+  await f.page.reload();await expect(f.page.getByRole('heading',{name:'App resources unavailable',exact:true})).toBeVisible();
+  f.server.downgrade();await f.page.getByRole('button',{name:'Reload',exact:true}).click();await expect(f.page.locator('#connection')).toHaveText('Local · saved');await expect(f.page.locator('#startup-error')).toBeHidden();
   const after=await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});expect(after).toEqual(before);
  }finally{await cleanup(f);}
 });

@@ -8,9 +8,10 @@
 </head>
 <body>
   <header class="app-header"><a class="brand" href="#home" aria-label="Game Shelf home"><span class="brand-mark" aria-hidden="true">⬡</span><span>Game Shelf</span><span class="early-label">Playtest</span></a><div class="header-actions"><button id="help" class="icon-button" type="button" aria-label="Help and rules">?</button><button id="offline-status" class="text-button" type="button">Preparing offline…</button><button id="refresh" class="connection text-button" aria-label="Check the game"><span class="status-dot"></span><span id="connection">Connecting…</span></button><button id="room" class="icon-button" aria-label="Room details" hidden>☰</button></div></header>
+  <section id="startup-error" role="alert" hidden><h1>App resources unavailable</h1><p>Reconnect and reload to restore compatible app files. Your saved games have not been deleted. If the problem continues, keep this installation and report it.</p><button type="button" onclick="location.reload()">Reload</button></section>
   <main id="app" tabindex="-1"></main>
   <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
   <dialog id="sheet" aria-labelledby="sheet-title"><div class="sheet-handle" aria-hidden="true"></div><div class="sheet-heading"><h2 id="sheet-title"></h2><button id="close-sheet" class="icon-button" aria-label="Close panel">×</button></div><div id="sheet-body"></div></dialog>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js" onerror="document.getElementById('startup-error').hidden=false"></script>
 </body>
 </html>

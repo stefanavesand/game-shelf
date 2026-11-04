@@ -20,3 +20,5 @@ dialog[data-trade="composer"]{width:min(620px,calc(100% - 24px));max-width:620px
 @media(max-width:600px){.app-header{height:auto;min-height:62px;flex-wrap:wrap;gap:8px;padding-block:10px}.header-actions{max-width:100%;flex-wrap:wrap;justify-content:flex-start}}
 
 .trade-log{margin:16px 0;font-size:13px}.trade-log summary{cursor:pointer;font-weight:700}.trade-log li{margin:6px 0}
+
+#startup-error{max-width:650px;margin:32px auto;padding:24px;background:var(--paper);border:1px solid var(--line);border-radius:16px}#startup-error[hidden]{display:none}

@@ -20,10 +20,17 @@ A waiting worker verifies all resources again before activation. The PWA checks/
 | Candidate advertises an incompatible engine | Remains waiting while saved game pins it; deliberate abandonment releases the pin and permits activation |
 | Candidate resource deleted after installation | Worker refuses direct activation; failed repair preserves old app; restoring network resources and retrying repairs/activates the same release |
 | Active-cache resource deleted after installation | Failed repair preserves the other files; retry restores offline readiness and saved-game reopening without a new release |
+| Active version misses a module while hosting serves a newer version | Rejects mismatched network bytes, displays startup recovery, retains the game and resumes when compatible original resources return |
 
-Targeted result: **6/6 update tests passed**. Combined with existing offline scenarios: **11/11 passed**, approximately 29 seconds. The incompatible-engine candidate advertises a future engine ID to test the guard; it is not an implementation or certification of a future rule engine. Prepared failure resources are synthetic; game creation/saving/resume use the ordinary local session.
+Targeted result: **7/7 update tests passed**. Combined with existing offline and help scenarios: **14/14 passed**, approximately 36 seconds. The incompatible-engine candidate advertises a future engine ID to test the guard; it is not an implementation or certification of a future rule engine. Prepared failure resources are synthetic; game creation/saving/resume use the ordinary local session.
 
 Package checks also verify that the version includes the current template and that generated worker bytes match the template and manifest SHA. CI repeats these checks against the packaged site before publication.
+
+## Cache-miss integrity and recovery limits
+
+A known app resource missing from cache is now checked against the active version’s expected hash before network bytes are served and cached. A newer release cannot silently fill the old version’s missing module. A rejected or unavailable module stops startup with a recovery message; the resource check never deletes or changes game snapshots.
+
+The controlled test restores the original files at its HTTP server. Real repair still requires compatible files to be available from hosting or an operator rollback. There is no automatic historical-artifact download or engine-pin bypass. Operator rollback, arbitrary cache eviction and physical iPad recovery remain release work.
 
 ## Remaining acceptance
 

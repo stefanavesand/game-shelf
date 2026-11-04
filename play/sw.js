@@ -1,7 +1,7 @@
 /* Offline app shell only: never cache identities or API responses. */
 importScripts('./offline-assets.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
-const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'7c83db31ef4fc07bc4108d2b22ddfcd9fd9f2b91b9d0ea6c3390b552e474371b'}];
+const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'909ba42ea708c42aa637f00436656e542ca4235b4c278f06a4cc0c8e8120c49f'}];
 const url=path=>new URL(path,ROOT).href;
 async function valid(response,hash){if(!response?.ok)return false;const value=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')===hash;}
 async function verified(){const cache=await caches.open(NAME);for(const f of FILES)if(!await valid(await cache.match(url(f.path)),f.sha256))return false;return FILES.length>1;}
@@ -39,6 +39,10 @@ self.addEventListener('fetch',event=>{
  const path=u.pathname.slice(ROOT.pathname.length);if(!path.startsWith('play/')&&!path.startsWith('ui/'))return;
  event.respondWith((async()=>{const cache=await caches.open(NAME),key=new URL(u);key.search='';key.hash='';
   if(request.mode==='navigate'&&key.pathname.endsWith('/'))key.pathname+='index.html';
-  return await cache.match(key.href)||fetch(request);
+  const cached=await cache.match(key.href);if(cached)return cached;
+  const expected=FILES.find(f=>url(f.path)===key.href);
+  if(!expected)return fetch(request);
+  try{const response=await fetch(request);if(!await valid(response.clone(),expected.sha256))return new Response('Compatible app resources unavailable. Saved games have not been deleted.',{status:503});await cache.put(key.href,response.clone());return response;}
+  catch{return new Response('App resource unavailable. Reconnect to restore compatible files.',{status:503});}
  })());
 });
