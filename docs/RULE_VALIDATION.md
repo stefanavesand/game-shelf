@@ -35,4 +35,26 @@ Both suites are included in `npm run test:catan` and `npm run test:core`, so nor
 
 ## Remaining gate work
 
-Complete the independent rule-reference matrix, explicit Road Building/robber/award branching and trade-race cases, all sender/recipient bot trade combinations and rationale checks, storage/update failure coverage and actual iPad acceptance/performance. The above passes do not close RULE-VALIDATION-01, BOT-VALIDATION-01 or QA-01 as a whole.
+Complete the independent rule-reference matrix, unusual board/resource edge cases and trade-policy rationale checks, storage/update failure coverage and actual iPad acceptance/performance. The targeted follow-up below supplies explicit Road Building/robber/award cases and the sender/recipient trading matrix. The above passes do not close RULE-VALIDATION-01, BOT-VALIDATION-01 or QA-01 as a whole.
+
+## Targeted rule/trading follow-up — 2026-11-04
+
+The focused suites now contain **21 rule-boundary tests and 24 trading tests**, adding 36 scenarios to the earlier nine. All 45 focused tests passed locally. No engine, bot policy, protocol, UI or server behavior changed in this follow-up; the engine artifact remains the same. The tests run in ordinary `test:catan` and `test:core` CI commands alongside the existing 100-game regression.
+
+New fixed rule expectations:
+
+- Road Building permits two resource-free placements before rolling, returns to the roll phase, rejects a third road, and stops after one remaining piece after a roll.
+- A pre-roll Knight rejects the current robber tile and invalid/empty victims, cannot skip an available victim, steals exactly one existing card, preserves bank stock and leaves the roll due. An empty destination needs no victim choice.
+- A six-road loop counts six; three two-edge branches count a maximum four-road trail. Ties without a qualifying existing holder have no award. Losing a holder's road to a blocking settlement does not give the award to either of two tied opponents.
+- Largest Army transfer moves its two points between holders. A player at ten off-turn wins when their own turn begins, before rolling.
+- Knight, Road Building, Year of Plenty and Monopoly are unavailable on their purchase turn but usable on a later turn. The Victory Point purchase exception remains covered by the earlier immediate-win test.
+
+Trading matrix: Easy and Standard × human-to-bot / bot-to-human / bot-to-bot / human-to-human × accepted useful offer / unaffordable offer declined. Offers use ordinary validated commands; bot recipients use the actual policy/scheduler, while human responses are explicit test commands. Clearly useful offers are deliberately generous and complete several build goals; this does not promise that bots accept every fair-looking or marginal trade.
+
+The matrix checks no premature transfer, recipient authorization, resource conservation, no repeated transfer after late acceptance, and inability to accept cards not owned. Further cases cover Standard declining an affordable but resource-losing offer; bots proposing bounded offers, waiting for humans and not immediately reoffering after decline; accept/cancel in either command order; old responses against replacement offers; and atomic rejection of malformed quantities, unowned resources and overlapping resource types.
+
+Fair-information cases redistribute unseen resources while preserving public totals/bank stock, swap hidden card types with the deck, reorder the future deck and change future entropy. Bot observations and decisions must remain identical. Repeated identical observations produce identical choices. Easy's noisy priorities remain intentional: legality and reproducibility are tested, not universal agreement with Standard's strategic preferences.
+
+All added cases are prepared scenarios or policy observations, not natural human play. In particular, the one-piece Road Building fixture isolates the remaining-piece limit rather than constructing fourteen roads, and scoring graph fixtures isolate awards rather than proving every prior placement legal. Ordered accept/cancel tests cover transition outcomes, not real backend concurrency. No live service calls or real-player data were used.
+
+The independent edition/clause review and unusual board/resource edge cases remain open. Test coverage is stronger; RULE-VALIDATION-01 and BOT-VALIDATION-01 are not automatically complete, and iPad/multiplayer/performance acceptance remains separate.
