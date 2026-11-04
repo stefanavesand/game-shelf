@@ -20,13 +20,13 @@ async function updateServer({differentEngine=false,workerOnly=false}={}){
  const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,relative=pathname.replace(/^\/game-shelf\//,'').replace(/\/$/,'/index.html');
   if(!pathname.startsWith('/game-shelf/')){res.writeHead(404).end();return;}
-  if(next&&fail&&relative==='play/help.js'){failures++;res.writeHead(503).end('Interrupted download');return;}
+  if(fail&&relative==='play/help.js'){failures++;res.writeHead(503).end('Interrupted download');return;}
   const body=(next?candidate:original).get(relative);if(!body){res.writeHead(404).end();return;}
   const ext=path.extname(relative),type={'.js':'application/javascript','.html':'text/html','.css':'text/css','.svg':'image/svg+xml','.webmanifest':'application/manifest+json'}[ext]||'application/octet-stream';
   res.writeHead(200,{'Content-Type':type,'Cache-Control':'no-store'}).end(body);
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- return {url:`http://127.0.0.1:${server.address().port}/game-shelf/play/`,version,nextVersion,failures:()=>failures,upgrade:broken=>{next=true;fail=broken;},close:()=>new Promise(resolve=>{server.closeAllConnections();server.close(resolve);})};
+ return {url:`http://127.0.0.1:${server.address().port}/game-shelf/play/`,version,nextVersion,failures:()=>failures,setFailure:value=>{fail=value;},upgrade:broken=>{next=true;fail=broken;},close:()=>new Promise(resolve=>{server.closeAllConnections();server.close(resolve);})};
 }
 async function open(browser,options){
  const server=await updateServer(options),context=await browser.newContext();await context.route(/^https:\/\//,route=>route.abort());const page=await context.newPage();await page.goto(server.url+'#home');await expect(page.locator('#offline-status')).toHaveText('Ready for offline',{timeout:30000});return {server,context,page};
@@ -62,5 +62,14 @@ test('a damaged waiting cache cannot activate, and can be repaired without anoth
   const allowed=await f.page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();return new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=e=>resolve(e.data.ready);r.waiting.postMessage({type:'ACTIVATE'},[c.port2]);});});expect(allowed).toBe(false);expect((await status(f.page)).version).toBe(f.server.version);
   f.server.upgrade(true);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Update incomplete · current app kept · retry');expect((await status(f.page)).ready).toBe(true);
   f.server.upgrade(false);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+ }finally{await cleanup(f);}
+});
+
+test('repairing an active cache preserves remaining files on failure and restores offline game access',async({browser})=>{
+ const f=await open(browser);try{const before=await solo(f.page);await f.page.evaluate(async version=>{await (await caches.open('game-shelf-offline-'+version)).delete(new URL('./help.js',location.href).href);},f.server.version);
+  f.server.setFailure(true);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Offline package incomplete · current files kept · retry');
+  expect(await f.page.evaluate(async version=>!!await (await caches.open('game-shelf-offline-'+version)).match(new URL('./app.js',location.href).href),f.server.version)).toBe(true);expect((await status(f.page)).ready).toBe(false);
+  f.server.setFailure(false);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');await f.context.setOffline(true);await f.page.reload();await expect(f.page.locator('#connection')).toHaveText('Local · saved');
+  const after=await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});expect(after).toEqual(before);
  }finally{await cleanup(f);}
 });

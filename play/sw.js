@@ -1,7 +1,7 @@
 /* Offline app shell only: never cache identities or API responses. */
 importScripts('./offline-assets.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
-const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'959d56e8798efaf9c28cf7439340f9cab5121c24ac1a9f237d4b7941c5275423'}];
+const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'7c83db31ef4fc07bc4108d2b22ddfcd9fd9f2b91b9d0ea6c3390b552e474371b'}];
 const url=path=>new URL(path,ROOT).href;
 async function valid(response,hash){if(!response?.ok)return false;const value=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')===hash;}
 async function verified(){const cache=await caches.open(NAME);for(const f of FILES)if(!await valid(await cache.match(url(f.path)),f.sha256))return false;return FILES.length>1;}
@@ -9,7 +9,7 @@ let downloadTask;
 async function download(){
  if(downloadTask)return downloadTask;
  downloadTask=(async()=>{
-  const wasValid=await verified(),staging=NAME+'-download';
+  const existed=await caches.has(NAME),staging=NAME+'-download';
   try{
    if(!self.OFFLINE_ASSETS.length)throw Error('Offline package missing.');
    const temporary=await caches.open(staging);
@@ -17,7 +17,7 @@ async function download(){
    const cache=await caches.open(NAME);
    for(const f of FILES)await cache.put(url(f.path),await temporary.match(url(f.path)));
    if(!await verified())throw Error('Offline verification failed.');
-  }catch(error){if(!wasValid)await caches.delete(NAME);throw error;}
+  }catch(error){if(!existed)await caches.delete(NAME);throw error;}
   finally{await caches.delete(staging);}
  })();
  try{await downloadTask;}finally{downloadTask=null;}

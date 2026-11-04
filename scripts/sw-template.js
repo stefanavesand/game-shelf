@@ -9,7 +9,7 @@ let downloadTask;
 async function download(){
  if(downloadTask)return downloadTask;
  downloadTask=(async()=>{
-  const wasValid=await verified(),staging=NAME+'-download';
+  const existed=await caches.has(NAME),staging=NAME+'-download';
   try{
    if(!self.OFFLINE_ASSETS.length)throw Error('Offline package missing.');
    const temporary=await caches.open(staging);
@@ -17,7 +17,7 @@ async function download(){
    const cache=await caches.open(NAME);
    for(const f of FILES)await cache.put(url(f.path),await temporary.match(url(f.path)));
    if(!await verified())throw Error('Offline verification failed.');
-  }catch(error){if(!wasValid)await caches.delete(NAME);throw error;}
+  }catch(error){if(!existed)await caches.delete(NAME);throw error;}
   finally{await caches.delete(staging);}
  })();
  try{await downloadTask;}finally{downloadTask=null;}

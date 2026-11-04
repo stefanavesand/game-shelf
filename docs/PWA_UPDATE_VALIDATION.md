@@ -4,9 +4,9 @@
 
 ## Implementation
 
-Offline cache identity now includes both the app asset manifest and the worker template. A worker-only release therefore stages into a different cache from the active version. Downloading uses a temporary cache; only verified resources are copied into the candidate cache. Failed downloads discard their staging cache and preserve any previously complete cache.
+Offline cache identity now includes both the app asset manifest and the worker template. A worker-only release therefore stages into a different cache from the active version. Downloading uses a temporary cache; only verified resources are copied into the candidate cache. Failed downloads discard their staging cache and preserve pre-existing cache files, including surviving files of an incomplete active cache.
 
-A waiting worker verifies all resources again before activation. The PWA checks/repairs an incomplete waiting package before requesting activation; the worker independently refuses activation if its cache is incomplete. A failed repair keeps the current app. A later retry can repair the same candidate without a new release. Game/command compatibility checks still apply after repair. No app/API identity or game data is put in the service-worker cache.
+A waiting worker verifies all resources again before activation. The PWA checks/repairs an incomplete waiting package before requesting activation; the worker independently refuses activation if its cache is incomplete. A failed repair keeps the current app. A later retry can repair the same candidate without a new release. The same verified repair flow can restore missing active-cache resources without replacing the app. Game/command compatibility checks still apply after repair. No app/API identity or game data is put in the service-worker cache.
 
 ## Executed browser scenarios
 
@@ -19,8 +19,9 @@ A waiting worker verifies all resources again before activation. The PWA checks/
 | Complete compatible release while a game is active | Activation blocked on board; permitted at home; unfinished game resumes offline after activation/reload |
 | Candidate advertises an incompatible engine | Remains waiting while saved game pins it; deliberate abandonment releases the pin and permits activation |
 | Candidate resource deleted after installation | Worker refuses direct activation; failed repair preserves old app; restoring network resources and retrying repairs/activates the same release |
+| Active-cache resource deleted after installation | Failed repair preserves the other files; retry restores offline readiness and saved-game reopening without a new release |
 
-Initial targeted result: **5/5 passed**, approximately 15 seconds. The incompatible-engine candidate advertises a future engine ID to test the guard; it is not an implementation or certification of a future rule engine. Prepared failure resources are synthetic; game creation/saving/resume use the ordinary local session.
+Targeted result: **6/6 update tests passed**. Combined with existing offline scenarios: **11/11 passed**, approximately 29 seconds. The incompatible-engine candidate advertises a future engine ID to test the guard; it is not an implementation or certification of a future rule engine. Prepared failure resources are synthetic; game creation/saving/resume use the ordinary local session.
 
 Package checks also verify that the version includes the current template and that generated worker bytes match the template and manifest SHA. CI repeats these checks against the packaged site before publication.
 

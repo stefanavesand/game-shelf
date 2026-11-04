@@ -15,6 +15,8 @@ Implements the product constraints MVP-L01–05 in the [PRD](../PRD.md) and [MVP
 
 ## Approved release verification — 2026-11-04
 
+Current PWA update/cache protocol and its verified limits are recorded in [PWA update verification](PWA_UPDATE_VALIDATION.md). It stages verified downloads, includes the worker template in cache identity, revalidates before activation and supports retryable cache repair. Single-window Chromium tests do not establish cross-window activation atomicity or iOS behavior.
+
 Follow MVP-R01–06 in the [current requirements](MVP_REQUIREMENTS.md). Keep automated production-session evidence separate from physical iPad acceptance, independent rule expectations and operational verification. Storage/update work must provide a safe abandon path while preserving unresolved-command semantics. Bot performance measurement belongs on the declared reference iPad; the paced live integration run is not a latency benchmark. Record concrete retention, budget, ownership and rollback choices before release. The completed [real-relay game](EMULATED_MULTIPLAYER.md) is existing evidence, not a reason to repeat the entire run for documentation-only changes. No new server rule engine, account recovery or automatic coordinator transfer is implied.
 
 ## New relay mode: approved direction (2026-11-03)
