@@ -4,6 +4,12 @@ Version 0.9 · 2026-11-04. The user confirmed the product baseline: private iPad
 
 Owner scope addition on 2026-11-02: an optional solo internet mode with one human and two bots (M-17). The friend invitation flow remains supported.
 
+## Reference device — owner report (2026-11-04)
+
+- Hardware: iPad Pro, 13-inch, reported as a 2025 model. Chip and RAM have not been independently identified.
+- OS: owner believes the latest version is iPadOS 27. Treat this as tentative; confirm exact version/build during device acceptance rather than claiming a verified OS matrix.
+- Target: installed PWA, portrait and landscape. Actual-device completion, accessibility and performance checks remain open. The second participant's device/OS and physical network still need recording.
+
 ## Approved MVP release gates — 2026-11-04
 
 The owner accepted these requirements before MVP release. Acceptance of the requirements is not evidence that they have passed. Existing stable backlog IDs and detailed acceptance criteria remain in use.

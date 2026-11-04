@@ -1,5 +1,6 @@
 import {readdir,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
 import {catanManifest} from './catan-manifest.mjs';
+import {offlineVersion} from './offline-version.mjs';
 await catanManifest();
 import {createHash} from 'node:crypto';
 import path from 'node:path';
@@ -18,10 +19,11 @@ async function collect(relative){
 files.push('play/sw.js','play/offline-assets.js','index.html');for(const folder of ['play','ui','prototype'])await collect(folder);
 const unique=[...new Set(files)].sort();files.splice(0,files.length,...unique);
 const offline=[];for(const name of files.filter(f=>/^(play|ui)\//.test(f)&&!['play/sw.js','play/offline-assets.js'].includes(f))){const bytes=await readFile(path.join(root,name));offline.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex')});}
-const engine=await catanManifest({check:true}),version=createHash('sha256').update(JSON.stringify(offline)).digest('hex');
+const template=await readFile(path.join(root,'scripts/sw-template.js'),'utf8');
+const engine=await catanManifest({check:true}),version=offlineVersion(offline,template);
 const offlineCode='// Generated during build.\nself.OFFLINE_VERSION='+JSON.stringify(version)+';self.OFFLINE_ENGINE='+JSON.stringify(engine.digest)+';self.OFFLINE_ASSETS='+JSON.stringify(offline)+';\n';
 await writeFile(path.join(root,'play/offline-assets.js'),offlineCode);
-const worker=(await readFile(path.join(root,'scripts/sw-template.js'),'utf8')).replace('__OFFLINE_SCRIPT_SHA__',createHash('sha256').update(offlineCode).digest('hex'));
+const worker=template.replace('__OFFLINE_SCRIPT_SHA__',createHash('sha256').update(offlineCode).digest('hex'));
 await writeFile(path.join(root,'play/sw.js'),worker);
 await rm(output,{recursive:true,force:true});await mkdir(output,{recursive:true});
 const manifest={schemaVersion:1,commit:process.env.GITHUB_SHA||'local',files:[]};

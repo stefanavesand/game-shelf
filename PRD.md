@@ -4,6 +4,12 @@ Version 3.11 · 2026-11-04 · Product baseline and warm light UI owner-approved;
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
 
+## Reference device — owner report (2026-11-04)
+
+- Hardware: iPad Pro, 13-inch, reported as a 2025 model. Chip and RAM have not been independently identified.
+- OS: owner believes the latest version is iPadOS 27. Treat this as tentative; confirm exact version/build during device acceptance rather than claiming a verified OS matrix.
+- Target: installed PWA, portrait and landscape. Actual-device completion, accessibility and performance checks remain open. The second participant's device/OS and physical network still need recording.
+
 ## Approved MVP release gates — 2026-11-04
 
 The owner accepted these requirements before MVP release. Acceptance of the requirements is not evidence that they have passed. Existing stable backlog IDs and detailed acceptance criteria remain in use.

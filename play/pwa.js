@@ -15,8 +15,14 @@ export async function setupPwa({canUpdate=async()=>false}={}){
   registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'||worker.state==='activated')check();if(worker.state==='redundant')button.textContent='Offline download failed · reconnect and retry';});});
   await navigator.serviceWorker.ready;await check();
   button.onclick=async()=>{
-   if(registration.waiting){const info=await ask(registration.waiting,'INFO');if(!await canUpdate(info.engine)){button.textContent='Finish the game or return home before updating';return;}registration.waiting.postMessage({type:'ACTIVATE'});}
-   else{await registration.update();await check();}
+   try{
+    if(registration.waiting){const worker=registration.waiting;let info=await ask(worker,'CHECK');
+     if(!info.ready){button.textContent='Repairing update…';info=await ask(worker,'REPAIR');}
+     if(!info.ready){button.textContent='Update incomplete · current app kept · retry';return;}
+     if(!await canUpdate(info.engine)){button.textContent='Finish the game or return home before updating';return;}
+     if(!(await ask(worker,'ACTIVATE')).ready)button.textContent='Update incomplete · current app kept · retry';
+    }else{await registration.update();await check();}
+   }catch{button.textContent='Update check failed · current app kept · retry';}
   };
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(registration.active&&navigator.serviceWorker.controller&&self.OFFLINE_VERSION!==undefined)ask(registration.active,'INFO').then(info=>{if(info.version!==self.OFFLINE_VERSION)location.reload();else check();});});
  }catch{button.textContent='Offline package unavailable · reconnect';}

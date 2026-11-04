@@ -15,3 +15,11 @@ test('the public package includes required entrypoints and excludes development/
 test('every packaged asset and manifest hash matches the source tested in this run',async()=>{
   for(const file of manifest.files){const bytes=await readFile(new URL(file.path,dist));assert.deepEqual(bytes,await readFile(new URL(file.path,root)),file.path);assert.equal(bytes.length,file.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),file.sha256);}
 });
+
+test('offline version includes the worker template and the generated worker matches its manifest',async()=>{
+ const {offlineVersion}=await import('../../scripts/offline-version.mjs');
+ const script=await readFile(new URL('play/offline-assets.js',dist),'utf8'),template=await readFile(new URL('scripts/sw-template.js',root),'utf8');
+ const assets=JSON.parse(script.match(/self\.OFFLINE_ASSETS=(\[.*\]);/)[1]),version=JSON.parse(script.match(/self\.OFFLINE_VERSION=("[^"]*")/)[1]);
+ assert.equal(version,offlineVersion(assets,template));assert.notEqual(version,offlineVersion(assets,template+'\n// changed worker'));
+ assert.equal(await readFile(new URL('play/sw.js',dist),'utf8'),template.replace('__OFFLINE_SCRIPT_SHA__',createHash('sha256').update(script).digest('hex')));
+});

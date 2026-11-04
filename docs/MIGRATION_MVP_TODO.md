@@ -45,6 +45,8 @@ Detailed acceptance criteria remain in the backlog under the same stable IDs. Va
 
 ## MVP implementation progress — 2026-11-04
 
+- MVP-R02 / QA-01 (update slice): [five real worker/cache scenarios](PWA_UPDATE_VALIDATION.md) cover interrupted UI/worker-only releases, compatible activation with saved-game recovery, incompatible-engine pinning/abandonment and damaged-cache repair. Worker/template hashes now separate cache versions and activation revalidates resources. iPad and cross-window/termination/quota gates remain open. Reference iPad Pro 13-inch (2025); iPadOS 27 is tentative, not verified.
+
 - UX-09 / SCORE-01 / CARD-HELP-01 / HELP-01 / TRADE-ELIGIBILITY-01 / TRADE-FEEDBACK-01 (initial implementation): acting-player/turn-owner cues, score breakdown, offline help/full card descriptions, ordinary-command auto-decline of unaffordable offers and persisted outcome feedback. See [implementation and limitations](MVP_UX_IMPLEMENTATION.md). Local full browser suite: 57 passed / 5 opt-in live skipped; six pure feedback tests and package/link checks passed. Device/accessibility and owner playtest acceptance remain open; original checkboxes are not release sign-off.
 
 - RULE-VALIDATION-01 / BOT-VALIDATION-01 / QA-01 (partial): [current validation](RULE_VALIDATION.md) adds nine boundary cases and 100 naturally completed current-policy games (44,185 actions) across Easy/Standard and both supported configurations. Integrated in CI. Independent reference review, full edge-case/trade matrix and device gates remain open.
