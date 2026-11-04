@@ -29,3 +29,11 @@ After a committed development-card purchase the UI identifies the actual new car
 - Targeted bot regressions cover useful trade acceptance and a bot-originated offer waiting for a human. No assertion that every offer should be accepted.
 
 No old-game migration is attempted, as authorized by the owner. Historical engine/relay verification remains in [the engine guide](CATAN_ENGINE.md) and [relay guide](PWA_RELAY.md).
+
+## Abandonment and updates — 2026-11-04
+
+Home offers **Abandon game** with explicit confirmation for local and online entries. This marks the browser's entry abandoned, clears its current selection if needed and excludes it from resume/update pinning. Data is retained as a tombstone; this is not a deletion or backup feature. Online abandonment does not notify the peer or delete relay history. Creator-dependent bots may pause. There is no supported undo/resume of an abandoned entry.
+
+The online client serializes index/command operations across windows using an origin-scoped Web Lock. An admission intent or pending delivery blocks abandonment. Original game records/outboxes remain intact, and pending delivery blocks updates even on an abandoned entry. Local storage failure must leave the game listed and its engine pin intact. Abandonment needs no new backend endpoint or network request.
+
+Verified: unit coverage for persisted local abandonment, local write failure, online pending-intent protection and no-network abandonment; Chromium confirmation/cancel, reload and update-unpin flow. These do not certify interrupted worker activation, corrupt selected-save escape or actual iPad update behavior; those remain open under MVP-R02.

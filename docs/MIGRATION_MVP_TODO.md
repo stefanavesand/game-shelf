@@ -43,6 +43,11 @@ The owner accepted this split during MVP prioritization. Inclusion is a delivery
 
 Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates still require the separate prioritization decision.
 
+## MVP implementation progress — 2026-11-04
+
+- RULE-VALIDATION-01 / BOT-VALIDATION-01 / QA-01 (partial): [current validation](RULE_VALIDATION.md) adds nine boundary cases and 100 naturally completed current-policy games (44,185 actions) across Easy/Standard and both supported configurations. Integrated in CI. Independent reference review, full edge-case/trade matrix and device gates remain open.
+- [x] **SAVE-ABANDON-01 — Abandon a saved game to release its update pin.** Home confirmation works for Solo/Friends; keep pending online operations intact; do not claim server deletion or peer notification. Local persistence failure, online pending rejection and browser confirmation/reload are covered. See [offline/current storage notes](OFFLINE_SOLO.md). This implements one part of MVP-R02, not the entire update-safety gate.
+
 ## Owner playtest follow-ups — 2026-11-04
 
 All items below remain unfinished, not claims of implemented or verified behavior. Preserve these IDs. The approved UX scope above determines MVP versus later delivery; other priority labels remain proposals.

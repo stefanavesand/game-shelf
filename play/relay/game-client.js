@@ -1,5 +1,5 @@
 import {createIdentity} from '../core/identity.js';
-import {PlayError} from '../core/errors.js';
+import {PlayError,locked} from '../core/errors.js';
 import {createRelayTransport} from './transport.js';
 import {createRelayStore} from './store.js';
 import {createRelayLobby} from './lobby.js';
@@ -44,10 +44,10 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
  }
  async function refresh(){principal=(await auth.identity()).user.id;let index=await read(principal);if(index.intent)index=await enter(index);const bound=await binding(index,true);return bound?progress(index,bound.replica,bound.room):null;}
  function translate(error){if(error instanceof PlayError)return error;return new PlayError(error.code==='AUTH_REQUIRED'?'AUTH_REQUIRED':error.code==='UNSUPPORTED_ENGINE'?'UNSUPPORTED_VERSION':error.code||'NETWORK_UNAVAILABLE',error.message,{retryable:!!error.retryable,retryAfterMs:error.retryAfterMs||0});}
- return {
+ const client={
   capabilities:{pollIntervalMs:5000,requiresInternet:true},
   async inspect(){const p=saved();if(!p)return {state:{schemaVersion:1,roomId:null,pending:null},packet:null,principalId:null};const index=await read(p),bound=await binding(index,false),record=bound?await bound.replica.state():null;return {state:{schemaVersion:1,roomId:index.current||null,pending:index.intent?{body:{op:index.intent.op},principalId:p}:record?.outbox.length?{body:{op:'command'},principalId:p}:null,retryAt:record?.retryAt||0},principalId:p,packet:bound?packet(index,bound.room,record):null};},
-  async games(){const p=saved();if(!p)return [];const index=await read(p),rows=[];for(const roomId of Object.keys(index.rooms)){const record=await store.load(p,roomId),snapshot=record.game?.state.snapshot;rows.push({roomId,status:snapshot?.state.game.phase==='ended'?'ended':snapshot?'playing':'waiting',players:snapshot?.seats.map(s=>s.name)||index.rooms[roomId].members?.map(s=>s.displayName||'Player')||[],mode:'friends',botLevel:index.rooms[roomId].botLevel});}return rows;},
+  async games(){const p=saved();if(!p)return [];const index=await read(p),rows=[];for(const roomId of Object.keys(index.rooms)){if(index.rooms[roomId].abandoned)continue;const record=await store.load(p,roomId),snapshot=record.game?.state.snapshot;rows.push({roomId,status:snapshot?.state.game.phase==='ended'?'ended':snapshot?'playing':'waiting',players:snapshot?.seats.map(s=>s.name)||index.rooms[roomId].members?.map(s=>s.displayName||'Player')||[],mode:'friends',botLevel:index.rooms[roomId].botLevel});}return rows;},
   async execute(op,args={}){try{
    principal=(await auth.identity({allowCreate:op==='create'||op==='join'})).user.id;let index=await read(principal);
    if(op==='create'||op==='join'){
@@ -57,7 +57,10 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
    const current=await bound.replica.state();await bound.replica.command({actor:principal,action:args.action},{},{revision:args.expectedRevision,hash:current.game?.hash});return progress(index,bound.replica,bound.room);
   }catch(error){if(error instanceof RuleRejection||error.code==='STALE_GAME')return {ok:false,apiVersion:1,error:{code:'rule_rejected',message:error.message}};throw translate(error);}},
   async refresh(){try{return await refresh();}catch(error){throw translate(error);}},
-  async resume(roomId){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId])return {ok:false,apiVersion:1,error:{code:'room_not_found',message:'This game is not available.'}};index.current=roomId;await save(index);return this.refresh();},
-  async canUpdate(artifact){const p=saved();if(!p)return true;const index=await read(p);if(index.intent)return false;for(const room of Object.keys(index.rooms)){const record=await store.load(p,room);if(record.outbox.length||record.game&&record.game.state.snapshot.state.game.phase!=='ended'&&record.game.moduleDigest!==artifact)return false;}return true;}
+  async resume(roomId){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId]||index.rooms[roomId].abandoned)return {ok:false,apiVersion:1,error:{code:'room_not_found',message:'This game is not available.'}};index.current=roomId;await save(index);return refresh();},
+  async abandon(roomId){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId])throw new PlayError('ROOM_SWITCH','Choose a saved game.');const record=await store.load(p,roomId);if(index.intent||record.outbox.length)throw new PlayError('PENDING_DELIVERY','Resolve the pending operation before abandoning this game.');index.rooms[roomId].abandoned=true;if(index.current===roomId)index.current=null;await save(index);},
+  async canUpdate(artifact){const p=saved();if(!p)return true;const index=await read(p);if(index.intent)return false;for(const room of Object.keys(index.rooms)){const record=await store.load(p,room);if(record.outbox.length||!index.rooms[room].abandoned&&record.game&&record.game.state.snapshot.state.game.phase!=='ended'&&record.game.moduleDigest!==artifact)return false;}return true;}
  };
+ // Fence index changes, active commands and abandonment across app windows.
+ return Object.fromEntries(Object.entries(client).map(([name,value])=>[name,typeof value==='function'? (...args)=>locked('game-shelf-online-catan-index',()=>value.apply(client,args)):value]));
 }

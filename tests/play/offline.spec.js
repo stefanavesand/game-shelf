@@ -21,3 +21,13 @@ test('a purchased development card is shown, saved and usable as a card offline'
  await page.reload();await expect(page.locator('#connection')).toHaveText('Local · saved');await page.getByRole('button',{name:'Build',exact:true}).click();await page.locator('[data-action="build:BUY_DEVELOPMENT_CARD"]').click();await expect(page.getByRole('heading',{name:'Your new development card'})).toBeVisible();await expect(page.getByRole('heading',{name:'Knight',exact:true})).toBeVisible();await page.getByRole('button',{name:'Done',exact:true}).click();await expect(page.locator('.development-section')).toContainText('Knight');await page.reload();await expect(page.locator('.development-section')).toContainText('Knight');
  }finally{await context.close();}
 });
+
+test('abandon confirmation keeps a solo game until confirmed and unpins updates after reload',async({browser})=>{
+ const context=await browser.newContext();await context.route(/^https:\/\//,route=>route.abort());
+ try{
+  const page=await context.newPage();await page.goto(root+'#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Abandon test');await page.getByLabel('Players',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('.players .bot-tag')).toHaveCount(2);
+  await page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await page.getByRole('button',{name:'Abandon game',exact:true}).click();await page.getByRole('button',{name:'Keep game',exact:true}).click();await expect(page.getByRole('button',{name:'Resume game',exact:true})).toHaveCount(1);
+  await page.getByRole('button',{name:'Abandon game',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await expect(page.getByText('No saved games yet. Choose New game to get started.')).toBeVisible();
+  await page.reload();await expect(page.getByRole('button',{name:'Resume game',exact:true})).toHaveCount(0);expect(await page.evaluate(async()=>{const {client}=await import('./session.js');return client.canUpdate('next-engine');})).toBe(true);
+ }finally{await context.close();}
+});

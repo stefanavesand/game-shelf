@@ -14,3 +14,17 @@ test('a full local solo game saves every move and resumes with no network/auth',
 });
 test('storage failure rejects creation before durable success',async()=>{const client=createLocalClient({storage:{load:async()=>({schemaVersion:1,games:{}}),save:async()=>{throw Error('quota');}},locks,seed:()=>1});await assert.rejects(client.execute('create',{name:'A'}));});
 test('unfinished local games block incompatible engine updates',async()=>{const client=createLocalClient({storage,locks,seed:()=>7});await client.execute('create',{name:'A'});assert.equal(await client.canUpdate('different-engine'),false);const {CATAN_ARTIFACT}=await import('../../play/catan/artifact.js');assert.equal(await client.canUpdate(CATAN_ARTIFACT.digest),true);});
+
+test('abandoning an unfinished game unpins updates and persists across reopening',async()=>{
+ let data={schemaVersion:1,local:false,current:null,games:{}};
+ const store={load:async()=>structuredClone(data),save:async v=>{data=structuredClone(v);}};
+ let client=createLocalClient({storage:store,locks,seed:()=>7});const game=await client.execute('create',{name:'A'});
+ assert.equal(await client.canUpdate('next-engine'),false);await client.abandon(game.roomId);
+ client=createLocalClient({storage:store,locks});assert.deepEqual(await client.games(),[]);assert.equal((await client.inspect()).packet,null);assert.equal(await client.resume(game.roomId),null);assert.equal(await client.canUpdate('next-engine'),true);
+});
+test('failed abandonment storage does not hide a game or unblock an incompatible update',async()=>{
+ let data={schemaVersion:1,local:false,current:null,games:{}},fail=false;
+ const store={load:async()=>structuredClone(data),save:async v=>{if(fail)throw Error('quota');data=structuredClone(v);}};
+ const client=createLocalClient({storage:store,locks,seed:()=>7}),game=await client.execute('create',{name:'A'});fail=true;
+ await assert.rejects(client.abandon(game.roomId));assert.equal((await client.games()).length,1);assert.equal((await client.inspect()).packet.roomId,game.roomId);assert.equal(await client.canUpdate('next-engine'),false);
+});

@@ -9,5 +9,6 @@ export const client={
  async execute(op,args={},options){if(op==='create'&&args.mode==='solo')return local.execute(op,args);if(op==='command'&&local.isLocal())return local.execute(op,args);const result=await online.execute(op,args,options);if(result?.ok)await local.selectOnline();return result;},
  refresh:()=>local.isLocal()?local.refresh():online.refresh(),
  async resume(roomId){const result=await local.resume(roomId);if(result)return result;const remote=await online.resume(roomId);if(remote.ok)await local.selectOnline();return remote;},
+ async abandon(roomId){if((await local.games()).some(g=>g.roomId===roomId))return local.abandon(roomId);return online.abandon(roomId);},
  canUpdate:async artifact=>await local.canUpdate(artifact)&&await online.canUpdate(artifact)
 };

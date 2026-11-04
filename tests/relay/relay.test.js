@@ -124,3 +124,15 @@ test('concurrent creator refreshes adopt one started Catan game without a false 
   assert.equal(packets[0].roomId,packets[1].roomId);
  }finally{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;}
 });
+
+test('online abandonment preserves pending deliveries and only unpins a resolved game',async()=>{
+ const {createOnlineGameClient}=await import('../../play/relay/game-client.js');
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'navigator');Object.defineProperty(globalThis,'navigator',{configurable:true,value:{locks:createLocks()}});
+ try{
+  const store=createMemoryStore(),index=await store.load('alice','@index');index.current='channel';index.rooms={channel:{members:[],botLevel:'standard'}};await store.save(index);
+  const record=await store.load('alice','channel');record.game={moduleDigest:'old-engine',state:{snapshot:{state:{game:{phase:'main'}}}}};record.outbox=[{message:{type:'game.command'},request:{mutationId:'pending-original'}}];await store.save(record);
+  const client=createOnlineGameClient({auth:{savedIdentity:()=>({user:{id:'alice'}})},store,transport:{request:()=>{throw Error('No network should be needed');}}});
+  await assert.rejects(client.abandon('channel'),e=>e.code==='PENDING_DELIVERY');assert.deepEqual(await store.load('alice','channel'),record);assert.equal(await client.canUpdate('next-engine'),false);
+  record.outbox=[];await store.save(record);await client.abandon('channel');assert.equal(await client.canUpdate('next-engine'),true);assert.deepEqual(await client.games(),[]);assert.equal((await client.inspect()).packet,null);assert.equal((await client.resume('channel')).ok,false);assert.deepEqual(await store.load('alice','channel'),record);
+ }finally{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;}
+});
