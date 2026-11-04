@@ -1,0 +1,35 @@
+{
+  "engineArtifact": "0b6ec737a127830c017a7c46f757ad81047d247760527968266c3e178ed2821b",
+  "reference": "CATAN English fifth edition, official 2020 PDF; basegame FAQ retrieved 2026-11-04",
+  "results": [
+    {
+      "id": "RV-01-brick-port-2-for-1",
+      "referenceExpected": "accepted",
+      "actual": "accepted",
+      "error": null
+    },
+    {
+      "id": "RV-01-brick-port-4-for-1",
+      "referenceExpected": "accepted",
+      "actual": "rejected",
+      "error": "Invalid bank trade ratio"
+    },
+    {
+      "id": "RV-02-off-turn-counterproposal",
+      "referenceExpected": "accepted",
+      "actual": "rejected",
+      "error": "Cannot offer this trade now."
+    },
+    {
+      "id": "RV-03-select-empty-adjacent-opponent",
+      "referenceExpected": "accepted",
+      "actual": "rejected",
+      "error": "Invalid steal target"
+    },
+    {
+      "id": "setup-snake-order-and-second-settlement-income",
+      "referenceExpected": "matches",
+      "actual": "matches"
+    }
+  ]
+}

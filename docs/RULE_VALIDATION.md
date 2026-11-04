@@ -2,6 +2,8 @@
 
 2026-11-04. Tracks RULE-VALIDATION-01, BOT-VALIDATION-01 and QA-01 / MVP-R01. This is incremental evidence, not certification of every base-game rule.
 
+The later [rulebook and rights review](RULEBOOK_AND_RIGHTS_REVIEW.md) pins the official fifth-edition reference, maps it to implementation/evidence and reproduces three legal-choice restrictions. It is a fresh audit by the development assistant, not an independent human certification. Its edition limitation and open findings supersede any implication below that a complete rule-reference review has passed.
+
 ## Fixed expected outcomes
 
 `tests/catan/validation.test.js` adds nine scenario tests with explicit expected results rather than using a second replica as the oracle:
