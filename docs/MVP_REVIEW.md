@@ -83,3 +83,5 @@ Fresh commands and their results are recorded below after execution. No browser 
 - `npm run check`: passed; pinned artifact, JavaScript syntax, manifests and documentation links.
 - `npm run test:core`: passed, 60 tests across legacy core (19), relay (21), Catan (17) and local Solo (3). These are mixed layers, not 60 full-game E2E cases.
 - Current policy natural seeded game: 473 actions / 85 turns; local saved-and-resumed full-game unit scenario also passed. Neither substitutes for independent rule expectations or a human internet game.
+
+Subsequent targeted coverage: [two emulated human seats and the normal bot](EMULATED_MULTIPLAYER.md) completed a natural game through two browser contexts and the production session adapter, with equal final state hashes and reload recovery. The relay was simulated; actual-service and physical-device release gates remain open.
