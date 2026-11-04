@@ -35,10 +35,10 @@ function setScreen(next){screen=next;history.replaceState(null,'',`${location.pa
 function money(bundle){return bundleLabel(bundle).replaceAll('lumber','wood');}
 function recovery(){
   if(!error&&!saved?.pending&&(navigator.onLine||offlineAllowed()))return '';
-  const permanent=error&&['AUTH_REQUIRED','UNSUPPORTED_VERSION','SESSION_EXPIRED','UNSUPPORTED_BROWSER'].includes(error.code),pending=!!saved?.pending;
+  const permanent=error&&['AUTH_REQUIRED','UNSUPPORTED_VERSION','UPDATE_PENDING','SESSION_EXPIRED','UNSUPPORTED_BROWSER'].includes(error.code),pending=!!saved?.pending;
   const title=!navigator.onLine?'You’re offline':error?.code==='AUTH_REQUIRED'?'Your player identity needs attention':error?.code==='SESSION_EXPIRED'?'This room has expired':error?.code==='UNSUPPORTED_VERSION'?'A compatible app is needed':pending?'Let’s check your original move':busy?'Reconnecting…':'The game needs a moment';
   const text=!navigator.onLine?'Internet play is paused. Reconnect to check the game before making a move.':error?.message||(pending?'Your move is waiting for confirmation. We’ll resolve it before sending another.':'Check the connection to continue.');
-  return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
+  return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${error?.code==='UPDATE_PENDING'?button('Apply update','apply-update','primary',busy):error?.code==='UNSUPPORTED_VERSION'?button('Reload app','reload-app','primary',busy):button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
 }
 function title(){
   const v=view(),g=v.state.game,me=v.you;
@@ -231,6 +231,8 @@ function begin(next){
   setScreen(next);
 }
 async function dispatch(action,el){
+  if(action==='apply-update'){error=null;ready=true;closeSheet();setScreen('home');$('offline-status').click();return;}
+  if(action==='reload-app'){location.reload();return;}
   if(action==='help'){helpPanel();return;}
   if(action==='scores'&&view()){scorePanel();return;}
   if(action.startsWith('trade-')){

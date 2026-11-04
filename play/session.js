@@ -1,3 +1,4 @@
+import {withSessionLock} from './lifecycle.js';
 import {createOnlineGameClient} from './relay/game-client.js';
 import {createLocalClient} from './local/client.js';
 const online=createOnlineGameClient(),local=createLocalClient();
@@ -12,3 +13,9 @@ export const client={
  async abandon(roomId){if((await local.games()).some(g=>g.roomId===roomId))return local.abandon(roomId);return online.abandon(roomId);},
  canUpdate:async artifact=>await local.canUpdate(artifact)&&await online.canUpdate(artifact)
 };
+
+// Fence all operations that may persist state or schedule bots against activation.
+for(const method of ['execute','refresh','resume','abandon']){
+ const operation=client[method].bind(client);
+ client[method]=(...args)=>withSessionLock(()=>operation(...args));
+}

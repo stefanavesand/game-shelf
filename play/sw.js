@@ -1,7 +1,7 @@
 /* Offline app shell only: never cache identities or API responses. */
-importScripts('./offline-assets.js');
+importScripts('./offline-assets.js','./update-state.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
-const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'909ba42ea708c42aa637f00436656e542ca4235b4c278f06a4cc0c8e8120c49f'}];
+const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'68806f8ce1413476d5debd62bf6495f81653fac3a9331ab4614c9f810a09fc68'}];
 const url=path=>new URL(path,ROOT).href;
 async function valid(response,hash){if(!response?.ok)return false;const value=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')===hash;}
 async function verified(){const cache=await caches.open(NAME);for(const f of FILES)if(!await valid(await cache.match(url(f.path)),f.sha256))return false;return FILES.length>1;}
@@ -22,7 +22,13 @@ async function download(){
  })();
  try{await downloadTask;}finally{downloadTask=null;}
 }
-self.addEventListener('install',event=>event.waitUntil(download()));
+self.addEventListener('install',event=>event.waitUntil((async()=>{
+ try{await navigator.locks.request('game-shelf-app-lifecycle',{mode:'exclusive'},async()=>{
+  if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE))throw Error('Saved games or pending moves block this update');
+  await self.GameShelfUpdateState.setFence({schemaVersion:1,version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE});
+ });}catch(error){for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'UPDATE_BLOCKED'});throw error;}
+ await download();
+})()));
 // Updated workers wait for an explicit safe activation request.
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const name of await caches.keys())if(name.startsWith('game-shelf-offline-')&&name!==NAME)await caches.delete(name);})()));
 self.addEventListener('message',event=>{

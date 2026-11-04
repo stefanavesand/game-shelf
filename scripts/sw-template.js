@@ -1,5 +1,5 @@
 /* Offline app shell only: never cache identities or API responses. */
-importScripts('./offline-assets.js');
+importScripts('./offline-assets.js','./update-state.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
 const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'__OFFLINE_SCRIPT_SHA__'}];
 const url=path=>new URL(path,ROOT).href;
@@ -22,7 +22,13 @@ async function download(){
  })();
  try{await downloadTask;}finally{downloadTask=null;}
 }
-self.addEventListener('install',event=>event.waitUntil(download()));
+self.addEventListener('install',event=>event.waitUntil((async()=>{
+ try{await navigator.locks.request('game-shelf-app-lifecycle',{mode:'exclusive'},async()=>{
+  if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE))throw Error('Saved games or pending moves block this update');
+  await self.GameShelfUpdateState.setFence({schemaVersion:1,version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE});
+ });}catch(error){for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'UPDATE_BLOCKED'});throw error;}
+ await download();
+})()));
 // Updated workers wait for an explicit safe activation request.
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const name of await caches.keys())if(name.startsWith('game-shelf-offline-')&&name!==NAME)await caches.delete(name);})()));
 self.addEventListener('message',event=>{

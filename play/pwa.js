@@ -1,8 +1,9 @@
+import {withUpdateLock} from './lifecycle.js';
 import './offline-assets.js';
 export async function setupPwa({canUpdate=async()=>false}={}){
  const button=document.getElementById('offline-status');if(!button)return;
  if(!('serviceWorker'in navigator)){button.textContent='Offline installation unavailable';button.disabled=true;return;}
- let registration;
+ let registration,blockedInstall=false;
  const ask=(worker,type)=>new Promise((resolve,reject)=>{if(!worker){reject(Error());return;}const channel=new MessageChannel(),timer=setTimeout(()=>reject(Error()),15000);channel.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data);};worker.postMessage({type},[channel.port2]);});
  async function check(){
   try{if(registration.waiting){button.textContent='Update available';return;}
@@ -12,17 +13,28 @@ export async function setupPwa({canUpdate=async()=>false}={}){
  try{
   registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
   button.onclick=()=>registration.update();
-  registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'||worker.state==='activated')check();if(worker.state==='redundant')button.textContent='Offline download failed · reconnect and retry';});});
+  navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='UPDATE_BLOCKED'){blockedInstall=true;button.textContent='Update blocked · saved games or pending moves need attention';}});
+  registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'||worker.state==='activated')check();if(worker.state==='redundant'&&!blockedInstall)button.textContent='Offline download failed · reconnect and retry';});});
   await navigator.serviceWorker.ready;await check();
   button.onclick=async()=>{
    try{
     if(registration.waiting){const worker=registration.waiting;let info=await ask(worker,'CHECK');
      if(!info.ready){button.textContent='Repairing update…';info=await ask(worker,'REPAIR');}
      if(!info.ready){button.textContent='Update incomplete · current app kept · retry';return;}
-     if(!await canUpdate(info.engine)){button.textContent='Finish the game or return home before updating';return;}
-     if(!(await ask(worker,'ACTIVATE')).ready)button.textContent='Update incomplete · current app kept · retry';
+     let blocked=false;
+     const activated=await withUpdateLock(async()=>{
+      if(!await canUpdate(info.engine)){blocked=true;button.textContent='Finish the game or return home before updating';return false;}
+      const result=await ask(worker,'ACTIVATE');
+      if(result.ready&&worker.state!=='activated')await new Promise((resolve,reject)=>{
+       const changed=()=>{if(worker.state==='activated'){clearTimeout(timer);worker.removeEventListener('statechange',changed);resolve();}else if(worker.state==='redundant'){clearTimeout(timer);worker.removeEventListener('statechange',changed);reject(Error('Update replaced'));}};
+       const timer=setTimeout(()=>{worker.removeEventListener('statechange',changed);reject(Error('Activation timeout'));},15000);worker.addEventListener('statechange',changed);changed();
+      });
+      return result.ready;
+     });
+     if(activated===null)button.textContent='Another window is saving or sending a move · retry when it finishes';
+     else if(activated===false&&!blocked)button.textContent='Update incomplete · current app kept · retry';
     }else{
-     await registration.update();
+     blockedInstall=false;await registration.update();
      if(!registration.waiting&&!(await ask(registration.active,'CHECK')).ready){button.textContent='Repairing offline package…';const repaired=await ask(registration.active,'REPAIR');if(!repaired.ready){button.textContent='Offline package incomplete · current files kept · retry';return;}}
      await check();
     }
