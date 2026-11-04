@@ -1,8 +1,26 @@
 # Private MVP requirements — agreed product baseline
 
-Version 0.7 · 2026-11-04. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
+Version 0.8 · 2026-11-04. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
 
 Owner scope addition on 2026-11-02: an optional solo internet mode with one human and two bots (M-17). The friend invitation flow remains supported.
+
+## Approved UX scope — 2026-11-04
+
+The owner accepted this split during MVP prioritization. Inclusion is a delivery requirement, not a claim of completion. These decisions supersede earlier proposed priorities for the listed items; other scope and release decisions remain open.
+
+| Delivery | Existing IDs | Required behavior |
+|---|---|---|
+| MVP | UX-09 | Clearly identify the acting player using name and color, accessible cues and reduced-motion support. |
+| MVP | SCORE-01 | Show score breakdown, including Longest Road/Largest Army bonuses and their changes; keep hidden victory points seat-specific. |
+| MVP | CARD-HELP-01 | Complete descriptions, timing restrictions and unavailable reasons for all five development-card types. |
+| MVP | HELP-01 | Simple offline-accessible rules and instructions for supported actions. |
+| MVP | TRADE-ELIGIBILITY-01 | Do not offer an actionable incoming trade to a player lacking the requested resources; revalidate before acceptance without expanding bot access to hidden hands. |
+| MVP | TRADE-FEEDBACK-01 | Clear acceptance/decline feedback, with cancellation/invalidation handling and no duplicate notifications after retry/reload. |
+| After MVP | TRADE-EDITOR-01 | Keep a sent offer open and support safe editing/replacement. Existing single-recipient trading remains supported. |
+| After MVP | CATAN-RELAY-03, All-recipient portion only | All-recipient offers/default recipient selection. This does not defer already-delivered relay integration or release acceptance. |
+| After MVP | CATAN-RELAY-03, bank-batch portion only | Multiple bank/port exchanges in one submission. Existing single exchanges remain supported. |
+
+Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates still require the separate prioritization decision.
 
 ## Approved MVP limitations — 2026-11-04
 
@@ -16,7 +34,7 @@ The owner explicitly accepted the five limitations below during MVP prioritizati
 | MVP-L04 | Bots may pause when the creator PWA closes or is suspended, and resume when it reopens and synchronizes. No background-execution dependency, automatic coordinator transfer or replacement of a human seat. |
 | MVP-L05 | Certify iPad for MVP; design responsive layouts for later phone support now. Full iPhone/Android certification and native packaging are later work. |
 
-The backlog proposals in [the review](MVP_REVIEW.md) remain recommendations until separately accepted. Device testing, correctness and release readiness are not implied by accepting limitations.
+Other backlog proposals in [the review](MVP_REVIEW.md) remain recommendations until separately accepted. Device testing, correctness and release readiness are not implied by accepting limitations.
 
 ## Product outcome
 

@@ -1,8 +1,26 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
-Version 3.9 · 2026-11-04 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
+Version 3.10 · 2026-11-04 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
+
+## Approved UX scope — 2026-11-04
+
+The owner accepted this split during MVP prioritization. Inclusion is a delivery requirement, not a claim of completion. These decisions supersede earlier proposed priorities for the listed items; other scope and release decisions remain open.
+
+| Delivery | Existing IDs | Required behavior |
+|---|---|---|
+| MVP | UX-09 | Clearly identify the acting player using name and color, accessible cues and reduced-motion support. |
+| MVP | SCORE-01 | Show score breakdown, including Longest Road/Largest Army bonuses and their changes; keep hidden victory points seat-specific. |
+| MVP | CARD-HELP-01 | Complete descriptions, timing restrictions and unavailable reasons for all five development-card types. |
+| MVP | HELP-01 | Simple offline-accessible rules and instructions for supported actions. |
+| MVP | TRADE-ELIGIBILITY-01 | Do not offer an actionable incoming trade to a player lacking the requested resources; revalidate before acceptance without expanding bot access to hidden hands. |
+| MVP | TRADE-FEEDBACK-01 | Clear acceptance/decline feedback, with cancellation/invalidation handling and no duplicate notifications after retry/reload. |
+| After MVP | TRADE-EDITOR-01 | Keep a sent offer open and support safe editing/replacement. Existing single-recipient trading remains supported. |
+| After MVP | CATAN-RELAY-03, All-recipient portion only | All-recipient offers/default recipient selection. This does not defer already-delivered relay integration or release acceptance. |
+| After MVP | CATAN-RELAY-03, bank-batch portion only | Multiple bank/port exchanges in one submission. Existing single exchanges remain supported. |
+
+Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates still require the separate prioritization decision.
 
 ## Approved MVP limitations — 2026-11-04
 
@@ -16,7 +34,7 @@ The owner explicitly accepted the five limitations below during MVP prioritizati
 | MVP-L04 | Bots may pause when the creator PWA closes or is suspended, and resume when it reopens and synchronizes. No background-execution dependency, automatic coordinator transfer or replacement of a human seat. |
 | MVP-L05 | Certify iPad for MVP; design responsive layouts for later phone support now. Full iPhone/Android certification and native packaging are later work. |
 
-The backlog proposals in [the review](docs/MVP_REVIEW.md) remain recommendations until separately accepted. Device testing, correctness and release readiness are not implied by accepting limitations.
+Other backlog proposals in [the review](docs/MVP_REVIEW.md) remain recommendations until separately accepted. Device testing, correctness and release readiness are not implied by accepting limitations.
 
 ## New relay mode: approved direction (2026-11-03)
 
