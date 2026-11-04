@@ -45,7 +45,7 @@ Detailed acceptance criteria remain in the backlog under the same stable IDs. Va
 
 ## MVP implementation progress — 2026-11-04
 
-- RULE-VALIDATION-01 / BOT-VALIDATION-01 (targeted follow-up): 36 additional scenarios, now 21 boundary-rule tests plus 24 trade tests. Covers special cards, road branches/loops, awards, all sender/recipient role mixes at both levels, stale/cancel/accept orders, bounded offers and private-input invariance. [Evidence and limits](RULE_VALIDATION.md). Policy/rules unchanged; independent reference review and device gates remain open.
+- RULE-VALIDATION-01 / BOT-VALIDATION-01 (targeted follow-up): 38 additional scenarios, now 21 boundary-rule tests plus 26 trade tests. Covers special cards, road branches/loops, awards, all sender/recipient role mixes at both levels, stale/cancel/accept orders, bounded offers and private-input invariance. [Evidence and limits](RULE_VALIDATION.md). Policy/rules unchanged; independent reference review and device gates remain open.
 
 - MVP-R02 / QA-01 (cross-window follow-up): a shared session/activation gate, active-version check, install-time save audit and durable engine fence protect cooperating windows and last-window automatic activation. Pending original relay requests are preserved. The current targeted update suite passed 14/14 tests, including failed engine-download recovery. See [update evidence](PWA_UPDATE_VALIDATION.md). iPad, arbitrary termination/quota and historical-client paths remain open.
 

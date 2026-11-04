@@ -39,7 +39,7 @@ Complete the independent rule-reference matrix, unusual board/resource edge case
 
 ## Targeted rule/trading follow-up — 2026-11-04
 
-The focused suites now contain **21 rule-boundary tests and 24 trading tests**, adding 36 scenarios to the earlier nine. All 45 focused tests passed locally. No engine, bot policy, protocol, UI or server behavior changed in this follow-up; the engine artifact remains the same. The tests run in ordinary `test:catan` and `test:core` CI commands alongside the existing 100-game regression.
+The focused suites now contain **21 rule-boundary tests and 26 trading tests**, adding 38 scenarios to the earlier nine. All 47 focused tests passed locally. No engine, bot policy, protocol, UI or server behavior changed in this follow-up; the engine artifact remains the same. The tests run in ordinary `test:catan` and `test:core` CI commands alongside the existing 100-game regression.
 
 New fixed rule expectations:
 
@@ -51,7 +51,7 @@ New fixed rule expectations:
 
 Trading matrix: Easy and Standard × human-to-bot / bot-to-human / bot-to-bot / human-to-human × accepted useful offer / unaffordable offer declined. Offers use ordinary validated commands; bot recipients use the actual policy/scheduler, while human responses are explicit test commands. Clearly useful offers are deliberately generous and complete several build goals; this does not promise that bots accept every fair-looking or marginal trade.
 
-The matrix checks no premature transfer, recipient authorization, resource conservation, no repeated transfer after late acceptance, and inability to accept cards not owned. Further cases cover Standard declining an affordable but resource-losing offer; bots proposing bounded offers, waiting for humans and not immediately reoffering after decline; accept/cancel in either command order; old responses against replacement offers; and atomic rejection of malformed quantities, unowned resources and overlapping resource types.
+The matrix checks no premature transfer, recipient authorization, resource conservation, no repeated transfer after late acceptance, and inability to accept cards not owned. Further cases cover Standard accepting an ordinary useful 1:1 offer, declining a payable 1:1 offer with no build-goal progress, and declining an affordable but resource-losing offer; bots proposing bounded offers, waiting for humans and not immediately reoffering after decline; accept/cancel in either command order; old responses against replacement offers; and atomic rejection of malformed quantities, unowned resources and overlapping resource types.
 
 Fair-information cases redistribute unseen resources while preserving public totals/bank stock, swap hidden card types with the deck, reorder the future deck and change future entropy. Bot observations and decisions must remain identical. Repeated identical observations produce identical choices. Easy's noisy priorities remain intentional: legality and reproducibility are tested, not universal agreement with Standard's strategic preferences.
 

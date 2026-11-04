@@ -63,3 +63,12 @@ test('invalid quantities, unowned resources and both-sided resources reject with
  const g=prepared(false,'standard','a','b'),before=structuredClone(g);
  for(const [give,receive]of [[{ore:-1},{brick:1}],[{ore:0.5},{brick:1}],[{ore:NaN},{brick:1}],[{ore:1},{brick:0}],[{brick:1},{ore:1}],[{ore:1},{ore:1}]]){assert.throws(()=>act(g,'a',{type:'TRADE_OFFER',to:'b',give,receive}));assert.deepEqual(g,before);}
 });
+
+test('Standard accepts an ordinary useful one-for-one offer toward a city and development card',()=>{
+ let g=fixture(true,'standard');fund(g,'a','ore',1);fund(g,'bot:1','brick',2);fund(g,'bot:1','grain',2);g.snapshot.state.board.buildings=[{playerId:'bot:1',type:'settlement',vertex:getHexVertices({q:0,r:0})[0]}];player(g,'bot:1').settlementsRemaining--;
+ g=act(g,'a',{type:'TRADE_OFFER',to:'bot:1',give:{ore:1},receive:{brick:1}});const response=module.nextBot(g);assert.equal(response.action.type,'TRADE_ACCEPT');g=act(g,'bot:1',response.action);assert.equal(player(g,'bot:1').resources.ore,1);assert.equal(player(g,'bot:1').resources.brick,1);conserved(g);
+});
+test('Standard may decline a payable one-for-one offer when neither hand change unlocks a build goal',()=>{
+ let g=fixture(true,'standard');fund(g,'a','grain',1);for(const [r,n]of Object.entries({ore:3,grain:3,wool:3,brick:2,lumber:2}))fund(g,'bot:1',r,n);g.snapshot.state.board.buildings=[{playerId:'bot:1',type:'settlement',vertex:getHexVertices({q:0,r:0})[0]}];player(g,'bot:1').settlementsRemaining--;
+ g=act(g,'a',{type:'TRADE_OFFER',to:'bot:1',give:{grain:1},receive:{wool:1}});assert.ok(module.view(g,'bot:1').choices.some(c=>c.type==='TRADE_ACCEPT'));assert.equal(module.nextBot(g).action.type,'TRADE_DECLINE');
+});
