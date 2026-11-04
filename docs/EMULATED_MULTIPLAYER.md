@@ -35,3 +35,28 @@ In a managed executor using an environment HTTPS proxy, Node 24 can require `NOD
 ### Fresh-invitation regression
 
 The first real-service attempt exposed a first-install guest bug: boot synchronized a roomless guest before anonymous sign-up, causing `AUTH_REQUIRED` and disabling Join. Boot now synchronizes only an existing room or pending operation. Anonymous creation still occurs through the explicit join/create operation; lost or invalid saved identities are not silently replaced. A separate browser regression verifies that a fresh invitation keeps Join enabled and makes no external request before submission.
+
+## Real-service execution evidence — 2026-11-04
+
+**Passed** on frontend source `52d2d0453df78fc401346bda9ff8e46b5089cddd`, with the pinned engine unchanged. The locally served normal PWA used real anonymous authentication and the production HTTPS relay through TLS-verifying Node egress. No backend changes were made.
+
+| Measurement/assertion | Result |
+|---|---|
+| Natural completion | Both clients ended; two human seats and one ordinary bot |
+| Human commands | 254 |
+| Final game revision | 345 |
+| Replica agreement | Equal final revision and stored state hash; no halt; both outboxes empty |
+| Recovery | Guest reloaded mid-game; creator reloaded after victory and recovered the ended game |
+| Legacy Catan/RPC calls | 0 |
+| Driver retries after stale rejection | 0 in the successful run |
+| Real HTTPS requests | 3,262 |
+| Request breakdown | auth 2; profile.set 2; channel.create 1; channel.join 1; channel.read 416; message.list 1,801; message.append 1,039 |
+| Elapsed | Approximately 35.4 minutes, with deliberate request pacing |
+
+The request count includes both humans, ordinary bot progression, verification messages, admission and recovery; it is not a per-move cost or an unthrottled latency benchmark. This single run did not hit quotas. It does not establish concurrent-session capacity or a monthly bill. The high read/verification volume is useful input to OPS-01.
+
+Earlier attempts exposed the fresh-guest boot bug and a concurrent creator-start race. Both have fixes and dedicated passing regressions. A separate earlier run reached 193 human commands before the optimized test driver submitted a stale projection after peer/bot progress; it was not counted as a completed game. The driver now invalidates cached projections when the other replica advances and bounds retries to a changed revision. A rejection at the same revision still fails the test.
+
+Verification for the app fixes: fresh-invitation browser regression passed; relay suite passed 22 tests including concurrent creator refreshes; `npm run check`, build and two packaged-site checks passed. Full Actions checks, Pages deployment and public asset verification passed for `52d2d0` in run `41819608909`.
+
+Still open: real iPad/Safari and two physical-network acceptance, direct-browser networking/CORS, full click-by-click UI usability, independent rule validation, all special-case scenarios and a multi-seed bot completion baseline. One successful emulated live game closes none of those gates automatically.
