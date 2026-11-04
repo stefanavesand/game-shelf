@@ -34,7 +34,7 @@ import { getHexVertices, getEdgeVertices, vertexKey } from './geometry.js';
 import { COSTS, RESOURCES } from './economy.js';
 import { validSettlements } from './board.js';
 import { validSetupSettlements } from './setup.js';
-export const BOT_VERSION = 'heuristic-1.0.0';
+export const BOT_VERSION = 'heuristic-1.1.0';
 const terrain = { hills: 'brick', forest: 'lumber', mountains: 'ore', fields: 'grain', pasture: 'wool' };
 const pips = (n) => n && n !== 7 ? 6 - Math.abs(7 - n) : 0;
 function production(view, vertex) {
@@ -142,7 +142,9 @@ export function chooseBot(view, level = 'standard', sample = () => .5) {
                 const after = { ...own.resources };
                 for (const r of RESOURCES)
                     after[r] += offer.give[r] - offer.receive[r];
-                return deficit(after, goal) < deficit(own.resources, goal) && Object.values(offer.give).reduce((a, b) => a + b, 0) >= Object.values(offer.receive).reduce((a, b) => a + b, 0) ? 20 : -10;
+                const gain=Object.values(offer.give).reduce((a,b)=>a+b,0),cost=Object.values(offer.receive).reduce((a,b)=>a+b,0);
+                const improvement=goals(view).reduce((n,g)=>n+deficit(own.resources,g)-deficit(after,g),0);
+                return gain>=cost&&improvement>=0&&(improvement>0||gain>cost)?25+improvement:-10;
             }
             default: return -100;
         }
@@ -154,5 +156,13 @@ export function botDecision(view, level) {
     let seed = 2166136261;
     for (const ch of `${view.id}:${view.revision}:${view.you}:${BOT_VERSION}`)
         seed = Math.imul(seed ^ ch.charCodeAt(0), 16777619) >>> 0;
-    return chooseBot(view, level, () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; });
+    const selected=chooseBot(view, level, () => { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; return seed / 4294967296; });
+    if(selected.type!=='END_TURN'||view.offer)return selected;
+    const recent=[];for(let i=view.history.length-1;i>=0;i--){if(view.history[i].message==='end turn')break;recent.push(view.history[i]);}
+    if(recent.some(h=>h.playerId===view.you&&h.message==='trade offer'))return selected;
+    const own=view.state.players.players.find(p=>p.id===view.you),goal=target(view);
+    const want=RESOURCES.find(r=>own.resources[r]<(goal[r]||0)),give=RESOURCES.find(r=>r!==want&&own.resources[r]>(goal[r]||0));
+    const peer=view.state.players.players.find(p=>p.id!==view.you&&p.resourceCount>0);
+    if(!want||!give||!peer)return selected;
+    return {type:'TRADE_OFFER',to:peer.id,give:Object.fromEntries(RESOURCES.map(r=>[r,r===give?1:0])),receive:Object.fromEntries(RESOURCES.map(r=>[r,r===want?1:0]))};
 }

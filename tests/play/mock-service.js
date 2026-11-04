@@ -12,6 +12,8 @@ export function service({phase='setup',loseReply=false,futureReply=false,loseCre
   const packet=seat=>started?structuredClone(current[seat]):{ok:true,apiVersion:1,roomId,status:'waiting',you:seat,revision:0,members:[{id:'p1',name:'Alice',kind:'human',level:'standard'},{id:'p3',name:'Bot',kind:'bot',level:'standard'}],view:null};
   const error=(code,message=code)=>({ok:false,apiVersion:1,error:{code,message}});
   async function attach(context,principal,{legacy=false,identity=true}={}){
+    // UI fixture port only. Real local/relay sessions are covered separately.
+    await context.route('**/play/session.js',route=>route.fulfill({contentType:'text/javascript',body:"import {createClient} from './core/client.js';export const client=createClient();client.isLocal=()=>false;client.canUpdate=async()=>true;"}));
     if(legacy)await context.addInitScript(({AUTH,STATE,session,roomId,identity})=>{if(identity&&!localStorage.getItem(AUTH))localStorage.setItem(AUTH,JSON.stringify(session));if(!localStorage.getItem(STATE))localStorage.setItem(STATE,JSON.stringify({schemaVersion:1,roomId,pending:null}));},{AUTH,STATE,session:auth(principal),roomId,identity});
     await context.route('https://ppaixjqaixwnebhxfjeb.supabase.co/**',async route=>{authCalls++;const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*'};if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return;}await route.fulfill({headers,json:auth(principal)});});
     await context.route(endpoint,async route=>{
@@ -64,7 +66,7 @@ export function service({phase='setup',loseReply=false,futureReply=false,loseCre
         if(reply?.ok&&futureReply){await route.fulfill({headers,json:{...reply,apiVersion:99}});return;}
         if(reply?.ok&&loseReply&&!dropped){dropped=true;await route.abort('failed');return;}
       }else reply=packet(seat);
-      await route.fulfill({headers,json:reply||error('bad_request')});
+      await route.fulfill({headers,json:reply?.ok?{...reply,inviteToken:'fixture-token'}:reply||error('bad_request')});
     });
   }
   return {attach,get creates(){return creates;},get accepted(){return accepted;},get commands(){return commands;},get authCalls(){return authCalls;},get current(){return current;}};

@@ -9,7 +9,7 @@ export function createRelayLobby({principalId,transport,store,locks=globalThis.n
       return locks.request(`game-shelf-relay:${principalId}:admission`,async()=>{
         const record=await store.load(principalId,channelId);
         invariant(record.retryAt<=now(),'RETRY_COOLDOWN','Wait for the relay cooldown.');
-        if(record.outbox.length)invariant(op===undefined,'PENDING_DELIVERY','Retry the unresolved admission request first.');
+        if(record.outbox.length)invariant(op===undefined||op===record.outbox[0].request.op,'PENDING_DELIVERY','Retry the unresolved admission request first.');
         else {
           invariant(['profile.set','channel.create','channel.join'].includes(op),'INVALID_OPERATION','Unsupported admission operation.');
           record.outbox.push({request:pendingRequest(op,fields??{},{id,now})});await store.save(record);

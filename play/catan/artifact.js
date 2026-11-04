@@ -9,7 +9,7 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/catan/module.js",
-      "sha256": "03b398e45a5a21e63447b8a0c21ce56849a04d8a24625cca13e5fe913b974ac9"
+      "sha256": "8daac1e585f4aafbbee49507882d92a56041da69eb8fafc9464581271d1d1b85"
     },
     {
       "path": "play/catan/rules/board.js",
@@ -17,7 +17,7 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/catan/rules/bot.js",
-      "sha256": "0d2b87cb1862b9c3fc80ac9758408f2c46878aa27b35cc73856236ef3a0e625d"
+      "sha256": "4c23ffa3dca8ef7ff8f4c1e52bff7bb6d9e8099ef9d1a934b0459be2fae3ecd2"
     },
     {
       "path": "play/catan/rules/economy.js",
@@ -64,5 +64,5 @@ export const CATAN_ARTIFACT = Object.freeze({
       "sha256": "6a91e821525795b1878f6519afd640dda2e56c53112ee0e1b6de36558811e808"
     }
   ],
-  "digest": "aff0f3c6e6b53f88375a3d0e4e0d7f04ac1562882fec2f86b845b59b8868c32e"
+  "digest": "0b6ec737a127830c017a7c46f757ad81047d247760527968266c3e178ed2821b"
 });

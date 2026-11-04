@@ -29,7 +29,8 @@ export function createCatanModule(artifactDigest) {
     },
     view:(state,seat)=>catanView(state.snapshot,seat),
     nextBot(state) {
-      const bot=state.snapshot.seats.find(s=>s.kind==='bot'&&eligibleActors(state.snapshot).includes(s.id));
+      const eligible=state.snapshot.offer?[state.snapshot.offer.to]:eligibleActors(state.snapshot);
+      const bot=state.snapshot.seats.find(s=>s.kind==='bot'&&eligible.includes(s.id));
       if(!bot)return null;
       const observation=catanView(state.snapshot,bot.id);
       return {actor:bot.id,action:clone(botDecision(observation,bot.level))};
