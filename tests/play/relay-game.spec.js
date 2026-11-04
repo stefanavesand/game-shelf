@@ -64,3 +64,16 @@ test('two emulated human seats and the ordinary bot finish a natural relay game'
   await testInfo.attach('emulated-game-summary',{body:JSON.stringify({humanCommands:commands,revision:packets[0].revision,guestReloaded:reloaded,forbiddenCalls,transport:'in-memory relay contract double',actions:'production session API; human choices from seat-restricted heuristic, not DOM clicks'}),contentType:'application/json'});
  }finally{for(const context of contexts)await context.close();}
 });
+
+
+test('a fresh invitation allows joining before an anonymous identity exists',async({browser})=>{
+ const context=await browser.newContext();let externalCalls=0;
+ try{
+  await context.route(/^https:\/\//,route=>{externalCalls++;return route.abort();});
+  const page=await context.newPage();await page.goto('/game-shelf/play/#join?room=10000000-0000-4000-8000-000000000001&invite=fixture-only');
+  await page.getByLabel('Your name',{exact:true}).fill('New guest');
+  await expect(page.getByRole('button',{name:'Join game',exact:true})).toBeEnabled();
+  await expect(page.locator('#connection')).toHaveText('Up to date');
+  expect(externalCalls).toBe(0);
+ }finally{await context.close();}
+});

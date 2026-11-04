@@ -257,7 +257,7 @@ window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){
 window.addEventListener('offline',()=>{clearTimeout(timer);if(offlineAllowed()){error=null;render();schedule();return;}ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
 window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
 async function boot(){
-  try{const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if((navigator.onLine||client.isLocal())&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
+  try{const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if((navigator.onLine||client.isLocal())&&(saved.roomId||saved.pending)&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
 }
 boot();
 
