@@ -2,6 +2,8 @@
 
 Current readiness assessment and consolidated scope discussion: [MVP review](MVP_REVIEW.md). Recommendations there await owner decisions; historical checkboxes below have not been silently reclassified.
 
+Owner decision (2026-11-04): MVP-L01–05 in [MVP requirements](MVP_REQUIREMENTS.md) are accepted: trusted friends, anonymous storage-loss limitation, seven-day online access, creator-dependent bot pause/resume and iPad-first certification with responsive phone design. REQ-01 remains open for device/OS and other release decisions. Proposed feature priorities remain unapproved.
+
 2026-11-02. Scope agreed: **two humans plus one bot, private internet play, iPad PWA**. This list plans work; it does not authorize declaring unreviewed requirements/design complete. An independent public repository, `stefanavesand/game-shelf`, was bootstrapped on 2026-11-02 at the user's request. The owner created the remote and explicitly chose public visibility; the MVP audience remains private. It now includes planning/design artifacts and an isolated original UI prototype; production game migration and hosting cutover remain pending. See ../SOURCE_PROVENANCE.md.
 
 Read [inventory](MIGRATION_INVENTORY.md), [requirements draft](MVP_REQUIREMENTS.md) and [UI design brief](MVP_UI_DESIGN.md). Existing wider PRD/bot stages remain roadmap items. `bd` is unavailable in this environment, so these stable IDs are the local issue ledger; transfer them into the chosen tracker later without losing acceptance criteria.

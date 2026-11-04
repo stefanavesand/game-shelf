@@ -1,8 +1,22 @@
 # Private MVP requirements — agreed product baseline
 
-Version 0.6 · 2026-11-03. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
+Version 0.7 · 2026-11-04. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
 
 Owner scope addition on 2026-11-02: an optional solo internet mode with one human and two bots (M-17). The friend invitation flow remains supported.
+
+## Approved MVP limitations — 2026-11-04
+
+The owner explicitly accepted the five limitations below during MVP prioritization. This decision approves these boundaries, **not** every proposed feature priority or release gate. Exact iPad/iPadOS coverage and the remaining feature scope still need agreement. These current-mode boundaries take precedence over conflicting historical text below.
+
+| ID | Accepted boundary |
+|---|---|
+| MVP-L01 | Private invitation-based games between trusted friends. Participants can technically inspect full replicated state; normal UI and bot observations remain restricted to their seat. Tournament-grade anti-cheating is outside MVP. |
+| MVP-L02 | Persistent anonymous identity, without account or save recovery after browser storage is cleared. Clearing storage can lose the identity and local games. OAuth/account linking remains later work. |
+| MVP-L03 | Online relay access lasts seven days. Disclose expiry to players. This is an access limit, not a promise that records are deleted after seven days; cleanup/retention policy remains an operational decision. |
+| MVP-L04 | Bots may pause when the creator PWA closes or is suspended, and resume when it reopens and synchronizes. No background-execution dependency, automatic coordinator transfer or replacement of a human seat. |
+| MVP-L05 | Certify iPad for MVP; design responsive layouts for later phone support now. Full iPhone/Android certification and native packaging are later work. |
+
+The backlog proposals in [the review](MVP_REVIEW.md) remain recommendations until separately accepted. Device testing, correctness and release readiness are not implied by accepting limitations.
 
 ## Product outcome
 

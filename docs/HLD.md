@@ -1,7 +1,17 @@
 # Game Shelf / OpenCatan — High-Level Design
 
-Version 1.1 · 2026-11-01 · Proposed E1/E2 target design, not an implemented system.
-Requirements baseline: [PRD 3.2](../PRD.md). The PWA and OpenCatan preview are separate implementations to be unified incrementally. Version 1.1 translates the 1.0 baseline into English; it does not select a new provider or change the implementation scope.
+Version 1.2 · 2026-11-04 · Current MVP boundary addendum; older E1/E2 design retained as historical target context.
+Requirements baseline: [PRD 3.9](../PRD.md). The PWA and OpenCatan preview are separate implementations to be unified incrementally. Version 1.1 translates the 1.0 baseline into English; it does not select a new provider or change the implementation scope.
+
+## Accepted MVP boundaries — 2026-11-04
+
+Implements the product constraints MVP-L01–05 in the [PRD](../PRD.md) and [MVP requirements](MVP_REQUIREMENTS.md), which take precedence over older cloud-authority/managed-bot assumptions below. Feature prioritization remains open.
+
+- The current PWA runs the deterministic rules and retains full state; the service supplies authenticated identity, membership and ordered relay history. Trusted participants may inspect secrets; bot observations and ordinary UI remain seat-specific.
+- Anonymous credentials and game checkpoints persist in browser storage. No recoverable account, cross-device identity restoration or local-save recovery after deletion is promised in MVP.
+- The relay enforces seven-day access expiry. Session/UI handling must stop clearly on expiry; this does not specify deletion or backups. Retention/cleanup and budget/ownership remain open operational work.
+- The creator PWA schedules ordinary bot commands while active. Closing/suspension may pause progress; reopening synchronizes saved/pending commands before scheduling further work. There is no automatic coordinator transfer or reliance on iOS background execution. This is an accepted MVP limitation, not a missing server-rule feature.
+- iPad is the certification target; responsive phone design is required now, with full phone/native certification deferred. The exact reference devices/OS and acceptance results remain to be recorded.
 
 ## New relay mode: approved direction (2026-11-03)
 

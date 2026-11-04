@@ -1,8 +1,22 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
-Version 3.8 · 2026-11-03 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
+Version 3.9 · 2026-11-04 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
+
+## Approved MVP limitations — 2026-11-04
+
+The owner explicitly accepted the five limitations below during MVP prioritization. This decision approves these boundaries, **not** every proposed feature priority or release gate. Exact iPad/iPadOS coverage and the remaining feature scope still need agreement. These current-mode boundaries take precedence over conflicting historical text below.
+
+| ID | Accepted boundary |
+|---|---|
+| MVP-L01 | Private invitation-based games between trusted friends. Participants can technically inspect full replicated state; normal UI and bot observations remain restricted to their seat. Tournament-grade anti-cheating is outside MVP. |
+| MVP-L02 | Persistent anonymous identity, without account or save recovery after browser storage is cleared. Clearing storage can lose the identity and local games. OAuth/account linking remains later work. |
+| MVP-L03 | Online relay access lasts seven days. Disclose expiry to players. This is an access limit, not a promise that records are deleted after seven days; cleanup/retention policy remains an operational decision. |
+| MVP-L04 | Bots may pause when the creator PWA closes or is suspended, and resume when it reopens and synchronizes. No background-execution dependency, automatic coordinator transfer or replacement of a human seat. |
+| MVP-L05 | Certify iPad for MVP; design responsive layouts for later phone support now. Full iPhone/Android certification and native packaging are later work. |
+
+The backlog proposals in [the review](docs/MVP_REVIEW.md) remain recommendations until separately accepted. Device testing, correctness and release readiness are not implied by accepting limitations.
 
 ## New relay mode: approved direction (2026-11-03)
 
