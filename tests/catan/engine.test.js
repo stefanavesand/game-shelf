@@ -108,3 +108,14 @@ test('new development cards cannot be played during their purchase turn',()=>{
  state=act(state,'alice',{type:'BUY_DEVELOPMENT_CARD'});assert.equal(state.snapshot.deck.length,24);assert.equal(state.snapshot.state.players.players[0].developmentCards[0].type,'knight');assert.ok(!m.view(state,'alice').choices.some(c=>c.type==='PLAY_KNIGHT'));
  const before=structuredClone(state);assert.throws(()=>act(state,'alice',{type:'PLAY_KNIGHT',hex:state.snapshot.state.board.robberLocation}));assert.deepEqual(state,before);conserved(state);
 });
+test('bots accept a useful fair offer instead of always declining',()=>{
+ let state=mainFixture();fund(state,'alice','ore',2);fund(state,'bot:2','brick',2);fund(state,'bot:2','grain',2);
+ state=act(state,'alice',{type:'TRADE_OFFER',to:'bot:2',give:{ore:2},receive:{brick:1}});
+ const response=m.nextBot(state);assert.equal(response.actor,'bot:2');assert.equal(response.action.type,'TRADE_ACCEPT');
+ const next=m.apply(state,'alice',response,{}, {coordinatorId:'alice'});assert.equal(next.snapshot.offer,null);conserved(next);
+});
+test('a bot-originated offer waits for a human instead of immediately cancelling itself',()=>{
+ const state=mainFixture(),snapshot=state.snapshot;snapshot.state.game.currentPlayerId='bot:2';fund(state,'alice','ore',1);fund(state,'bot:2','wool',2);
+ const offer=botDecision(m.view(state,'bot:2'),'standard');assert.equal(offer.type,'TRADE_OFFER');
+ const next=m.apply(state,'alice',{actor:'bot:2',action:offer},{},{coordinatorId:'alice'});assert.ok(next.snapshot.offer);assert.equal(m.nextBot(next),null);
+});

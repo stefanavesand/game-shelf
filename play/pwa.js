@@ -11,7 +11,8 @@ export async function setupPwa({canUpdate=async()=>false}={}){
  }
  try{
   registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
-  registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'||worker.state==='activated')check();});});
+  button.onclick=()=>registration.update();
+  registration.addEventListener('updatefound',()=>{const worker=registration.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'||worker.state==='activated')check();if(worker.state==='redundant')button.textContent='Offline download failed · reconnect and retry';});});
   await navigator.serviceWorker.ready;await check();
   button.onclick=async()=>{
    if(registration.waiting){const info=await ask(registration.waiting,'INFO');if(!await canUpdate(info.engine)){button.textContent='Finish the game or return home before updating';return;}registration.waiting.postMessage({type:'ACTIVATE'});}

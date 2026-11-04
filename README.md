@@ -2,6 +2,10 @@
 
 An independent board-game collection, starting with a private Catan-style internet MVP for two human friends and one bot. iPad is the first release target; responsive phone layouts are designed in from the start.
 
+## Local and online play
+
+Solo uses the PWA engine and works offline after verified installation. Friends uses the same engine with the relay. See [offline installation and verification](docs/OFFLINE_SOLO.md). Earlier managed-server descriptions below are historical migration context.
+
 ## Current status
 
 This public, independent repository starts with the agreed product baseline, migration inventory, backlog and UI concepts. The owner created the remote and explicitly chose public visibility on 2026-11-02. Public source visibility does not change the private, invitation-based MVP audience. It is not a fork. The original Catan client in play/ now connects to the existing managed game authority for real internet games. Rule-engine source, managed backend reproducibility and installed-PWA cutover have not yet been migrated. The separate prototype/ review remains scripted. This is an early browser playtest, not an MVP release.

@@ -91,3 +91,7 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 - [ ] CATAN-RELAY-03 — Integrate the engine into the approved main Catan workspace; complete trading/All/bank batches and special-phase UX, then real two-human/one-bot iPad acceptance and PWA install/update work. No server game rules required.
 
 - [x] UI-08 — Budget-prioritized resource-row composer in the normal game: compact recipient dropdown, own counts and Give/Request columns; same Bank/ports layout and reviewed exact exchanges. Seven targeted browser checks passed. All-recipient offers and atomic bank batches remain CATAN-RELAY-03; not available on the current managed engine.
+
+- [x] SOLO-OFFLINE-01 — Local two-bot Solo in the ordinary UI, transactional saves, cache-verified app shell and explicit safe updates; see [offline/online delivery](OFFLINE_SOLO.md). Real iPad acceptance remains manual.
+- [x] ONLINE-RELAY-01 — Ordinary Friends UI uses the PWA engine and authenticated relay, without the old game-rules endpoint. Retains private projections and stopped-on-divergence behavior for trusted friends.
+- [x] BUG-TRADE-CARDS-01 — Bot proposals/useful acceptance and recipient-first trade scheduling; explicit actual-card purchase confirmation and offline card controls. Targeted regressions added.
