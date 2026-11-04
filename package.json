@@ -8,7 +8,7 @@
     "prototype:check": "node --check prototype/app.js && node --check prototype/board.js && node --check scripts/serve-prototype.mjs",
     "prototype:test": "playwright test --project=prototype",
     "play:dev": "node scripts/serve-prototype.mjs",
-    "test:core": "node tests/core/client.test.js && node tests/relay/relay.test.js && node tests/catan/engine.test.js && node tests/catan/validation.test.js && node tests/catan/simulations.test.js && node tests/local/local.test.js",
+    "test:core": "node tests/core/client.test.js && node tests/core/trade-feedback.test.js && node tests/relay/relay.test.js && node tests/catan/engine.test.js && node tests/catan/validation.test.js && node tests/catan/simulations.test.js && node tests/local/local.test.js",
     "test:catan": "node tests/catan/engine.test.js && node tests/catan/validation.test.js && node tests/catan/simulations.test.js",
     "test:relay": "node tests/relay/relay.test.js",
     "test:browser": "playwright test",

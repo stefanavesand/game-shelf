@@ -45,6 +45,8 @@ Detailed acceptance criteria remain in the backlog under the same stable IDs. Va
 
 ## MVP implementation progress — 2026-11-04
 
+- UX-09 / SCORE-01 / CARD-HELP-01 / HELP-01 / TRADE-ELIGIBILITY-01 / TRADE-FEEDBACK-01 (initial implementation): acting-player/turn-owner cues, score breakdown, offline help/full card descriptions, ordinary-command auto-decline of unaffordable offers and persisted outcome feedback. See [implementation and limitations](MVP_UX_IMPLEMENTATION.md). Local full browser suite: 57 passed / 5 opt-in live skipped; six pure feedback tests and package/link checks passed. Device/accessibility and owner playtest acceptance remain open; original checkboxes are not release sign-off.
+
 - RULE-VALIDATION-01 / BOT-VALIDATION-01 / QA-01 (partial): [current validation](RULE_VALIDATION.md) adds nine boundary cases and 100 naturally completed current-policy games (44,185 actions) across Easy/Standard and both supported configurations. Integrated in CI. Independent reference review, full edge-case/trade matrix and device gates remain open.
 - [x] **SAVE-ABANDON-01 — Abandon a saved game to release its update pin.** Home confirmation works for Solo/Friends; keep pending online operations intact; do not claim server deletion or peer notification. Local persistence failure, online pending rejection and browser confirmation/reload are covered. See [offline/current storage notes](OFFLINE_SOLO.md). This implements one part of MVP-R02, not the entire update-safety gate.
 

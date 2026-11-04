@@ -18,7 +18,7 @@ test('normal game UI runs online Catan using only relay messages and local rules
 test('two emulated human seats and the ordinary bot finish a natural relay game',async({browser},testInfo)=>{
  test.setTimeout(240000);
  const server=fakeRelay({channelId}),contexts=await Promise.all([browser.newContext(),browser.newContext()]);
- let forbiddenCalls=0,commands=0,reloaded=false;
+ let forbiddenCalls=0,commands=0,staleRetries=0,reloaded=false;
  async function packet(page){return page.evaluate(async()=>{const {client}=await import('./session.js');return client.refresh();});}
  try{
   const pages=[];
@@ -49,7 +49,8 @@ test('two emulated human seats and the ordinary bot finish a natural relay game'
      const {client}=await import('./session.js'),{botDecision}=await import('./catan/rules/index.js');
      return client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:botDecision(p.view,'standard')});
     },packets[i]);
-    expect(result.ok).toBe(true);commands++;moved=true;break;
+    if(!result.ok){const fresh=await packet(pages[i]);if(fresh.revision!==packets[i].revision&&staleRetries<30){staleRetries++;moved=true;break;}throw Error('Human driver command rejected: '+result.error?.code+'; '+result.error?.message);}
+    commands++;moved=true;break;
    }
    if(commands>=25&&!reloaded){await guest.reload();await expect(guest.locator('#connection')).toHaveText('Up to date');reloaded=true;}
    // An eligible ordinary bot is progressed by the creator's normal refresh path.
@@ -61,7 +62,7 @@ test('two emulated human seats and the ordinary bot finish a natural relay game'
   expect(checkpoints[0]).toEqual(checkpoints[1]);expect(checkpoints[0].halt).toBeNull();expect(checkpoints[0].outbox).toBe(0);
   expect(packets[0].members.filter(m=>m.kind==='human')).toHaveLength(2);expect(packets[0].members.filter(m=>m.kind==='bot')).toHaveLength(1);expect(commands).toBeGreaterThan(25);expect(reloaded).toBe(true);expect(forbiddenCalls).toBe(0);
   await host.reload();await expect(host.locator('#connection')).toHaveText('Up to date');expect((await packet(host)).status).toBe('ended');
-  await testInfo.attach('emulated-game-summary',{body:JSON.stringify({humanCommands:commands,revision:packets[0].revision,guestReloaded:reloaded,forbiddenCalls,transport:'in-memory relay contract double',actions:'production session API; human choices from seat-restricted heuristic, not DOM clicks'}),contentType:'application/json'});
+  await testInfo.attach('emulated-game-summary',{body:JSON.stringify({humanCommands:commands,staleRetries,revision:packets[0].revision,guestReloaded:reloaded,forbiddenCalls,transport:'in-memory relay contract double',actions:'production session API; human choices from seat-restricted heuristic, not DOM clicks'}),contentType:'application/json'});
  }finally{for(const context of contexts)await context.close();}
 });
 
