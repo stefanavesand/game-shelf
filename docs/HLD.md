@@ -1,17 +1,21 @@
 # Game Shelf / OpenCatan — High-Level Design
 
-Version 1.2 · 2026-11-04 · Current MVP boundary addendum; older E1/E2 design retained as historical target context.
-Requirements baseline: [PRD 3.9](../PRD.md). The PWA and OpenCatan preview are separate implementations to be unified incrementally. Version 1.1 translates the 1.0 baseline into English; it does not select a new provider or change the implementation scope.
+Version 1.3 · 2026-11-04 · Current MVP boundary addendum; older E1/E2 design retained as historical target context.
+Requirements baseline: [PRD 3.11](../PRD.md). The PWA and OpenCatan preview are separate implementations to be unified incrementally. Version 1.1 translates the 1.0 baseline into English; it does not select a new provider or change the implementation scope.
 
 ## Accepted MVP boundaries — 2026-11-04
 
-Implements the product constraints MVP-L01–05 in the [PRD](../PRD.md) and [MVP requirements](MVP_REQUIREMENTS.md), which take precedence over older cloud-authority/managed-bot assumptions below. Feature prioritization remains open.
+Implements the product constraints MVP-L01–05 in the [PRD](../PRD.md) and [MVP requirements](MVP_REQUIREMENTS.md), which take precedence over older cloud-authority/managed-bot assumptions below. UX scope and release gates MVP-R01–06 are now approved in the linked requirements; concrete device/operating values and verification remain open.
 
 - The current PWA runs the deterministic rules and retains full state; the service supplies authenticated identity, membership and ordered relay history. Trusted participants may inspect secrets; bot observations and ordinary UI remain seat-specific.
 - Anonymous credentials and game checkpoints persist in browser storage. No recoverable account, cross-device identity restoration or local-save recovery after deletion is promised in MVP.
 - The relay enforces seven-day access expiry. Session/UI handling must stop clearly on expiry; this does not specify deletion or backups. Retention/cleanup and budget/ownership remain open operational work.
 - The creator PWA schedules ordinary bot commands while active. Closing/suspension may pause progress; reopening synchronizes saved/pending commands before scheduling further work. There is no automatic coordinator transfer or reliance on iOS background execution. This is an accepted MVP limitation, not a missing server-rule feature.
 - iPad is the certification target; responsive phone design is required now, with full phone/native certification deferred. The exact reference devices/OS and acceptance results remain to be recorded.
+
+## Approved release verification — 2026-11-04
+
+Follow MVP-R01–06 in the [current requirements](MVP_REQUIREMENTS.md). Keep automated production-session evidence separate from physical iPad acceptance, independent rule expectations and operational verification. Storage/update work must provide a safe abandon path while preserving unresolved-command semantics. Bot performance measurement belongs on the declared reference iPad; the paced live integration run is not a latency benchmark. Record concrete retention, budget, ownership and rollback choices before release. The completed [real-relay game](EMULATED_MULTIPLAYER.md) is existing evidence, not a reason to repeat the entire run for documentation-only changes. No new server rule engine, account recovery or automatic coordinator transfer is implied.
 
 ## New relay mode: approved direction (2026-11-03)
 

@@ -1,8 +1,25 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
-Version 3.10 · 2026-11-04 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
+Version 3.11 · 2026-11-04 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.
+
+## Approved MVP release gates — 2026-11-04
+
+The owner accepted these requirements before MVP release. Acceptance of the requirements is not evidence that they have passed. Existing stable backlog IDs and detailed acceptance criteria remain in use.
+
+| Gate | Existing IDs | Required evidence / remaining work |
+|---|---|---|
+| MVP-R01: rules and bots | RULE-VALIDATION-01, BOT-VALIDATION-01, QA-01 | Validate base rules and supported bot behavior, especially trading and development cards, with independent expected outcomes and reproducible regressions. |
+| MVP-R02: durability and updates | UI-01/04, SESSION-2/3/5, SOLO-OFFLINE-01, QA-01/02 | Verify saving, reconnect, offline Solo and safe updates; provide a supported way to abandon old games. Do not silently discard unresolved commands or imply recovery after storage deletion. |
+| MVP-R03: physical multiplayer | QA-02, CATAN-FULL-2, REL-01 | The owner and a friend complete a real iPad game with one bot, including interruption/reopening and two physical networks. Record devices, OS and candidate version. |
+| MVP-R04: device usability and performance | UX-02, UX-09, QUALITY-1, BOT-14, CATAN-FULL-3 | Check readability, touch controls and basic accessibility in both orientations; measure bot latency, responsiveness, CPU/work and incremental memory on the selected iPad. Exact device and numerical acceptance values still require specification; existing proposed targets are not measured results. |
+| MVP-R05: operations | OPS-01/02, BE-01/02 | Assign operating responsibility; specify and verify appropriate quotas, budget, retention/cleanup and rollback. Select concrete values and recovery scope without promising anonymous identity/local-save restoration. |
+| MVP-R06: rights and documentation | LEG-01, DOCS-SHARE-01, REL-01/02 | Complete the applicable rights/notice review and prepare accurate shareable setup, architecture, testing, limitations and operating instructions. Preserve required attribution. |
+
+The completed emulated real-relay game is accepted as existing automated evidence: 254 human commands, matching final hashes/revision, reload recovery and zero legacy-rule requests. It does not replace physical iPad, independent rules, accessibility or operations acceptance. See [execution evidence](docs/EMULATED_MULTIPLAYER.md).
+
+Delivery sequence: validate correctness and storage/update failure paths; implement the approved UX; perform device/performance acceptance and finish operations/rights/documentation; assemble the release evidence. Prepare the device playtest after automated blockers are resolved. This is a working sequence, not an additional feature commitment.
 
 ## Approved UX scope — 2026-11-04
 
@@ -20,7 +37,7 @@ The owner accepted this split during MVP prioritization. Inclusion is a delivery
 | After MVP | CATAN-RELAY-03, All-recipient portion only | All-recipient offers/default recipient selection. This does not defer already-delivered relay integration or release acceptance. |
 | After MVP | CATAN-RELAY-03, bank-batch portion only | Multiple bank/port exchanges in one submission. Existing single exchanges remain supported. |
 
-Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates still require the separate prioritization decision.
+Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates are approved in MVP-R01–06 above; their verification and concrete operational/device values remain open.
 
 ## Approved MVP limitations — 2026-11-04
 

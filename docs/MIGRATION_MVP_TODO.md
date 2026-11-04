@@ -2,11 +2,28 @@
 
 Current readiness assessment and consolidated scope discussion: [MVP review](MVP_REVIEW.md). Decisions below record accepted scope; other recommendations await owner decisions; historical checkboxes below have not been silently reclassified.
 
-Owner decision (2026-11-04): MVP-L01–05 in [MVP requirements](MVP_REQUIREMENTS.md) are accepted: trusted friends, anonymous storage-loss limitation, seven-day online access, creator-dependent bot pause/resume and iPad-first certification with responsive phone design. REQ-01 remains open for device/OS and other release decisions. UX priorities are now accepted as recorded below; remaining feature/release proposals await decisions.
+Owner decision (2026-11-04): MVP-L01–05 in [MVP requirements](MVP_REQUIREMENTS.md) are accepted: trusted friends, anonymous storage-loss limitation, seven-day online access, creator-dependent bot pause/resume and iPad-first certification with responsive phone design. REQ-01 remains open for device/OS and other release decisions. UX priorities and release gates MVP-R01–06 are accepted as recorded below; device/OS and concrete operating values still need specification.
 
 2026-11-02. Scope agreed: **two humans plus one bot, private internet play, iPad PWA**. This list plans work; it does not authorize declaring unreviewed requirements/design complete. An independent public repository, `stefanavesand/game-shelf`, was bootstrapped on 2026-11-02 at the user's request. The owner created the remote and explicitly chose public visibility; the MVP audience remains private. It now includes planning/design artifacts and an isolated original UI prototype; production game migration and hosting cutover remain pending. See ../SOURCE_PROVENANCE.md.
 
 Read [inventory](MIGRATION_INVENTORY.md), [requirements draft](MVP_REQUIREMENTS.md) and [UI design brief](MVP_UI_DESIGN.md). Existing wider PRD/bot stages remain roadmap items. `bd` is unavailable in this environment, so these stable IDs are the local issue ledger; transfer them into the chosen tracker later without losing acceptance criteria.
+
+## Approved MVP release gates — 2026-11-04
+
+The owner accepted these requirements before MVP release. Acceptance of the requirements is not evidence that they have passed. Existing stable backlog IDs and detailed acceptance criteria remain in use.
+
+| Gate | Existing IDs | Required evidence / remaining work |
+|---|---|---|
+| MVP-R01: rules and bots | RULE-VALIDATION-01, BOT-VALIDATION-01, QA-01 | Validate base rules and supported bot behavior, especially trading and development cards, with independent expected outcomes and reproducible regressions. |
+| MVP-R02: durability and updates | UI-01/04, SESSION-2/3/5, SOLO-OFFLINE-01, QA-01/02 | Verify saving, reconnect, offline Solo and safe updates; provide a supported way to abandon old games. Do not silently discard unresolved commands or imply recovery after storage deletion. |
+| MVP-R03: physical multiplayer | QA-02, CATAN-FULL-2, REL-01 | The owner and a friend complete a real iPad game with one bot, including interruption/reopening and two physical networks. Record devices, OS and candidate version. |
+| MVP-R04: device usability and performance | UX-02, UX-09, QUALITY-1, BOT-14, CATAN-FULL-3 | Check readability, touch controls and basic accessibility in both orientations; measure bot latency, responsiveness, CPU/work and incremental memory on the selected iPad. Exact device and numerical acceptance values still require specification; existing proposed targets are not measured results. |
+| MVP-R05: operations | OPS-01/02, BE-01/02 | Assign operating responsibility; specify and verify appropriate quotas, budget, retention/cleanup and rollback. Select concrete values and recovery scope without promising anonymous identity/local-save restoration. |
+| MVP-R06: rights and documentation | LEG-01, DOCS-SHARE-01, REL-01/02 | Complete the applicable rights/notice review and prepare accurate shareable setup, architecture, testing, limitations and operating instructions. Preserve required attribution. |
+
+The completed emulated real-relay game is accepted as existing automated evidence: 254 human commands, matching final hashes/revision, reload recovery and zero legacy-rule requests. It does not replace physical iPad, independent rules, accessibility or operations acceptance. See [execution evidence](EMULATED_MULTIPLAYER.md).
+
+Delivery sequence: validate correctness and storage/update failure paths; implement the approved UX; perform device/performance acceptance and finish operations/rights/documentation; assemble the release evidence. Prepare the device playtest after automated blockers are resolved. This is a working sequence, not an additional feature commitment.
 
 ## Approved UX scope — 2026-11-04
 

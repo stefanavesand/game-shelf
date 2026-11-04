@@ -1,8 +1,25 @@
 # Private MVP requirements — agreed product baseline
 
-Version 0.8 · 2026-11-04. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
+Version 0.9 · 2026-11-04. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
 
 Owner scope addition on 2026-11-02: an optional solo internet mode with one human and two bots (M-17). The friend invitation flow remains supported.
+
+## Approved MVP release gates — 2026-11-04
+
+The owner accepted these requirements before MVP release. Acceptance of the requirements is not evidence that they have passed. Existing stable backlog IDs and detailed acceptance criteria remain in use.
+
+| Gate | Existing IDs | Required evidence / remaining work |
+|---|---|---|
+| MVP-R01: rules and bots | RULE-VALIDATION-01, BOT-VALIDATION-01, QA-01 | Validate base rules and supported bot behavior, especially trading and development cards, with independent expected outcomes and reproducible regressions. |
+| MVP-R02: durability and updates | UI-01/04, SESSION-2/3/5, SOLO-OFFLINE-01, QA-01/02 | Verify saving, reconnect, offline Solo and safe updates; provide a supported way to abandon old games. Do not silently discard unresolved commands or imply recovery after storage deletion. |
+| MVP-R03: physical multiplayer | QA-02, CATAN-FULL-2, REL-01 | The owner and a friend complete a real iPad game with one bot, including interruption/reopening and two physical networks. Record devices, OS and candidate version. |
+| MVP-R04: device usability and performance | UX-02, UX-09, QUALITY-1, BOT-14, CATAN-FULL-3 | Check readability, touch controls and basic accessibility in both orientations; measure bot latency, responsiveness, CPU/work and incremental memory on the selected iPad. Exact device and numerical acceptance values still require specification; existing proposed targets are not measured results. |
+| MVP-R05: operations | OPS-01/02, BE-01/02 | Assign operating responsibility; specify and verify appropriate quotas, budget, retention/cleanup and rollback. Select concrete values and recovery scope without promising anonymous identity/local-save restoration. |
+| MVP-R06: rights and documentation | LEG-01, DOCS-SHARE-01, REL-01/02 | Complete the applicable rights/notice review and prepare accurate shareable setup, architecture, testing, limitations and operating instructions. Preserve required attribution. |
+
+The completed emulated real-relay game is accepted as existing automated evidence: 254 human commands, matching final hashes/revision, reload recovery and zero legacy-rule requests. It does not replace physical iPad, independent rules, accessibility or operations acceptance. See [execution evidence](EMULATED_MULTIPLAYER.md).
+
+Delivery sequence: validate correctness and storage/update failure paths; implement the approved UX; perform device/performance acceptance and finish operations/rights/documentation; assemble the release evidence. Prepare the device playtest after automated blockers are resolved. This is a working sequence, not an additional feature commitment.
 
 ## Approved UX scope — 2026-11-04
 
@@ -20,7 +37,7 @@ The owner accepted this split during MVP prioritization. Inclusion is a delivery
 | After MVP | CATAN-RELAY-03, All-recipient portion only | All-recipient offers/default recipient selection. This does not defer already-delivered relay integration or release acceptance. |
 | After MVP | CATAN-RELAY-03, bank-batch portion only | Multiple bank/port exchanges in one submission. Existing single exchanges remain supported. |
 
-Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates still require the separate prioritization decision.
+Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates are approved in MVP-R01–06 above; their verification and concrete operational/device values remain open.
 
 ## Approved MVP limitations — 2026-11-04
 
