@@ -7,6 +7,10 @@ export async function beginMessage(module,config,gameId) {
   const state=module.initialize(clone(config),{gameId});
   return envelope('game.begin',{gameId,moduleId:module.id,moduleVersion:module.version,moduleDigest:module.digest,config:clone(config),resultHash:await digest(state)});
 }
+export function configureMessage(module,config){
+ invariant(typeof module.validateLobby==='function','UNSUPPORTED_ENGINE','This module does not support lobbies.');
+ return envelope('game.configure',{moduleId:module.id,moduleVersion:module.version,moduleDigest:module.digest,config:module.validateLobby(clone(config))});
+}
 export async function commandMessage(record,module,command,effects,intentId,context={}) {
   invariant(record.game&&!record.halt,'NOT_PLAYING','Start a game before proposing a move.');
   const game=record.game,next=module.apply(clone(game.state),record.principalId,clone(command),clone(effects),context);
@@ -24,6 +28,10 @@ export async function applyMessage(saved,item,{module,creatorId,members}) {
     record.halt??={code:'DESYNC_DETECTED',reason:'peer_report',sequence:item.sequence,gameRevision:record.game.revision};
   } else if(record.halt) {
     // Consume transport history for diagnostics but never continue a halted game.
+  } else if(type==='game.configure') {
+    invariant(item.senderId===creatorId&&!record.game&&!record.lobby,'INVALID_MESSAGE','Only the creator may configure an unstarted lobby once.');
+    invariant(p.moduleId===module.id&&p.moduleVersion===module.version&&p.moduleDigest===module.digest&&typeof module.validateLobby==='function','UNSUPPORTED_ENGINE','Update the app to join this lobby.');
+    record.lobby=module.validateLobby(clone(p.config));
   } else if(type==='game.begin') {
     invariant(item.senderId===creatorId&&!record.game,'INVALID_MESSAGE','Only the creator may initialize a game once.');
     invariant(p.moduleId===module.id&&p.moduleVersion===module.version&&p.moduleDigest===module.digest,'UNSUPPORTED_ENGINE','This game requires a compatible engine release.');

@@ -1,5 +1,5 @@
 import {clone,invariant,pendingRequest,validatePage,RelayError,digest} from './protocol.js';
-import {applyMessage,beginMessage,commandMessage} from './replica.js';
+import {applyMessage,beginMessage,commandMessage,configureMessage} from './replica.js';
 import {validateRecord} from './store.js';
 export function createRelayClient({principalId,channelId,creatorId,members,module,store,transport,locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),now=Date.now,maxPages=20}={}) {
   invariant(members.includes(principalId)&&members.includes(creatorId),'INVALID_MEMBERS','Invalid channel participant binding.');
@@ -71,6 +71,7 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
   return {
     state:()=>locked(load),
     sync:()=>locked(syncWork),
+    configure:config=>submit(record=>{invariant(principalId===creatorId&&!record.game&&!record.lobby,'NOT_CREATOR','Only the creator may configure this lobby.');return configureMessage(module,config);}),
     begin:config=>submit(async record=>{invariant(principalId===creatorId&&!record.game,'NOT_CREATOR','Only the creator may start this game.');return beginMessage(module,config,id());}),
     command:(command,effects={},expected={})=>submit(record=>{
       invariant((expected.revision===undefined||expected.revision===record.game?.revision)&&(expected.hash===undefined||expected.hash===record.game?.hash),'STALE_GAME','The game changed. Review your action again.');

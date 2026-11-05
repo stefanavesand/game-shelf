@@ -6,9 +6,9 @@ test('normal game UI runs online Catan using only relay messages and local rules
  async function setup(context,id){await context.addInitScript(id=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id},access_token:id,refresh_token:'fixture',expires_at:4102444800})),id);
  await context.route('**/api/public/catan',route=>{oldCalls++;return route.abort();});await context.route('**/api/public/relay/v1',async route=>{const body=route.request().postDataJSON();try{const packet=await server.transport().request(body,id);await route.fulfill({json:{ok:true,protocolVersion:1,...packet}});}catch(e){await route.fulfill({status:409,json:{ok:false,protocolVersion:1,error:{code:e.code,message:e.message,retryable:false}}});}});const page=await context.newPage();await page.goto('/game-shelf/play/#home');await expect(page.locator('#connection')).toHaveText('Up to date');return page;}
  try{const x=await setup(a,'alice'),y=await setup(b,'bob');
- await x.getByRole('button',{name:'New game',exact:true}).click();await x.getByLabel('Your name',{exact:true}).fill('Alice');await x.getByRole('button',{name:'Create game',exact:true}).click();await expect(x.locator('.players .bot-tag')).toHaveCount(1);
+ await x.getByRole('button',{name:'New game',exact:true}).click();await x.getByLabel('Your name',{exact:true}).fill('Alice');await x.getByRole('button',{name:'Create game',exact:true}).click();await expect(x.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();
  await x.locator('#room').click();await x.getByRole('button',{name:'Invitation details',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();
- await y.goto(invite);await y.getByLabel('Your name',{exact:true}).fill('Bob');await y.getByRole('button',{name:'Join game',exact:true}).click();await expect(y.locator('.players .bot-tag')).toHaveCount(1);
+ await y.goto(invite);await y.getByLabel('Your name',{exact:true}).fill('Bob');await y.getByRole('button',{name:'Join game',exact:true}).click();await expect(y.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await x.getByRole('button',{name:'Start game',exact:true}).click();await y.locator('#refresh').click();await expect(y.locator('.players .bot-tag')).toHaveCount(1);
  const packet=await x.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});const p=packet.view.state.game.currentPlayerId==='alice'?x:y;
  await p.locator('#board [role="button"]').first().click();await p.getByRole('button',{name:'Confirm',exact:true}).click();await expect(p.locator('#connection')).toHaveText('Up to date');
  const packets=await Promise.all([x,y].map(page=>page.evaluate(async()=>{const {client}=await import('./session.js');return client.refresh();})));expect(packets[0].revision).toBe(packets[1].revision);expect(packets[0].view.state.board.buildings).toEqual(packets[1].view.state.board.buildings);expect(oldCalls).toBe(0);
@@ -37,6 +37,7 @@ test('two emulated human seats and the ordinary bot finish a natural relay game'
   await host.getByRole('button',{name:'New game',exact:true}).click();await host.getByLabel('Your name',{exact:true}).fill('Alice');await host.getByRole('button',{name:'Create game',exact:true}).click();
   await host.locator('#room').click();await host.getByRole('button',{name:'Invitation details',exact:true}).click();const invite=await host.getByLabel('Invitation link').inputValue();await host.getByRole('button',{name:'Close panel'}).click();
   await guest.goto(invite);await guest.getByLabel('Your name',{exact:true}).fill('Bob');await guest.getByRole('button',{name:'Join game',exact:true}).click();
+  await expect(guest.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await host.getByRole('button',{name:'Start game',exact:true}).click();await expect(host.locator('.players .bot-tag')).toHaveCount(1);
   let packets;
   for(let step=0;step<1600;step++){
    // Synchronize both independent replicas before choosing from a seat's own view.
@@ -76,5 +77,28 @@ test('a fresh invitation allows joining before an anonymous identity exists',asy
   await expect(page.getByRole('button',{name:'Join game',exact:true})).toBeEnabled();
   await expect(page.locator('#connection')).toHaveText('Up to date');
   expect(externalCalls).toBe(0);
+ }finally{await context.close();}
+});
+
+test('four human browsers join the configured lobby and start without bots',async({browser})=>{
+ const ids=['alice','bob','carol','dave'],server=fakeRelay({channelId,members:ids}),contexts=[],pages=[];
+ try{
+  for(const id of ids){const c=await browser.newContext();contexts.push(c);await c.addInitScript(id=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id},access_token:id,refresh_token:'fixture',expires_at:4102444800})),id);
+   await c.route('**/api/public/relay/v1',async route=>{try{const p=await server.transport().request(route.request().postDataJSON(),id);await route.fulfill({json:{ok:true,protocolVersion:1,...p}});}catch(e){await route.fulfill({status:409,json:{ok:false,protocolVersion:1,error:{code:e.code,message:e.message,retryable:false}}});}});
+   const page=await c.newPage();await page.goto('/game-shelf/play/#home');await expect(page.locator('#connection')).toHaveText('Up to date');pages.push(page);
+  }
+  const host=pages[0];await host.getByRole('button',{name:'New game',exact:true}).click();await host.getByLabel('Your name',{exact:true}).fill('Alice');await host.getByLabel('Game size').selectOption('4');await host.getByRole('button',{name:'Create game',exact:true}).click();await expect(host.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await expect(host.locator('.lobby-seat')).toHaveCount(4);
+  await host.getByRole('button',{name:'Share invitation',exact:true}).click();const invite=await host.getByLabel('Invitation link').inputValue();await host.getByRole('button',{name:'Close panel'}).click();
+  for(let i=1;i<4;i++){await pages[i].goto(invite);await pages[i].getByLabel('Your name',{exact:true}).fill(ids[i]);await pages[i].getByRole('button',{name:'Join game',exact:true}).click();await expect(pages[i].getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await expect(pages[i].getByRole('button',{name:'Start game',exact:true})).toHaveCount(0);}
+  await host.getByRole('button',{name:'Start game',exact:true}).click();await expect(host.locator('.players .player')).toHaveCount(4);
+  for(const page of pages.slice(1)){await page.locator('#refresh').click();await expect(page.locator('#board')).toBeVisible();await expect(page.locator('.players .bot-tag')).toHaveCount(0);}
+  const states=await Promise.all(pages.map(page=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.members;})));for(const seats of states)expect(seats).toEqual(states[0]);
+ }finally{for(const c of contexts)await c.close();}
+});
+
+test('four-player solo shows three named bots and reloads offline on a phone',async({browser})=>{
+ const context=await browser.newContext({viewport:{width:390,height:844}});
+ try{const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Solo');await page.getByLabel('Game size').selectOption('4');await page.getByLabel('Play mode').selectOption('solo');await expect(page.getByLabel('Game size')).toHaveValue('4');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('.players .bot-tag')).toHaveCount(3);
+ const names=await page.locator('.players strong').allTextContents();expect(names.join(' ')).not.toMatch(/Bot [123]/);await expect(page.locator('#offline-status')).toHaveText('Ready for offline');await context.setOffline(true);await page.reload();await expect(page.locator('.players .bot-tag')).toHaveCount(3);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  }finally{await context.close();}
 });

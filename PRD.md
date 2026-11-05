@@ -1,5 +1,10 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
+## Current player configurations — 2026-11-05
+
+Owner-approved extension: choose **3 or 4 total players**. Online games open an invitation lobby; the creator explicitly starts after friends join. At start, connected channel members take human seats in admission order (creator first), and bots fill every unclaimed seat. The roster then stays fixed: late joins cannot replace bots. A selected three-player game admits only the first three members as players even though the generic relay channel can hold four. Solo starts immediately offline with two or three bots. Choose Easy/Standard for the bots at creation; deterministic, distinct names replace numbered bot labels in new games. Existing games retain their original roster and rules. This supersedes older fixed-three-seat and automatic-start descriptions below.
+
+
 Version 3.11 · 2026-11-04 · Product baseline and warm light UI owner-approved; real managed internet integration implemented; device and operational release gates remain open.
 
 This PRD supersedes the [original PRD](docs/archive/PRD-2025-12-29.md). Its game ideas remain available as history; claims of feature completeness, asset licensing, host migration and all expansions at launch are not verified commitments. This document takes precedence for future work. The document version is independent of the app version. Version 3.1 translated the baseline into English. Version 3.2 added staged bot requirements; version 3.3 recorded the confirmed private MVP scope and its decision drafts; version 3.4 records the agreed product baseline and later phone-support design requirement. Existing requirement IDs remain stable.

@@ -1,5 +1,10 @@
 # Private MVP requirements — agreed product baseline
 
+## Current player configurations — 2026-11-05
+
+Owner-approved extension: choose **3 or 4 total players**. Online games open an invitation lobby; the creator explicitly starts after friends join. At start, connected channel members take human seats in admission order (creator first), and bots fill every unclaimed seat. The roster then stays fixed: late joins cannot replace bots. A selected three-player game admits only the first three members as players even though the generic relay channel can hold four. Solo starts immediately offline with two or three bots. Choose Easy/Standard for the bots at creation; deterministic, distinct names replace numbered bot labels in new games. Existing games retain their original roster and rules. This supersedes older fixed-three-seat and automatic-start descriptions below.
+
+
 Version 0.9 · 2026-11-04. The user confirmed the product baseline: private iPad PWA in both orientations; two people plus one bot online; base game to ten points on a fixed beginner board without a timer; first invited guest claims the empty seat; persistent anonymous identity without account recovery after storage deletion; Easy/Standard at creation; Catan/resume as the main entry with experiments separate; save after every accepted action and reconnect after closing. The UI must also support phones later. Detailed operational choices and visual design remain open; this does not mark every acceptance test or release gate complete. Existing PRD/HLD remain the wider roadmap.
 
 Owner scope addition on 2026-11-02: an optional solo internet mode with one human and two bots (M-17). The friend invitation flow remains supported.

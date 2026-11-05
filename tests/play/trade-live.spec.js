@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 const root='/game-shelf/play/';
 async function scenario(browser,accept){
  const context=await browser.newContext();await context.route(/^https:\/\//,route=>route.abort());const page=await context.newPage();
- await page.goto(root+'#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Trader');await page.getByLabel('Players',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');
+ await page.goto(root+'#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Trader');await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');
  // Prepared hands isolate the composer and real scheduler; no live service/mock engine.
  await page.evaluate(accept=>navigator.locks.request('game-shelf-local-solo',async()=>{
   const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});

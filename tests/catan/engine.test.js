@@ -119,3 +119,22 @@ test('a bot-originated offer waits for a human instead of immediately cancelling
  const offer=botDecision(m.view(state,'bot:2'),'standard');assert.equal(offer.type,'TRADE_OFFER');
  const next=m.apply(state,'alice',{actor:'bot:2',action:offer},{},{coordinatorId:'alice'});assert.ok(next.snapshot.offer);assert.equal(m.nextBot(next),null);
 });
+
+test('three/four seats accept every human count and deterministically fill only empty seats',()=>{
+ for(const playerCount of [3,4])for(let n=1;n<=playerCount;n++){
+  const humans=Array.from({length:n},(_,i)=>({id:'human:'+i,name:i===0?'Captain Turnip':'Friend '+i}));
+  const a=catanConfig(humans,{playerCount,seed:8}),b=catanConfig(humans,{playerCount,seed:8});
+  assert.deepEqual(a,b);assert.equal(a.seats.length,playerCount);assert.equal(a.seats.filter(s=>s.kind==='bot').length,playerCount-n);
+  assert.equal(new Set(a.seats.map(s=>s.name.toLowerCase())).size,playerCount);assert.ok(a.seats.every(s=>!/^Bot \d/.test(s.name)));
+  assert.equal(m.initialize(a,{gameId:'seats'}).snapshot.seats.length,playerCount);
+ }
+ for(const playerCount of [2,5,3.5])assert.throws(()=>catanConfig(humans,{playerCount,seed:1}));
+ assert.throws(()=>catanConfig([],{seed:1}));assert.throws(()=>catanConfig([...humans,...humans],{playerCount:4,seed:1}));
+});
+test('four-seat snake setup completes with eight roads and settlements then finishes naturally',()=>{
+ let state=m.initialize(catanConfig(humans,{playerCount:4,seed:2026}),{gameId:'four-seat-game'});
+ for(let i=0;i<16;i++){state=advance(state).state;conserved(state);}
+ assert.equal(state.snapshot.state.game.phase,'roll');assert.equal(state.snapshot.state.board.buildings.length,8);assert.equal(state.snapshot.state.board.roads.length,8);
+ let steps=16;while(state.snapshot.state.game.phase!=='ended'&&steps++<3000){state=advance(state).state;conserved(state);}
+ assert.equal(state.snapshot.state.game.phase,'ended');assert.ok(state.snapshot.state.game.winnerId);
+});
