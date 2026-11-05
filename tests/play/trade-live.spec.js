@@ -42,6 +42,6 @@ for(const response of ['Accept','Decline'])test(`an affordable bot offer opens a
   await page.reload();const dialog=page.locator('#trade-reply');await expect(dialog).toBeVisible();await expect(dialog).toContainText('1 Grain');await expect(dialog.getByRole('button',{name:'Accept',exact:true})).toBeEnabled();const offerId=await dialog.getAttribute('data-offer-id');
   for(let i=0;i<2;i++){await page.evaluate(()=>document.getElementById('refresh').click());await expect(page.locator('#connection')).toHaveText('Local · saved');await expect(dialog).toBeVisible();await expect(dialog).toHaveAttribute('data-offer-id',offerId);}
   await dialog.getByRole('button',{name:response,exact:true}).click();await expect(dialog).not.toBeVisible();await expect(page.locator('#sheet')).not.toBeVisible();
-  const packet=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(packet.view.trades.find(t=>t.id===offerId).status).toBe(response==='Accept'?'accepted':'declined');
+  await expect.poll(async()=>page.evaluate(async id=>{const {client}=await import('./session.js');return (await client.inspect()).packet.view.trades.find(t=>t.id===id)?.status;},offerId)).toBe(response==='Accept'?'accepted':'declined');
  }finally{await context.close();}
 });
