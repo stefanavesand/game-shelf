@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {updateTradeFeedback,canSupplyOffer} from '../../play/trade-feedback.js';
+import {updateTradeFeedback,canSupplyOffer,resolveUnavailableOffers,unavailableIncomingOffer} from '../../play/trade-feedback.js';
 const offer={id:'offer',from:'a',to:'b',give:{ore:2},receive:{brick:1}};
 const view=(revision,history=[],active=null)=>({id:'room',you:'a',revision,history,offer:active,seats:[{id:'a',name:'Alice'},{id:'b',name:'Bob'}],state:{players:{players:[{id:'a',resources:{brick:0,lumber:0,ore:3,grain:0,wool:0}}]}}});
 test('an immediate bot response retains the exact proposed terms and survives reload without duplicate feedback',()=>{
@@ -27,4 +27,18 @@ test('an older browser view cannot overwrite a newer pending offer tracker',()=>
 test('persisted public results recover all recipient responses even when every intermediate poll was missed',()=>{
  const v=view(20);v.trades=[{...offer,id:'all-offer',to:'all',recipients:['b','c'],responses:{b:'declined',c:'accepted'},status:'accepted',by:'c',revision:20}];v.seats.push({id:'c',name:'Carol'});
  const result=updateTradeFeedback(null,v);assert.equal(result.added.length,1);assert.match(result.added[0].message,/Carol accepted/);assert.match(result.added[0].message,/2 Ore/);assert.equal(updateTradeFeedback(JSON.parse(JSON.stringify(result.record)),v).added.length,0);
+});
+
+
+test('consecutive unaffordable offers are declined until an actionable offer arrives',async()=>{
+ const offers=[{...offer,id:'first',from:'b',to:'a'},{...offer,id:'second',from:'b',to:'a'},{...offer,id:'third',from:'b',to:'a',receive:{ore:1}}];let index=0;const ids=[];
+ const read=()=>view(index,[],offers[index]);await resolveUnavailableOffers(read,async id=>{ids.push(id);index++;return true;});
+ assert.deepEqual(ids,['first','second']);assert.equal(canSupplyOffer(read()),true);
+});
+test('auto-decline stops on failed delivery, stale repeats, other recipients and a bounded chain',async()=>{
+ let calls=0;const v=view(1,[],{...offer,to:'a'});assert.equal(unavailableIncomingOffer(v),true);
+ await resolveUnavailableOffers(()=>v,async()=>{calls++;return false;});assert.equal(calls,1);
+ calls=0;await resolveUnavailableOffers(()=>v,async()=>{calls++;return true;});assert.equal(calls,1);
+ calls=0;await resolveUnavailableOffers(()=>view(1,[],offer),async()=>{calls++;});assert.equal(calls,0);
+ let id=0;await resolveUnavailableOffers(()=>view(id,[],{...offer,id:String(id++),to:'a'}),async()=>true,3);assert.equal(id,3);
 });

@@ -45,3 +45,31 @@ for(const response of ['Accept','Decline'])test(`an affordable bot offer opens a
   await expect.poll(async()=>page.evaluate(async id=>{const {client}=await import('./session.js');return (await client.inspect()).packet.view.trades.find(t=>t.id===id)?.status;},offerId)).toBe(response==='Accept'?'accepted':'declined');
  }finally{await context.close();}
 });
+
+test('two consecutive unaffordable offers resolve without leaving the human stuck',async({browser})=>{
+ const {context,page}=await scenario(browser,false);
+ try{
+  await page.getByRole('button',{name:'Close panel'}).click();
+  await page.evaluate(async()=>{
+   const {client}=await import('./session.js'),{createCatanModule}=await import('./catan/module.js'),{CATAN_ARTIFACT}=await import('./catan/artifact.js'),{digest}=await import('./relay/protocol.js');
+   const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
+   // Prepared legal offers isolate the UI chain; this is not a natural-game test.
+   async function offerFrom(bot){
+    await navigator.locks.request('game-shelf-local-solo',async()=>{
+     const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});
+     const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('library');r.onsuccess=()=>resolve(r.result);}),g=lib.games[lib.current],s=g.state.snapshot;
+     const human=s.state.players.players.find(p=>p.id==='p1'),donor=s.state.players.players.find(p=>p.id===bot);s.state.game.bank.wool+=human.resources.wool;human.resources.wool=0;
+     if(donor.resources.grain<1){s.state.game.bank.grain--;donor.resources.grain++;}
+     s.state.players.turnOrder=['bot:1','bot:2','p1'];Object.assign(s.state.game,{phase:'main',currentPlayerId:bot,turn:39});s.offer=null;
+     g.state=module.apply(g.state,'p1',{actor:bot,action:{type:'TRADE_OFFER',to:'p1',give:{grain:1},receive:{wool:1}}},{},{coordinatorId:'p1'});g.hash=await digest(g.state);
+     await new Promise((resolve,reject)=>{const tx=db.transaction('records','readwrite');tx.objectStore('records').put(lib,'library');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();
+    });return (await client.inspect()).packet;
+   }
+   await offerFrom('bot:1');const execute=client.execute;window.skippedOffers=0;
+   client.execute=async(op,args,...rest)=>{const p=await execute(op,args,...rest);if(args?.action?.type==='TRADE_DECLINE'&&p.ok){window.skippedOffers++;if(window.skippedOffers===1)return offerFrom('bot:2');}return p;};
+  });
+  await page.locator('#refresh').click();await expect.poll(()=>page.evaluate(()=>window.skippedOffers)).toBe(2);await expect(page.locator('#connection')).toHaveText('Local · saved');
+  await expect(page.locator('#trade-reply')).not.toBeVisible();await expect(page.getByRole('button',{name:'Roll dice',exact:true})).toBeEnabled();
+  const p=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(p.view.offer).toBeNull();expect(p.view.trades.filter(t=>t.status==='declined')).toHaveLength(2);
+ }finally{await context.close();}
+});

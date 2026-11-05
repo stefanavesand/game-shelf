@@ -33,3 +33,15 @@ export function updateTradeFeedback(previous,view,outgoing){
  if(offer&&(offer.from===view.you||offer.to===view.you))record.watch={revision:view.revision,from:offer.from,to:offer.to,give:structuredClone(offer.give),receive:structuredClone(offer.receive)};
  record.events=record.events.slice(-30);return {record,added};
 }
+
+export function unavailableIncomingOffer(view){
+ const o=view?.offer;return !!o&&(o.recipients||[o.to]).includes(view.you)&&!o.responses?.[view.you]&&!canSupplyOffer(view);
+}
+export async function resolveUnavailableOffers(readView,decline,limit=8){
+ const seen=new Set();
+ while(seen.size<limit){
+  const v=readView();if(!unavailableIncomingOffer(v)||seen.has(v.offer.id))break;
+  seen.add(v.offer.id);if(!await decline(v.offer.id))break;
+ }
+ return seen.size;
+}
