@@ -5,8 +5,8 @@ import {createHash} from 'node:crypto';
 const root=new URL('../../',import.meta.url),dist=new URL('dist/',root),manifest=JSON.parse(await readFile(new URL('site-manifest.json',dist),'utf8'));
 test('the public package includes required entrypoints and excludes development/private files',async()=>{
   const paths=manifest.files.map(f=>f.path);
-  for(const required of ['index.html','play/index.html','play/app.js','play/core/client.js','prototype/index.html','ui/art.js'])assert.ok(paths.includes(required),required);
-  for(const name of paths)assert.match(name,/^(index\.html|(?:play|ui|prototype)\/[a-zA-Z0-9_./-]+\.(?:html|css|js|svg|webmanifest))$/);
+  for(const required of ['index.html','recovery/index.html','recovery/recovery.js','play/index.html','play/app.js','play/core/client.js','prototype/index.html','ui/art.js'])assert.ok(paths.includes(required),required);
+  for(const name of paths)assert.match(name,/^(index\.html|(?:play|ui|prototype|recovery)\/[a-zA-Z0-9_./-]+\.(?:html|css|js|svg|webmanifest))$/);
   const actual=[];
   async function walk(relative=''){for(const entry of await readdir(new URL(relative,dist),{withFileTypes:true})){assert.equal(entry.isSymbolicLink(),false);const name=relative+entry.name;if(entry.isDirectory())await walk(name+'/');else actual.push(name);}}
   await walk();assert.deepEqual(actual.sort(),[...paths,'.nojekyll','site-manifest.json'].sort());

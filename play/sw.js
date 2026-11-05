@@ -1,7 +1,7 @@
 /* Offline app shell only: never cache identities or API responses. */
 importScripts('./offline-assets.js','./update-state.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
-const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'f8d0937b3dd26f1b3dd71d521b3ac4c639c0caf6e9a49c4a93b517a04f4c80b3'}];
+const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'61e53ea0d9f6f6bb996de7e57de36c0a0fefe1a3df70557832c323ac74d4b81d'}];
 const url=path=>new URL(path,ROOT).href;
 async function valid(response,hash){if(!response?.ok)return false;const value=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')===hash;}
 async function verified(){const cache=await caches.open(NAME);for(const f of FILES)if(!await valid(await cache.match(url(f.path)),f.sha256))return false;return FILES.length>1;}
@@ -22,9 +22,15 @@ async function download(){
  })();
  try{await downloadTask;}finally{downloadTask=null;}
 }
+// A UI repair for the already-active engine cannot make old saves less compatible.
+// Continue auditing storage formats and unresolved intents/outboxes in either case.
+async function sameActiveEngine(){
+ const worker=self.registration.active;if(!worker)return false;
+ return new Promise(resolve=>{const c=new MessageChannel(),timer=setTimeout(()=>{c.port1.close();resolve(false);},3000);c.port1.onmessage=e=>{clearTimeout(timer);c.port1.close();resolve(e.data?.engine===self.OFFLINE_ENGINE);};try{worker.postMessage({type:'INFO'},[c.port2]);}catch{clearTimeout(timer);c.port1.close();resolve(false);}});
+}
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  try{await navigator.locks.request('game-shelf-app-lifecycle',{mode:'exclusive'},async()=>{
-  if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE))throw Error('Saved games or pending moves block this update');
+  if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE,{ignoreEnginePins:await sameActiveEngine()}))throw Error('Saved games or pending moves block this update');
   await self.GameShelfUpdateState.setFence({schemaVersion:1,version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE});
  });}catch(error){for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'UPDATE_BLOCKED'});throw error;}
  await download();

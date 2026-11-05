@@ -16,7 +16,7 @@ async function collect(relative){
     else if(entry.isFile()&&/\.(html|css|js|svg|webmanifest)$/.test(name))files.push(name);
   }
 }
-files.push('play/sw.js','play/offline-assets.js','index.html');for(const folder of ['play','ui','prototype'])await collect(folder);
+files.push('play/sw.js','play/offline-assets.js','index.html');for(const folder of ['play','ui','prototype','recovery'])await collect(folder);
 const unique=[...new Set(files)].sort();files.splice(0,files.length,...unique);
 const offline=[];for(const name of files.filter(f=>/^(play|ui)\//.test(f)&&!['play/sw.js','play/offline-assets.js'].includes(f))){const bytes=await readFile(path.join(root,name));offline.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex')});}
 const template=await readFile(path.join(root,'scripts/sw-template.js'),'utf8');

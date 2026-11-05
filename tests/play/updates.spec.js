@@ -165,3 +165,15 @@ test('a failed engine download releases its obsolete fence so the previous app c
   expect(await f.page.evaluate(()=>self.GameShelfUpdateState.fence())).toBeFalsy();expect((await status(f.page)).version).toBe(f.server.version);
  }finally{await cleanup(f);}
 });
+
+test('same-engine UI repair can install despite an already-incompatible local save and reveal abandonment after reopening',async({browser})=>{
+ const f=await open(browser);try{
+  const before=await solo(f.page);
+  await f.page.evaluate(async()=>navigator.locks.request('game-shelf-local-solo',async()=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});await new Promise(resolve=>{const tx=db.transaction('records','readwrite'),store=tx.objectStore('records'),r=store.get('library');r.onsuccess=()=>{const lib=r.result;lib.games[lib.current].artifact='previous-engine-fixture';store.put(lib,'library');};tx.oncomplete=resolve;});db.close();}));
+  await f.page.goto(f.server.url+'#home');await f.page.reload();await expect(f.page.getByRole('heading',{name:'An older saved game needs attention'})).toBeVisible();await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);
+  f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');
+  await f.page.close();f.page=await f.context.newPage();await f.page.goto(f.server.url+'#home');await expect.poll(async()=>(await status(f.page)).version).toBe(f.server.nextVersion);
+  await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);await f.page.getByRole('button',{name:'Abandon game',exact:true}).click();await f.page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await expect(f.page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();
+  expect(await f.page.evaluate(async room=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('library');r.onsuccess=()=>resolve(r.result);});db.close();return {abandoned:lib.games[room].abandoned,artifact:lib.games[room].artifact,revision:lib.games[room].state.snapshot.revision};},before.room)).toEqual({abandoned:true,artifact:'previous-engine-fixture',revision:before.revision});
+ }finally{await cleanup(f);}
+});

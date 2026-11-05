@@ -28,3 +28,8 @@ test('failed abandonment storage does not hide a game or unblock an incompatible
  const client=createLocalClient({storage:store,locks,seed:()=>7}),game=await client.execute('create',{name:'A'});fail=true;
  await assert.rejects(client.abandon(game.roomId));assert.equal((await client.games()).length,1);assert.equal((await client.inspect()).packet.roomId,game.roomId);assert.equal(await client.canUpdate('next-engine'),false);
 });
+test('incompatible local games remain listed and can be abandoned without interpreting their engine',async()=>{
+ let data={schemaVersion:1,local:false,current:null,games:{}};const store={load:async()=>structuredClone(data),save:async v=>{data=structuredClone(v);}};
+ const client=createLocalClient({storage:store,locks,seed:()=>7}),game=await client.execute('create',{name:'Old game'});data.games[game.roomId].artifact='old-engine';const snapshot=structuredClone(data.games[game.roomId].state);
+ await assert.rejects(client.inspect(),/original engine/);const games=await client.games();assert.equal(games.length,1);assert.equal(games[0].compatible,false);await client.abandon(game.roomId);assert.deepEqual(data.games[game.roomId].state,snapshot);assert.deepEqual(await client.games(),[]);assert.equal((await client.inspect()).packet,null);
+});

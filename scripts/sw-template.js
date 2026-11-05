@@ -22,9 +22,15 @@ async function download(){
  })();
  try{await downloadTask;}finally{downloadTask=null;}
 }
+// A UI repair for the already-active engine cannot make old saves less compatible.
+// Continue auditing storage formats and unresolved intents/outboxes in either case.
+async function sameActiveEngine(){
+ const worker=self.registration.active;if(!worker)return false;
+ return new Promise(resolve=>{const c=new MessageChannel(),timer=setTimeout(()=>{c.port1.close();resolve(false);},3000);c.port1.onmessage=e=>{clearTimeout(timer);c.port1.close();resolve(e.data?.engine===self.OFFLINE_ENGINE);};try{worker.postMessage({type:'INFO'},[c.port2]);}catch{clearTimeout(timer);c.port1.close();resolve(false);}});
+}
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  try{await navigator.locks.request('game-shelf-app-lifecycle',{mode:'exclusive'},async()=>{
-  if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE))throw Error('Saved games or pending moves block this update');
+  if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE,{ignoreEnginePins:await sameActiveEngine()}))throw Error('Saved games or pending moves block this update');
   await self.GameShelfUpdateState.setFence({schemaVersion:1,version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE});
  });}catch(error){for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'UPDATE_BLOCKED'});throw error;}
  await download();

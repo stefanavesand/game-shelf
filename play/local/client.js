@@ -22,7 +22,7 @@ export function createLocalClient({storage=createLocalStorage(),locks=globalThis
   isLocal:()=>local,
   selectOnline:()=>lock(async()=>{const lib=await load();lib.local=false;await storage.save(lib);local=false;}),
   inspect:()=>lock(async()=>{const lib=await load(),g=lib.games[lib.current];if(local&&g)await verify(g);return {state:{schemaVersion:1,roomId:local?lib.current:null,pending:null,persistent:lib.persistent},principalId:'local',packet:local&&g?packet(g):null};}),
-  games:()=>lock(async()=>Object.values((await load()).games).filter(g=>!g.abandoned).map(g=>({roomId:g.state.snapshot.id,status:g.state.snapshot.state.game.phase==='ended'?'ended':'playing',players:g.state.snapshot.seats.map(s=>s.name),mode:'solo',botLevel:g.state.snapshot.seats[1].level,local:true}))),
+  games:()=>lock(async()=>Object.values((await load()).games).filter(g=>!g.abandoned).map(g=>({roomId:g.state.snapshot.id,status:g.state.snapshot.state.game.phase==='ended'?'ended':'playing',players:g.state.snapshot.seats.map(s=>s.name),mode:'solo',botLevel:g.state.snapshot.seats[1].level,local:true,compatible:g.artifact===CATAN_ARTIFACT.digest}))),
   resume:roomId=>lock(async()=>{const lib=await load(),g=lib.games[roomId];if(!g||g.abandoned)return null;await verify(g);lib.current=roomId;lib.local=true;await storage.save(lib);local=true;await bots(lib,g);return packet(g);}),
   refresh:()=>lock(async()=>{const lib=await load(),g=lib.games[lib.current];if(!local||!g)return null;await verify(g);await bots(lib,g);return packet(g);}),
   execute:(op,args={})=>lock(async()=>{
