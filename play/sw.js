@@ -1,7 +1,7 @@
 /* Offline app shell only: never cache identities or API responses. */
 importScripts('./offline-assets.js','./update-state.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
-const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'482c9190e906095f4d8f3d7b492f1a075b105c1572e20c4ddf116ee8cf67160e'}];
+const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'e72a009d92a42ad575306f1c22a71721d378569d46063266fb734cbcc8cff714'}];
 const url=path=>new URL(path,ROOT).href;
 async function valid(response,hash){if(!response?.ok)return false;const value=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')===hash;}
 async function verified(){const cache=await caches.open(NAME);for(const f of FILES)if(!await valid(await cache.match(url(f.path)),f.sha256))return false;return FILES.length>1;}

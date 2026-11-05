@@ -57,7 +57,7 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
   }
   return packet(index,room,record);
  }
- async function refresh(){principal=(await auth.identity()).user.id;let index=await read(principal);if(index.intent)index=await enter(index);const bound=await binding(index,true);return bound?progress(index,bound.replica,bound.room):null;}
+ async function refresh(){if(!saved())return null;principal=(await auth.identity()).user.id;let index=await read(principal);if(index.intent)index=await enter(index);const bound=await binding(index,true);return bound?progress(index,bound.replica,bound.room):null;}
  function translate(error){if(error instanceof PlayError)return error;return new PlayError(error.code==='AUTH_REQUIRED'?'AUTH_REQUIRED':['UNSUPPORTED_ENGINE','UNSUPPORTED_PROTOCOL'].includes(error.code)?'UNSUPPORTED_VERSION':error.code||'NETWORK_UNAVAILABLE',error.message,{retryable:!!error.retryable,retryAfterMs:error.retryAfterMs||0});}
  const client={
   capabilities:{pollIntervalMs:5000,requiresInternet:true},

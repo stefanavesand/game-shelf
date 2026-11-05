@@ -102,3 +102,15 @@ test('four-player solo shows three named bots and reloads offline on a phone',as
  const names=await page.locator('.players strong').allTextContents();expect(names.join(' ')).not.toMatch(/Bot [123]/);await expect(page.locator('#offline-status')).toHaveText('Ready for offline');await context.setOffline(true);await page.reload();await expect(page.locator('.players .bot-tag')).toHaveCount(3);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  }finally{await context.close();}
 });
+
+test('fresh home survives refresh and foreground events without a player identity',async({browser})=>{
+ const context=await browser.newContext();let externalCalls=0;
+ try{
+  await context.route(/^https:\/\//,route=>{externalCalls++;return route.abort();});const page=await context.newPage();await page.goto('/game-shelf/play/#home');await expect(page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();
+  await page.locator('#refresh').click();await expect(page.locator('#connection')).toHaveText('Up to date');
+  await page.evaluate(()=>{window.dispatchEvent(new Event('pageshow'));document.dispatchEvent(new Event('visibilitychange'));window.dispatchEvent(new Event('online'));});
+  await expect(page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();await expect(page.getByRole('heading',{name:'Your player identity needs attention'})).toHaveCount(0);
+  expect(await page.evaluate(()=>localStorage.getItem('spelhyllan-online-auth-v1'))).toBeNull();expect(externalCalls).toBe(0);
+  await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Fresh player');await page.getByLabel('Play mode').selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board')).toBeVisible();expect(externalCalls).toBe(0);
+ }finally{await context.close();}
+});

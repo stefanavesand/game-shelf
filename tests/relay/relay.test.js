@@ -173,3 +173,14 @@ test('a fourth channel member cannot take a seat in a three-player game',async t
  const host=make('alice');await host.execute('create',{name:'Alice',playerCount:3});const dave=make('dave');assert.equal((await dave.execute('join',{name:'Dave',inviteToken:'fixture-only'})).lobby.full,true);
  const p=await host.execute('start',{roomId:server.channelId});assert.equal(p.members.length,3);assert.equal(p.members.some(m=>m.id==='dave'),false);assert.equal((await dave.refresh()).lobby.started,true);
 });
+
+test('refreshing an empty installation needs no identity and never creates one',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js');let calls=0;
+ const client=createOnlineGameClient({store:createMemoryStore(),auth:{savedIdentity:()=>null,identity:async()=>{calls++;throw Error('Identity must not be requested');}},transport:{request:()=>{throw Error('No network');}}});
+ assert.equal(await client.refresh(),null);assert.equal(await client.refresh(),null);assert.equal((await client.inspect()).packet,null);assert.deepEqual(await client.games(),[]);assert.equal(calls,0);
+});
+test('a saved identity failure is preserved rather than treated as an empty installation',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js');const {PlayError}=await import('../../play/core/errors.js');
+ const client=createOnlineGameClient({store:createMemoryStore(),auth:{savedIdentity:()=>{throw new PlayError('AUTH_REQUIRED','Unreadable saved identity');}},transport:{request:()=>{throw Error('No network');}}});
+ await assert.rejects(client.refresh(),e=>e.code==='AUTH_REQUIRED');
+});
