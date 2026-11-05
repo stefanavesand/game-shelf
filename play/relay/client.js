@@ -26,7 +26,7 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
         for(const message of applied.notifications)enqueue(next,message);
       }
       // Cursor, state, incident and generated replies commit together.
-      await save(next);record=next;
+      if(page.messages.length)await save(next);record=next;
       if(!page.hasMore)return record;
     }
     throw new RelayError('CATCH_UP_LIMIT','More history remains. Synchronize again before playing.',{retryable:true});

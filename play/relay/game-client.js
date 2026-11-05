@@ -44,8 +44,8 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
   const humans=orderedMembers(room).slice(0,options.playerCount).map((m,i)=>({id:m.playerId,name:m.displayName||`Player ${i+1}`}));
   try{return await replica.begin(catanConfig(humans,options));}catch(error){if(error.code!=='NOT_CREATOR')throw error;record=await replica.sync();if(!record.game)throw error;return record;}
  }
- async function progress(index,replica,room){
-  let record=await replica.sync();
+ async function progress(index,replica,room,record){
+  record??=await replica.sync();
   if(!record.game&&room.creatorId===index.principalId){
    if(room.manualStart&&!record.lobby)record=await replica.configure({playerCount:room.playerCount||3,level:room.botLevel||'standard',seed:room.seed||newSeed()});
    // Older waiting rooms retain their original auto-start behavior.
@@ -69,8 +69,8 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
     if(!index.intent){if(op==='create')module.validateLobby({playerCount:args.playerCount??3,level:args.botLevel||'standard',seed:1});index.intent={op,args,lobbySeed:op==='create'?newSeed():null,createdAt:Date.now(),stage:'profile',ids:{profile:id(),channel:id()}};await save(index);}index=await enter(index);return refresh();
    }
    if(!op)return refresh();if(args.roomId!==index.current)throw new PlayError('ROOM_SWITCH','The selected game changed.');const bound=await binding(index,true);if(!bound)throw new PlayError('PROTOCOL_ERROR','Choose a game.');
-   if(op==='start'){await start(index,bound.replica,bound.room);return progress(index,bound.replica,bound.room);}
-   const current=await bound.replica.state();await bound.replica.command({actor:principal,action:args.action},{},{revision:args.expectedRevision,hash:current.game?.hash});return progress(index,bound.replica,bound.room);
+   if(op==='start'){const record=await start(index,bound.replica,bound.room);return progress(index,bound.replica,bound.room,record);}
+   const current=await bound.replica.state(),committed=await bound.replica.command({actor:principal,action:args.action},{},{revision:args.expectedRevision,hash:current.game?.hash});return progress(index,bound.replica,bound.room,committed);
   }catch(error){if(error instanceof RuleRejection||error.code==='STALE_GAME')return {ok:false,apiVersion:1,error:{code:'rule_rejected',message:error.message}};throw translate(error);}},
   async refresh(){try{return await refresh();}catch(error){throw translate(error);}},
   async resume(roomId){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId]||index.rooms[roomId].abandoned)return {ok:false,apiVersion:1,error:{code:'room_not_found',message:'This game is not available.'}};index.current=roomId;await save(index);return refresh();},

@@ -152,9 +152,10 @@ async function runSync(op,args={},options={}){
   try{
     const outgoing=op==='command'&&args.action?.type==='TRADE_OFFER'?{revision:args.expectedRevision+1,from:packet.you,to:args.action.to,give:args.action.give,receive:args.action.receive}:null;
     await observeTrades(view(),outgoing);
-    if(op){const result=op==='resume'?await client.resume(args.roomId):await client.execute(op,args,options);if(op==='resume'&&!result.ok){notice=result.error.message;ready=true;error=null;return;}apply(result);if(result?.ok){screen='table';history.replaceState(null,'',location.pathname+'#game');}}
+    let operationResult;
+    if(op){const result=operationResult=op==='resume'?await client.resume(args.roomId):await client.execute(op,args,options);if(op==='resume'&&!result.ok){notice=result.error.message;ready=true;error=null;return;}apply(result);if(result?.ok){screen='table';history.replaceState(null,'',location.pathname+'#game');}}
     const recoveringEntry=['create','join'].includes(saved?.pending?.body.op);
-    const latest=await client.refresh();apply(latest);await observeTrades(view(),outgoing);
+    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh();apply(latest);await observeTrades(view(),outgoing);
     if(incoming()&&!canSupplyOffer(view())&&!saved?.pending){const offerId=view().offer.id;const declined=await client.execute('command',{roomId:packet.roomId,expectedRevision:packet.revision,action:{type:'TRADE_DECLINE',offerId}});apply(declined);apply(await client.refresh());await observeTrades(view());}
     if(latest?.ok&&recoveringEntry){screen='table';history.replaceState(null,'',location.pathname+'#game');}ready=true;error=null;
   }catch(e){error=e instanceof PlayError?e:new PlayError('PROTOCOL_ERROR','The game could not be safely read. Your saved data has been kept.');ready=false;notice='';if(screen==='home'&&error.code==='SESSION_EXPIRED'){notice=error.message;error=null;ready=true;}}

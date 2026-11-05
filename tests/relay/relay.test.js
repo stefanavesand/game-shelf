@@ -184,3 +184,16 @@ test('a saved identity failure is preserved rather than treated as an empty inst
  const client=createOnlineGameClient({store:createMemoryStore(),auth:{savedIdentity:()=>{throw new PlayError('AUTH_REQUIRED','Unreadable saved identity');}},transport:{request:()=>{throw Error('No network');}}});
  await assert.rejects(client.refresh(),e=>e.code==='AUTH_REQUIRED');
 });
+
+test('an unchanged relay poll does not rewrite the full game checkpoint',async()=>{
+ const h=harness();await h.alice.begin({start:0});let writes=0;const save=h.store.save;h.store.save=async r=>{writes++;return save(r);};
+ const before=await h.alice.state();await h.alice.sync();assert.equal(writes,0);assert.deepEqual(await h.alice.state(),before);
+ await h.bob.command({type:'ADD',amount:2});await h.alice.sync();assert.ok(writes>0);assert.equal((await h.alice.state()).game.state.value,2);
+});
+test('an online human placement returns committed state without a redundant catch-up',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js');const server=fakeRelay(),store=createMemoryStore();
+ const make=id=>createOnlineGameClient({store,transport:server.transport(),auth:{savedIdentity:()=>({user:{id}}),identity:async()=>({user:{id}})}}),clients={alice:make('alice'),bob:make('bob')};
+ await clients.alice.execute('create',{name:'Alice'});await clients.bob.execute('join',{name:'Bob',inviteToken:'fixture-only'});const started=await clients.alice.execute('start',{roomId:server.channelId});const client=clients[started.view.state.game.currentPlayerId],p=await client.refresh(),before=server.sent.length;
+ const result=await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:p.view.choices[0]});
+ assert.ok(result.ok);assert.equal(result.revision,p.revision+1);assert.equal(result.view.state.board.buildings.length,p.view.state.board.buildings.length+1);assert.ok(server.sent.length-before<=6,'A placement must not perform another poll after commit');
+});

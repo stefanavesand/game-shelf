@@ -10,7 +10,8 @@ test('normal game UI runs online Catan using only relay messages and local rules
  await x.locator('#room').click();await x.getByRole('button',{name:'Invitation details',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();
  await y.goto(invite);await y.getByLabel('Your name',{exact:true}).fill('Bob');await y.getByRole('button',{name:'Join game',exact:true}).click();await expect(y.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await x.getByRole('button',{name:'Start game',exact:true}).click();await y.locator('#refresh').click();await expect(y.locator('.players .bot-tag')).toHaveCount(1);
  const packet=await x.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});const p=packet.view.state.game.currentPlayerId==='alice'?x:y;
- await p.locator('#board [role="button"]').first().click();await p.getByRole('button',{name:'Confirm',exact:true}).click();await expect(p.locator('#connection')).toHaveText('Up to date');
+ await p.evaluate(async()=>{const {client}=await import('./session.js'),refresh=client.refresh;window.extraRefreshes=0;client.refresh=(...args)=>{window.extraRefreshes++;return refresh(...args);};});
+ await p.locator('#board [role="button"]').first().click();await p.getByRole('button',{name:'Confirm',exact:true}).click();await expect(p.locator('#connection')).toHaveText('Up to date');expect(await p.evaluate(()=>window.extraRefreshes)).toBe(0);
  const packets=await Promise.all([x,y].map(page=>page.evaluate(async()=>{const {client}=await import('./session.js');return client.refresh();})));expect(packets[0].revision).toBe(packets[1].revision);expect(packets[0].view.state.board.buildings).toEqual(packets[1].view.state.board.buildings);expect(oldCalls).toBe(0);
  }finally{await a.close();await b.close();}
 });
