@@ -14,7 +14,7 @@ const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[];
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
-let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false;
+let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null;
 let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={name:'',room:null,level:'standard',gameMode:'friends'};
 function announce(s){$('announcement').textContent=s;}
@@ -29,7 +29,7 @@ const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
 const incoming=()=>pendingRecipients(view()?.offer).includes(view()?.you);
 const recipientName=id=>id==='all'?'All':name(id);
-function closeSheet(){if(sheet.dataset.trade==='live'&&[...(view()?.trades||[])].reverse().find(t=>t.from===view()?.you)?.status==='accepted')tradeDraft=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
+function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&[...(view()?.trades||[])].reverse().find(t=>t.from===view()?.you)?.status==='accepted')tradeDraft=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
 function openSheet(title,body){sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)sheet.showModal();(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
 $('close-sheet').onclick=closeSheet;
 $('close-trade-reply').onclick=()=>reply.close();
@@ -157,7 +157,7 @@ async function runSync(op,args={},options={}){
   }catch(e){error=e instanceof PlayError?e:new PlayError('PROTOCOL_ERROR','The game could not be safely read. Your saved data has been kept.');ready=false;notice='';if(screen==='home'&&error.code==='SESSION_EXPIRED'){notice=error.message;error=null;ready=true;}}
   finally{try{saved=(await client.inspect()).state;if(screen==='home')knownGames=await client.games();}catch(e){error=e;ready=false;}busy=false;render();schedule();}
 }
-async function sendAction(action){if(blocked()||!view())return;const roomId=packet.roomId,before=new Set(ownPlayer(view()).developmentCards.map(c=>c.id));const keepTrade=action.type==='TRADE_OFFER'||action.type==='TRADE_CANCEL';if(keepTrade){sheet.dataset.trade='live';tradeEditing=false;tradeViewKey=String(packet.revision);}else closeSheet();await sync('command',{roomId,expectedRevision:packet.revision,action});
+async function sendAction(action){if(blocked()||!view())return;const roomId=packet.roomId,before=new Set(ownPlayer(view()).developmentCards.map(c=>c.id));if(action.type==='TRADE_OFFER')counterDraftOfferId=null;const keepTrade=action.type==='TRADE_OFFER'||action.type==='TRADE_CANCEL';if(keepTrade){sheet.dataset.trade='live';tradeEditing=false;tradeViewKey=String(packet.revision);}else closeSheet();await sync('command',{roomId,expectedRevision:packet.revision,action});
  if(action.type==='BUY_DEVELOPMENT_CARD'&&!error&&packet?.roomId===roomId){const card=ownPlayer(view()).developmentCards.find(c=>!before.has(c.id));if(card){announce(`You drew ${CARD_NAMES[card.type]}.`);openSheet('Your new development card',`<h3>${CARD_NAMES[card.type]}</h3><p>${card.type==='victoryPoint'?'This private point already counts toward your score.':'Saved in your hand. It becomes playable on a later turn.'}</p><div class="sheet-actions">${button('Done','close','primary')}</div>`);}}
 }
 function choose(candidates,titleText,intro=''){openSheet(titleText,`${intro}<p class="muted">Choose one of the options available to your hand and the bank.</p><form id="choice-form"><label for="move-choice">Your choice</label><select id="move-choice">${candidates.map((c,i)=>`<option value="${i}">${esc(actionLabel(c))}</option>`).join('')}</select><div class="sheet-actions"><button class="primary" type="submit">Confirm choice</button></div></form>`);modalAction=candidates;}
@@ -187,8 +187,8 @@ function refreshTradeDialog(){
  if(v.state.game.currentPlayerId!==v.you)tradeDraft.to=v.state.game.currentPlayerId;
  const offer=v.offer;
  if(reply.open&&(reply.dataset.offerId!==offer?.id||!incoming()))reply.close();
- if(offer&&incoming()){renderTradeComposer();showReplyOffer(offer);return;}
  const latest=[...(v.trades||[])].reverse().find(t=>t.from===v.you);
+ if(offer&&incoming()&&counterDraftOfferId!==offer.id&&latest?.status==='replaced'&&latest.by===offer.from){renderTradeComposer();showReplyOffer(offer);return;}
  if(latest?.status==='accepted'&&(!offer||offer.from!==v.you)){$('sheet-title').textContent='Trade completed';$('sheet-body').innerHTML=tradeResponses(latest)+`<div class="sheet-actions">${button('Close','close','primary')}</div>`;return;}
  if(offer&&!tradeEditing){
   const mine=offer.from===v.you;
@@ -206,7 +206,7 @@ function updateTradeStatus(){
 }
 function selectedTradeBank(){return bankChoices(view()).find(c=>c.give.resource===bankGive&&c.receive.resource===bankReceive&&(!bankRatio||c.give.amount===bankRatio));}
 function tradePanel(nextMode='players'){
-  const v=view();tradeDraft=offerDraft(v,tradeDraft);tradeMode=nextMode;
+  counterDraftOfferId=null;const v=view();tradeDraft=offerDraft(v,tradeDraft);tradeMode=nextMode;
   if(bankRevision!==`${v.id}:${v.revision}`){bankGive=bankReceive=bankRatio=null;bankRevision=`${v.id}:${v.revision}`;}
   openSheet('Trade','');sheet.dataset.trade='composer';modalAction=null;renderTradeComposer(`trade-mode:${nextMode}`);
 }
@@ -280,7 +280,7 @@ async function dispatch(action,el){
   if(action==='trade-edit'){if(blocked())return;tradeEditing=true;tradeViewKey=null;refreshTradeDialog();return;}
   if(action==='trade-cancel'){if(blocked()||staleModal())return;await sendAction({type:'TRADE_CANCEL',offerId:view().offer.id});return;}
   if(action.startsWith('reply:')){if(blocked()||reply.dataset.offerId!==view()?.offer?.id||!incoming())return;const choice=view().choices.find(c=>c.type===action.slice(6)&&c.offerId===reply.dataset.offerId);if(choice)await sendAction(choice);return;}
-  if(action==='counteroffer'){if(blocked())return;reply.close();const v=view(),o=v.offer;if(!incoming())return;tradeDraft={...offerDraft(v),to:o.from,give:{...o.receive},receive:{...o.give}};tradeEditing=true;openSheet('Counteroffer','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
+  if(action==='counteroffer'){if(blocked())return;reply.close();const v=view(),o=v.offer;if(!incoming())return;counterDraftOfferId=o.id;tradeDraft={...offerDraft(v),to:o.from,give:{...o.receive},receive:{...o.give}};tradeEditing=true;openSheet('Counteroffer','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
   if(action.startsWith('trade-')){
     if(blocked()||staleModal())return;
     if(action.startsWith('trade-mode:')){const next=action.slice(11);if(sheet.dataset.trade==='review'){tradePanel(next);return;}tradeMode=next;renderTradeComposer(action);return;}

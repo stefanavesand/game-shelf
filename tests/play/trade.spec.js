@@ -45,7 +45,7 @@ test('waiting All offer shows individual replies and can be replaced in the same
  }finally{await context.close();}
 });
 
-for(const response of ['TRADE_ACCEPT','TRADE_DECLINE'])test(`counteroffer overlays the original dialog and ${response} closes both`,async({browser})=>{
+for(const response of ['TRADE_ACCEPT','TRADE_DECLINE','COUNTER'])test(response==='COUNTER'?'a counteroffer can be edited and sent without reopening the incoming overlay':`counteroffer overlays the original dialog and ${response} closes both`,async({browser})=>{
  const expectedAction={type:'TRADE_OFFER',to:'all',give:bundle({brick:2}),receive:bundle({ore:1})}, {backend,context,page}=await start(browser,{expectedAction});
  try{
   await selectOffer(page);await page.getByRole('button',{name:'Send offer',exact:true}).click();await expect(page.getByRole('heading',{name:'Your trade offer',exact:true})).toBeVisible();
@@ -54,6 +54,7 @@ for(const response of ['TRADE_ACCEPT','TRADE_DECLINE'])test(`counteroffer overla
    p.view.offer={id:'counter-offer',from:'p2',to:'p1',recipients:['p1'],responses:{},give:bundle({ore:2}),receive:bundle({brick:1})};p.view.trades=[previous,{...structuredClone(p.view.offer),status:'waiting',revision:p.revision}];p.view.choices=[{type:'TRADE_ACCEPT',offerId:'counter-offer'},{type:'TRADE_DECLINE',offerId:'counter-offer'}];
   }
   await page.evaluate(()=>document.getElementById('refresh').click());await expect(page.locator('#sheet')).toHaveAttribute('open','');await expect(page.locator('#trade-reply')).toBeVisible();await expect(page.locator('#trade-reply')).toContainText('counteroffers');await expect(page.locator('#trade-reply')).toContainText('2 Ore');
+  if(response==='COUNTER'){await page.locator('#trade-reply').getByRole('button',{name:'Counteroffer',exact:true}).click();await expect(page.locator('#trade-reply')).not.toBeVisible();await expect(page.locator('#sheet')).toBeVisible();await expect(page.getByLabel('Brick offered',{exact:true})).toHaveText('1');await expect(page.getByLabel('Ore requested',{exact:true})).toHaveText('2');Object.assign(expectedAction,{to:'p2',give:bundle({brick:1}),receive:bundle({ore:2}),replaces:'counter-offer'});await page.getByRole('button',{name:'Send offer',exact:true}).click();await expect.poll(()=>backend.accepted).toBe(2);await expect(page.getByRole('heading',{name:'Your trade offer',exact:true})).toBeVisible();await expect(page.locator('#trade-reply')).not.toBeVisible();expect(backend.commands.at(-1).action).toEqual(expectedAction);return;}
   await page.locator('#trade-reply').getByRole('button',{name:response==='TRADE_ACCEPT'?'Accept':'Decline',exact:true}).click();await expect.poll(()=>backend.accepted).toBe(2);await expect(page.locator('#sheet')).not.toBeVisible();await expect(page.locator('#trade-reply')).not.toBeVisible();expect(backend.commands.at(-1).action).toEqual({type:response,offerId:'counter-offer'});
  }finally{await context.close();}
 });
