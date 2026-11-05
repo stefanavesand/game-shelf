@@ -23,3 +23,9 @@ test('offline version includes the worker template and the generated worker matc
  assert.equal(version,offlineVersion(assets,template));assert.notEqual(version,offlineVersion(assets,template+'\n// changed worker'));
  assert.equal(await readFile(new URL('play/sw.js',dist),'utf8'),template.replace('__OFFLINE_SCRIPT_SHA__',createHash('sha256').update(script).digest('hex')));
 });
+
+test('non-breaking releases retain compatibility identity while breaking is explicit and repeatable',async()=>{
+ const {releasePolicy}=await import('../../scripts/release-policy.mjs'),base={version:'1.0.0',compatibilityId:'a'.repeat(64)};
+ assert.equal(releasePolicy(base).breaking,false);assert.equal(releasePolicy(base).compatibilityId,base.compatibilityId);
+ const breaking=releasePolicy({...base,breaking:true});assert.notEqual(breaking.compatibilityId,base.compatibilityId);assert.deepEqual(releasePolicy(breaking),breaking);assert.equal(releasePolicy({...breaking,version:'1.0.1',breaking:false}).compatibilityId,breaking.compatibilityId);assert.throws(()=>releasePolicy({...base,breaking:'false'}));
+});

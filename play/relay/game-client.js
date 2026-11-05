@@ -7,7 +7,7 @@ import {RuleRejection} from './replica.js';
 import {createRelayClient} from './client.js';
 import {createCatanModule,catanConfig} from '../catan/module.js';
 import {CATAN_ARTIFACT} from '../catan/artifact.js';
-const module=createCatanModule(CATAN_ARTIFACT.digest);
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 export function createOnlineGameClient({auth=createIdentity(),store=createRelayStore({name:'game-shelf-online-catan-v1'}),transport=createRelayTransport({endpoint:'https://stefan-game-shelf.lovable.app/api/public/relay/v1',identity:options=>auth.identity(options)}),id=()=>crypto.randomUUID()}={}){
  let principal=null;
  const saved=()=>auth.savedIdentity()?.user?.id??null;

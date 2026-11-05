@@ -13,7 +13,7 @@ test('a full local solo game saves every move and resumes with no network/auth',
  assert.equal(packet.status,'ended');assert.equal((await client.inspect()).packet.status,'ended');assert.ok(steps<1500);
 });
 test('storage failure rejects creation before durable success',async()=>{const client=createLocalClient({storage:{load:async()=>({schemaVersion:1,games:{}}),save:async()=>{throw Error('quota');}},locks,seed:()=>1});await assert.rejects(client.execute('create',{name:'A'}));});
-test('unfinished local games block incompatible engine updates',async()=>{const client=createLocalClient({storage,locks,seed:()=>7});await client.execute('create',{name:'A'});assert.equal(await client.canUpdate('different-engine'),false);const {CATAN_ARTIFACT}=await import('../../play/catan/artifact.js');assert.equal(await client.canUpdate(CATAN_ARTIFACT.digest),true);});
+test('unfinished local games block incompatible engine updates',async()=>{const client=createLocalClient({storage,locks,seed:()=>7});await client.execute('create',{name:'A'});assert.equal(await client.canUpdate('different-engine'),false);const {CATAN_ARTIFACT}=await import('../../play/catan/artifact.js');assert.equal(await client.canUpdate(CATAN_ARTIFACT.compatibilityId),true);});
 
 test('abandoning an unfinished game unpins updates and persists across reopening',async()=>{
  let data={schemaVersion:1,local:false,current:null,games:{}};
@@ -32,4 +32,8 @@ test('incompatible local games remain listed and can be abandoned without interp
  let data={schemaVersion:1,local:false,current:null,games:{}};const store={load:async()=>structuredClone(data),save:async v=>{data=structuredClone(v);}};
  const client=createLocalClient({storage:store,locks,seed:()=>7}),game=await client.execute('create',{name:'Old game'});data.games[game.roomId].artifact='old-engine';const snapshot=structuredClone(data.games[game.roomId].state);
  await assert.rejects(client.inspect(),/original engine/);const games=await client.games();assert.equal(games.length,1);assert.equal(games[0].compatible,false);await client.abandon(game.roomId);assert.deepEqual(data.games[game.roomId].state,snapshot);assert.deepEqual(await client.games(),[]);assert.equal((await client.inspect()).packet,null);
+});
+test('save compatibility uses the declared release identity rather than the source-byte digest',async()=>{
+ let data={schemaVersion:1,local:false,current:null,games:{}};const store={load:async()=>structuredClone(data),save:async v=>{data=structuredClone(v);}};
+ const {CATAN_ARTIFACT}=await import('../../play/catan/artifact.js'),client=createLocalClient({storage:store,locks,seed:()=>7});const p=await client.execute('create',{name:'Compatible'});assert.equal(data.games[p.roomId].artifact,CATAN_ARTIFACT.compatibilityId);assert.equal((await createLocalClient({storage:store,locks}).inspect()).packet.roomId,p.roomId);assert.equal(await client.canUpdate(CATAN_ARTIFACT.compatibilityId),true);
 });

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createCatanModule,catanConfig} from '../../play/catan/module.js';
 import {CATAN_ARTIFACT} from '../../play/catan/artifact.js';
 import {botDecision,eligibleActors,BOT_VERSION,RESOURCES} from '../../play/catan/rules/index.js';
-const module=createCatanModule(CATAN_ARTIFACT.digest);
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 function invariants(state,label){
  const s=state.snapshot,ps=s.state.players.players;
  for(const r of RESOURCES){const amounts=[s.state.game.bank[r],...ps.map(p=>p.resources[r])];assert.equal(amounts.reduce((a,b)=>a+b),19,label+' resource '+r);assert.ok(amounts.every(n=>Number.isSafeInteger(n)&&n>=0),label+' nonnegative '+r);}

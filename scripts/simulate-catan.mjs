@@ -4,7 +4,7 @@ import {createCatanModule,catanConfig} from '../play/catan/module.js';
 import {CATAN_ARTIFACT} from '../play/catan/artifact.js';
 import {eligibleActors,botDecision,RESOURCES} from '../play/catan/rules/index.js';
 const games=Number(process.argv[2]??10);assert.ok(Number.isSafeInteger(games)&&games>0&&games<=1000);
-const module=createCatanModule(CATAN_ARTIFACT.digest),summary={games,finished:0,failed:[],actions:0,maxActions:0};
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId),summary={games,finished:0,failed:[],actions:0,maxActions:0};
 for(let seed=1;seed<=games;seed++){
  const config=catanConfig([{id:'a',name:'A'},{id:'b',name:'B'}],{seed});let state=module.initialize(config,{gameId:`simulation-${seed}`}),steps=0;
  try{

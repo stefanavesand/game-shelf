@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createCatanModule,catanConfig} from '../play/catan/module.js';
 import {CATAN_ARTIFACT} from '../play/catan/artifact.js';
 import {getHexVertices} from '../play/catan/rules/geometry.js';
-const module=createCatanModule(CATAN_ARTIFACT.digest);
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 function fixture(){const g=module.initialize(catanConfig([{id:'a',name:'A'},{id:'b',name:'B'}],{seed:42}),{gameId:'review'});Object.assign(g.snapshot.state.game,{phase:'main',currentPlayerId:'a',turn:5,lastRoll:{die1:2,die2:3,total:5}});return g;}
 function fund(g,id,r,n){const p=g.snapshot.state.players.players.find(p=>p.id===id);g.snapshot.state.game.bank[r]-=n-p.resources[r];p.resources[r]=n;}
 const act=(g,id,action)=>module.apply(g,id,{actor:id,action},{},{coordinatorId:'a'});

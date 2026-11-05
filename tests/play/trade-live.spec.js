@@ -20,11 +20,11 @@ for(const accept of [true,false])test(`real local All offer stays open after bot
  try{
   await expect(page.locator('#trade-target')).toHaveValue('all');
   await page.getByRole('button',{name:'Add Ore to give',exact:true}).click();await page.getByRole('button',{name:'Add Ore to give',exact:true}).click();await page.getByRole('button',{name:'Add Brick to request',exact:true}).click();
-  await page.getByRole('button',{name:'Review trade',exact:true}).click();await page.getByRole('button',{name:'Send offer',exact:true}).click();
-  const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();await expect(dialog.locator('.trade-responses')).toContainText(accept?'Trade completed.':'Everyone declined.');await expect(dialog.getByRole('button',{name:'Review trade',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'Send offer',exact:true}).click();
+  const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();await expect(dialog.locator('.trade-responses')).toContainText(accept?'Trade completed.':'Everyone declined.');await expect(dialog.getByRole('button',{name:accept?'Close':'Send offer',exact:true})).toBeVisible();
   const packet=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(packet.view.offer).toBeNull();expect(packet.view.trades.at(-1).status).toBe(accept?'accepted':'declined');expect(packet.view.trades.at(-1).to).toBe('all');
   // Original terms remain editable in the same open dialog after completion.
-  await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('2');await page.getByRole('button',{name:'Remove Ore from offer',exact:true}).click();await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('1');
+  if(accept){await dialog.getByRole('button',{name:'Close',exact:true}).click();await expect(dialog).not.toBeVisible();}else{await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('2');await page.getByRole('button',{name:'Remove Ore from offer',exact:true}).click();await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('1');}
   await page.reload();await page.getByText('Trade activity',{exact:true}).click();await expect(page.locator('.trade-log')).toContainText(accept?'accepted':'declined');
  }finally{await context.close();}
 });

@@ -2,6 +2,9 @@
 export const CATAN_ARTIFACT = Object.freeze({
   "schemaVersion": 1,
   "rulesVersion": "2.1.0",
+  "releaseVersion": "0.2.0",
+  "breaking": false,
+  "compatibilityId": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
   "files": [
     {
       "path": "play/catan/entropy.js",
@@ -61,8 +64,8 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/relay/replica.js",
-      "sha256": "6a91e821525795b1878f6519afd640dda2e56c53112ee0e1b6de36558811e808"
+      "sha256": "6858217991a8c7b5791fcabff7fd467231e800af42c99716814989ed7358d82c"
     }
   ],
-  "digest": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973"
+  "digest": "1d88656eeda51f576f52e6951f76e372223cac7f95cd23e3dac5f62d02c38006"
 });

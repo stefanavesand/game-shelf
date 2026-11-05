@@ -6,7 +6,7 @@ import {applyTurn} from '../../play/catan/rules/turn.js';
 import {score,updateScores,roadLength} from '../../play/catan/rules/scoring.js';
 import {getHexVertices,getHexEdges,getEdgeVertices,getVertexEdges,edgeKey,vertexKey} from '../../play/catan/rules/geometry.js';
 import {botDecision} from '../../play/catan/rules/index.js';
-const module=createCatanModule(CATAN_ARTIFACT.digest);
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 function fixture(){const game=module.initialize(catanConfig([{id:'a',name:'A'},{id:'b',name:'B'}],{seed:42}),{gameId:'rules-fixture'});Object.assign(game.snapshot.state.game,{phase:'main',currentPlayerId:'a',turn:5});return game;}
 const act=(g,actor,action)=>module.apply(g,actor==='bot:2'?'a':actor,{actor,action},{},{coordinatorId:'a'});
 function fund(g,id,r,n){const p=g.snapshot.state.players.players.find(p=>p.id===id);g.snapshot.state.game.bank[r]-=n-p.resources[r];p.resources[r]=n;}

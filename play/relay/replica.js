@@ -26,7 +26,7 @@ export async function applyMessage(saved,item,{module,creatorId,members}) {
     // Consume transport history for diagnostics but never continue a halted game.
   } else if(type==='game.begin') {
     invariant(item.senderId===creatorId&&!record.game,'INVALID_MESSAGE','Only the creator may initialize a game once.');
-    invariant(p.moduleId===module.id&&p.moduleVersion===module.version&&p.moduleDigest===module.digest,'UNSUPPORTED_ENGINE','This game requires the exact same engine artifact.');
+    invariant(p.moduleId===module.id&&p.moduleVersion===module.version&&p.moduleDigest===module.digest,'UNSUPPORTED_ENGINE','This game requires a compatible engine release.');
     invariant(typeof p.gameId==='string'&&p.gameId.length>0,'INVALID_MESSAGE','Missing game identity.');
     const state=module.initialize(clone(p.config),{gameId:p.gameId}),hash=await digest(state);
     record.game={id:p.gameId,revision:0,state,hash,moduleId:module.id,moduleVersion:module.version,moduleDigest:module.digest,hashes:{0:hash},seen:{},peerVerified:{}};

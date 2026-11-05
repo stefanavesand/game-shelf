@@ -4,7 +4,7 @@ import {createCatanModule,catanConfig} from '../../play/catan/module.js';
 import {CATAN_ARTIFACT} from '../../play/catan/artifact.js';
 import {botDecision,RESOURCES} from '../../play/catan/rules/index.js';
 import {getHexVertices} from '../../play/catan/rules/geometry.js';
-const module=createCatanModule(CATAN_ARTIFACT.digest);
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 const pairs=[['human to bot',true,'a','bot:1'],['bot to human',true,'bot:1','a'],['bot to bot',true,'bot:1','bot:2'],['human to human',false,'a','b']];
 function fixture(solo,level,active='a'){
  const humans=solo?[{id:'a',name:'A'}]:[{id:'a',name:'A'},{id:'b',name:'B'}],g=module.initialize(catanConfig(humans,{solo,level,seed:42}),{gameId:'trade-fixture'});

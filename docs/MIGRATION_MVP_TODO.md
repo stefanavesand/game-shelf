@@ -167,3 +167,5 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 ## Trading extension — 2026-11-05
 
 TRADE-EDITOR-01 and CATAN-RELAY-03 (All only): [rules 2.1.0 and UI contract](TRADING.md). Adds one multi-recipient offer, first-acceptance-only settlement, per-seat replies, retained dialog/edit/replacement, active-player counteroffers and all owned maritime rates. Backend unchanged. Validation/publication evidence is recorded with delivery; physical iPad/friend acceptance remains open. This supersedes the earlier deferral for these two features, not bank batches or release gates.
+
+- 2026-11-05 owner refinement: direct Send offer, terminal Close, stacked counteroffers and recipient/bank dismissal are specified in [TRADING.md](TRADING.md). Explicit non-breaking-by-default release policy is documented in [RELEASES.md](RELEASES.md); this does not migrate unsupported older schemas.

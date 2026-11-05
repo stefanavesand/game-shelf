@@ -14,7 +14,7 @@ import {digest,canonical} from '../../play/relay/protocol.js';
 import {createRelayClient} from '../../play/relay/client.js';
 import {createMemoryStore} from '../../play/relay/store.js';
 import {fakeRelay,createLocks} from '../relay/fake-relay.js';
-const m=createCatanModule(CATAN_ARTIFACT.digest),humans=[{id:'alice',name:'Alice'},{id:'bob',name:'Bob'}];
+const m=createCatanModule(CATAN_ARTIFACT.compatibilityId),humans=[{id:'alice',name:'Alice'},{id:'bob',name:'Bob'}];
 const config=seed=>catanConfig(humans,{seed});
 const initial=seed=>m.initialize(config(seed),{gameId:'deterministic-game'});
 function choice(state){const bot=m.nextBot(state);if(bot)return bot;const actor=eligibleActors(state.snapshot)[0];return {actor,action:botDecision(m.view(state,actor),'standard')};}

@@ -14,13 +14,13 @@ async function player(browser,server,id){
 async function sync(page){await page.locator('#sync').click();await expect(page.locator('#sync')).toBeEnabled();}
 const saved=({page,id})=>page.evaluate(async({id,channelId})=>(await import('/game-shelf/play/relay/store.js')).createRelayStore({name:'game-shelf-catan-base-v1'}).load(id,channelId),{id,channelId});
 test('browser and Node replay the same Catan trace with the same hashes',async({page})=>{
- const m=createCatanModule(CATAN_ARTIFACT.digest),config=catanConfig([{id:'a',name:'A'},{id:'b',name:'B'}],{seed:424242});let state=m.initialize(config,{gameId:'cross-runtime'});const trace=[];
+ const m=createCatanModule(CATAN_ARTIFACT.compatibilityId),config=catanConfig([{id:'a',name:'A'},{id:'b',name:'B'}],{seed:424242});let state=m.initialize(config,{gameId:'cross-runtime'});const trace=[];
  for(let i=0;i<100;i++){const command=m.nextBot(state)??(()=>{const actor=eligibleActors(state.snapshot)[0];return {actor,action:botDecision(m.view(state,actor),'standard')};})();const seat=state.snapshot.seats.find(s=>s.id===command.actor),sender=seat.kind==='bot'?'a':seat.id;state=m.apply(state,sender,command,{}, {coordinatorId:'a'});trace.push({command,sender,hash:await digest(state)});}
  await page.goto('/game-shelf/play/catan/');
  const result=await page.evaluate(async({config,trace,digestValue})=>{
   const {createCatanModule}=await import('/game-shelf/play/catan/module.js'),{digest}=await import('/game-shelf/play/relay/protocol.js');const m=createCatanModule(digestValue);let state=m.initialize(config,{gameId:'cross-runtime'});
   for(let i=0;i<trace.length;i++){const step=trace[i];state=m.apply(state,step.sender,step.command,{}, {coordinatorId:'a'});if(await digest(state)!==step.hash)return {match:false,step:i};}return {match:true,revision:state.snapshot.revision};
- },{config,trace,digestValue:CATAN_ARTIFACT.digest});assertResult(result);
+ },{config,trace,digestValue:CATAN_ARTIFACT.compatibilityId});assertResult(result);
 });
 function assertResult(result){expect(result).toEqual({match:true,revision:100});}
 test('two PWAs place directly on the board with a coordinator bot and resume the same state',async({browser})=>{

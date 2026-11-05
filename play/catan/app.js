@@ -3,7 +3,7 @@ import {createCatanModule,catanConfig} from './module.js';
 import {CATAN_ARTIFACT} from './artifact.js';
 import {draw,choicePoint} from '../board.js';
 import {canonical,invariant} from '../relay/protocol.js';
-const $=id=>document.getElementById(id),module=createCatanModule(CATAN_ARTIFACT.digest);
+const $=id=>document.getElementById(id),module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 let selected=null,selectionRevision=-1,currentChoices=[],boardKey='';
 const label=action=>action.type.toLowerCase().replaceAll('_',' ')+(action.resource?` · ${action.resource}`:'')+(action.victimId?` · ${action.victimId}`:'')+(action.give?` · ${action.give.amount} ${action.give.resource} → ${action.receive.amount} ${action.receive.resource}`:'');
 const demo=await mountRelayDemo({module,
