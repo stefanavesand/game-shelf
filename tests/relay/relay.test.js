@@ -137,7 +137,13 @@ test('online abandonment preserves pending deliveries and only unpins a resolved
  }finally{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;}
 });
 
-test('new lobbies wait for the host, replicate size/seed and fill only unclaimed seats',async()=>{
+function browserLocks(t){
+ const previous=Object.getOwnPropertyDescriptor(globalThis,'navigator');
+ Object.defineProperty(globalThis,'navigator',{configurable:true,value:{locks:createLocks()}});
+ t.after(()=>{if(previous)Object.defineProperty(globalThis,'navigator',previous);else delete globalThis.navigator;});
+}
+test('new lobbies wait for the host, replicate size/seed and fill only unclaimed seats',async t=>{
+ browserLocks(t);
  const {createOnlineGameClient}=await import('../../play/relay/game-client.js');
  const server=fakeRelay({members:['alice']}),store=createMemoryStore();
  const make=id=>createOnlineGameClient({store,transport:server.transport(),auth:{identity:async()=>({user:{id}}),savedIdentity:()=>({user:{id}})}});
@@ -150,7 +156,8 @@ test('new lobbies wait for the host, replicate size/seed and fill only unclaimed
  assert.deepEqual((await bob.refresh()).members,p.members);await alice.execute('start',{roomId:server.channelId});assert.equal(server.messages.filter(m=>m.message.type==='game.begin').length,1);
  server.members.push('carol');const late=await make('carol').execute('join',{name:'Carol',inviteToken:'fixture-only'});assert.equal(late.lobby.full,true);assert.equal(late.lobby.started,true);assert.equal(late.view,null);
 });
-test('host start uses fresh membership and a full four-human lobby adds no bots',async()=>{
+test('host start uses fresh membership and a full four-human lobby adds no bots',async t=>{
+ browserLocks(t);
  const {createOnlineGameClient}=await import('../../play/relay/game-client.js');
  const server=fakeRelay({members:['alice']}),store=createMemoryStore();
  const make=id=>createOnlineGameClient({store,transport:server.transport(),auth:{identity:async()=>({user:{id}}),savedIdentity:()=>({user:{id}})}});
@@ -158,7 +165,8 @@ test('host start uses fresh membership and a full four-human lobby adds no bots'
  const p=await host.execute('start',{roomId:server.channelId});assert.equal(p.members.length,4);assert.equal(p.members.filter(m=>m.kind==='bot').length,0);
  for(const id of ['bob','carol','dave']){const g=await make(id).execute('join',{name:id,inviteToken:'fixture-only'});assert.equal(g.status,'playing');assert.deepEqual(g.members,p.members);}
 });
-test('a fourth channel member cannot take a seat in a three-player game',async()=>{
+test('a fourth channel member cannot take a seat in a three-player game',async t=>{
+ browserLocks(t);
  const {createOnlineGameClient}=await import('../../play/relay/game-client.js');
  const server=fakeRelay({members:['alice','bob','carol','dave']}),store=createMemoryStore();
  const make=id=>createOnlineGameClient({store,transport:server.transport(),auth:{identity:async()=>({user:{id}}),savedIdentity:()=>({user:{id}})}});
