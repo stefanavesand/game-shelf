@@ -25,6 +25,23 @@ for(const accept of [true,false])test(`real local All offer stays open after bot
   const packet=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(packet.view.offer).toBeNull();expect(packet.view.trades.at(-1).status).toBe(accept?'accepted':'declined');expect(packet.view.trades.at(-1).to).toBe('all');
   // Original terms remain editable in the same open dialog after completion.
   if(accept){await dialog.getByRole('button',{name:'Close',exact:true}).click();await expect(dialog).not.toBeVisible();}else{await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('2');await page.getByRole('button',{name:'Remove Ore from offer',exact:true}).click();await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('1');}
+  if(!accept)await page.getByRole('button',{name:'Close panel'}).click();await page.getByRole('button',{name:'Trade',exact:true}).click();await expect(page.locator('#sheet .trade-responses')).toHaveCount(0);await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('0');await expect(page.getByLabel('Brick requested',{exact:true})).toHaveText('0');await expect(page.locator('#trade-target')).toHaveValue('all');await page.getByRole('button',{name:'Close panel'}).click();
   await page.reload();await page.getByText('Trade activity',{exact:true}).click();await expect(page.locator('.trade-log')).toContainText(accept?'accepted':'declined');
+ }finally{await context.close();}
+});
+
+for(const response of ['Accept','Decline'])test(`an affordable bot offer opens automatically, stays pending across refresh, and ${response} closes it`,async({browser})=>{
+ const {context,page}=await scenario(browser,false);
+ try{
+  await page.getByRole('button',{name:'Close panel'}).click();
+  await page.evaluate(async()=>navigator.locks.request('game-shelf-local-solo',async()=>{
+   const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('library');r.onsuccess=()=>resolve(r.result);}),g=lib.games[lib.current];g.state.snapshot.state.game.currentPlayerId='bot:1';
+   const {createCatanModule}=await import('./catan/module.js'),{CATAN_ARTIFACT}=await import('./catan/artifact.js'),{digest}=await import('./relay/protocol.js');g.state=createCatanModule(CATAN_ARTIFACT.compatibilityId).apply(g.state,'p1',{actor:'bot:1',action:{type:'TRADE_OFFER',to:'p1',give:{grain:1},receive:{brick:1}}},{},{coordinatorId:'p1'});g.hash=await digest(g.state);
+   await new Promise(resolve=>{const tx=db.transaction('records','readwrite');tx.objectStore('records').put(lib,'library');tx.oncomplete=resolve;});db.close();
+  }));
+  await page.reload();const dialog=page.locator('#trade-reply');await expect(dialog).toBeVisible();await expect(dialog).toContainText('1 Grain');await expect(dialog.getByRole('button',{name:'Accept',exact:true})).toBeEnabled();const offerId=await dialog.getAttribute('data-offer-id');
+  for(let i=0;i<2;i++){await page.evaluate(()=>document.getElementById('refresh').click());await expect(page.locator('#connection')).toHaveText('Local · saved');await expect(dialog).toBeVisible();await expect(dialog).toHaveAttribute('data-offer-id',offerId);}
+  await dialog.getByRole('button',{name:response,exact:true}).click();await expect(dialog).not.toBeVisible();await expect(page.locator('#sheet')).not.toBeVisible();
+  const packet=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(packet.view.trades.find(t=>t.id===offerId).status).toBe(response==='Accept'?'accepted':'declined');
  }finally{await context.close();}
 });

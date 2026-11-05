@@ -7,3 +7,7 @@ For a breaking release, increment `version`, set `breaking: true`, and run `npm 
 Local saves, online module bindings and service-worker save pins use the compatibility ID. Existing rules-2.1 saves retain their current identifier. Non-breaking UI or compatible engine changes therefore do not force abandonment merely because bytes changed. Breaking changes still require migration, an older engine, or explicit abandonment. There is no retroactive migration of rules-2.0 saves.
 
 The flag is an author assertion of compatibility, not an automatic migration. Unsupported storage/config/rule schemas still reject; snapshot integrity, pending-delivery guards, peer state-hash comparisons and halt-on-disagreement remain enforced. If a change cannot replay existing commands with the same results or interpret existing saves, mark it breaking. Mixed compatible clients that disagree still stop the game rather than silently accepting different results.
+
+## Automatic activation
+
+From app 0.2.2, a downloaded, hash-verified release declaring `breaking: false` and release metadata can activate automatically while the main app is idle on Home. Activation rechecks the lifecycle lock, save compatibility, pending delivery and the current UI state; open dialogs, active play and hidden/offline windows defer it. Breaking or unrecognized release metadata keeps the explicit update control. No background execution on iOS is assumed. The first update to install this automatic updater still needs the previous app's manual update control or normal last-window activation.

@@ -14,7 +14,7 @@ const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[];
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
-let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null;
+let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null;
 let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={name:'',room:null,level:'standard',gameMode:'friends'};
 function announce(s){$('announcement').textContent=s;}
@@ -29,7 +29,8 @@ const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
 const incoming=()=>pendingRecipients(view()?.offer).includes(view()?.you);
 const recipientName=id=>id==='all'?'All':name(id);
-function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&[...(view()?.trades||[])].reverse().find(t=>t.from===view()?.you)?.status==='accepted')tradeDraft=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
+function currentTradeResult(v=view()){return tradeStartRevision===null||!v?null:[...(v.trades||[])].reverse().find(t=>t.from===v.you&&t.revision>=tradeStartRevision);}
+function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&currentTradeResult()?.status==='accepted')tradeDraft=null;tradeStartRevision=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
 function openSheet(title,body){sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)sheet.showModal();(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
 $('close-sheet').onclick=closeSheet;
 $('close-trade-reply').onclick=()=>reply.close();
@@ -113,6 +114,7 @@ function render(){
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
   if(sheet.open&&sheet.dataset.trade==='live')refreshTradeDialog();
   if(sheet.open&&sheet.dataset.trade)updateTradeStatus();
+  if(screen==='table'&&ready&&!busy&&!saved?.pending&&incoming()&&canSupplyOffer(view())&&!reply.open&&lastIncomingOffer!==`${view().id}:${view().you}:${view().offer.id}`)showReplyOffer(view().offer);
   if(reply.open){if(reply.dataset.offerId!==view()?.offer?.id||!incoming())reply.close();else for(const el of reply.querySelectorAll('button[data-action]'))el.disabled=blocked();}
 }
 function apply(next){
@@ -157,7 +159,7 @@ async function runSync(op,args={},options={}){
   }catch(e){error=e instanceof PlayError?e:new PlayError('PROTOCOL_ERROR','The game could not be safely read. Your saved data has been kept.');ready=false;notice='';if(screen==='home'&&error.code==='SESSION_EXPIRED'){notice=error.message;error=null;ready=true;}}
   finally{try{saved=(await client.inspect()).state;if(screen==='home')knownGames=await client.games();}catch(e){error=e;ready=false;}busy=false;render();schedule();}
 }
-async function sendAction(action){if(blocked()||!view())return;const roomId=packet.roomId,before=new Set(ownPlayer(view()).developmentCards.map(c=>c.id));if(action.type==='TRADE_OFFER')counterDraftOfferId=null;const keepTrade=action.type==='TRADE_OFFER'||action.type==='TRADE_CANCEL';if(keepTrade){sheet.dataset.trade='live';tradeEditing=false;tradeViewKey=String(packet.revision);}else closeSheet();await sync('command',{roomId,expectedRevision:packet.revision,action});
+async function sendAction(action){if(blocked()||!view())return;const roomId=packet.roomId,before=new Set(ownPlayer(view()).developmentCards.map(c=>c.id));if(action.type==='TRADE_OFFER'){counterDraftOfferId=null;tradeStartRevision=packet.revision+1;}const keepTrade=action.type==='TRADE_OFFER'||action.type==='TRADE_CANCEL';if(keepTrade){sheet.dataset.trade='live';tradeEditing=false;tradeViewKey=String(packet.revision);}else closeSheet();await sync('command',{roomId,expectedRevision:packet.revision,action});
  if(action.type==='BUY_DEVELOPMENT_CARD'&&!error&&packet?.roomId===roomId){const card=ownPlayer(view()).developmentCards.find(c=>!before.has(c.id));if(card){announce(`You drew ${CARD_NAMES[card.type]}.`);openSheet('Your new development card',`<h3>${CARD_NAMES[card.type]}</h3><p>${card.type==='victoryPoint'?'This private point already counts toward your score.':'Saved in your hand. It becomes playable on a later turn.'}</p><div class="sheet-actions">${button('Done','close','primary')}</div>`);}}
 }
 function choose(candidates,titleText,intro=''){openSheet(titleText,`${intro}<p class="muted">Choose one of the options available to your hand and the bank.</p><form id="choice-form"><label for="move-choice">Your choice</label><select id="move-choice">${candidates.map((c,i)=>`<option value="${i}">${esc(actionLabel(c))}</option>`).join('')}</select><div class="sheet-actions"><button class="primary" type="submit">Confirm choice</button></div></form>`);modalAction=candidates;}
@@ -169,11 +171,12 @@ function tradeResponses(trade){
 }
 function offerPanel(){
  const v=view(),o=v.offer;if(!o)return;const mine=o.from===v.you;
- if(mine){tradeDraft={...offerDraft(v),to:o.to,give:{...o.give},receive:{...o.receive}};tradeEditing=false;openSheet('Trade','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
+ if(mine){tradeStartRevision=0;tradeDraft={...offerDraft(v),to:o.to,give:{...o.give},receive:{...o.receive}};tradeEditing=false;openSheet('Trade','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
  showReplyOffer(o);
 }
 function showReplyOffer(offer){
  if(!incoming()||!canSupplyOffer(view()))return;
+ lastIncomingOffer=`${view().id}:${view().you}:${offer.id}`;
  const counter=view().trades?.some(t=>t.status==='replaced'&&t.from===view().you&&t.by===offer.from);
  $('trade-reply-title').textContent=counter?`${name(offer.from)} counteroffers`:`${name(offer.from)} offers a trade`;
  $('trade-reply-body').innerHTML=`<div class="offer-bundle"><span>You give</span><strong>${esc(tradeLabel(offer.receive))}</strong></div><div class="offer-bundle"><span>You receive</span><strong>${esc(tradeLabel(offer.give))}</strong></div><div class="sheet-actions">${button('Decline','reply:TRADE_DECLINE','quiet',blocked())}${button('Accept','reply:TRADE_ACCEPT','primary',blocked())}${button('Counteroffer','counteroffer','quiet',blocked())}</div>`;
@@ -187,7 +190,7 @@ function refreshTradeDialog(){
  if(v.state.game.currentPlayerId!==v.you)tradeDraft.to=v.state.game.currentPlayerId;
  const offer=v.offer;
  if(reply.open&&(reply.dataset.offerId!==offer?.id||!incoming()))reply.close();
- const latest=[...(v.trades||[])].reverse().find(t=>t.from===v.you);
+ const latest=currentTradeResult(v);
  if(offer&&incoming()&&counterDraftOfferId!==offer.id&&latest?.status==='replaced'&&latest.by===offer.from){renderTradeComposer();showReplyOffer(offer);return;}
  if(latest?.status==='accepted'&&(!offer||offer.from!==v.you)){$('sheet-title').textContent='Trade completed';$('sheet-body').innerHTML=tradeResponses(latest)+`<div class="sheet-actions">${button('Close','close','primary')}</div>`;return;}
  if(offer&&!tradeEditing){
@@ -206,8 +209,8 @@ function updateTradeStatus(){
 }
 function selectedTradeBank(){return bankChoices(view()).find(c=>c.give.resource===bankGive&&c.receive.resource===bankReceive&&(!bankRatio||c.give.amount===bankRatio));}
 function tradePanel(nextMode='players'){
-  counterDraftOfferId=null;const v=view();tradeDraft=offerDraft(v,tradeDraft);tradeMode=nextMode;
-  if(bankRevision!==`${v.id}:${v.revision}`){bankGive=bankReceive=bankRatio=null;bankRevision=`${v.id}:${v.revision}`;}
+  counterDraftOfferId=null;tradeStartRevision=null;const v=view();tradeDraft=offerDraft(v);tradeMode=nextMode;
+  bankGive=bankReceive=bankRatio=null;bankRevision=`${v.id}:${v.revision}`;
   openSheet('Trade','');sheet.dataset.trade='composer';modalAction=null;renderTradeComposer(`trade-mode:${nextMode}`);
 }
 function renderTradeComposer(focusAction=null){
@@ -228,7 +231,7 @@ function renderTradeComposer(focusAction=null){
     return `<div class="trade-row" data-resource="${r}"><span class="trade-row-resource">${art(r)}<span>${RESOURCE_NAMES[r]}</span>${isBank&&rate?`<small>${rate.give.amount}:1</small>`:''}</span><span class="trade-row-hand" aria-label="${RESOURCE_NAMES[r]} in hand">${hand[r]}</span>${stepper('give')}${stepper('receive')}</div>`;
   }).join('');
   const summaryGive=isBank?bankBundles(provisional).give:tradeDraft.give,summaryReceive=isBank?bankBundles(bank).receive:tradeDraft.receive;
-  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,!isBank?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div>${isBank&&bankGive&&new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount)).size>1?`<label>Exchange rate<select id="bank-rate" data-trade-control data-base-disabled="false">${[...new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount))].map(rate=>`<option value="${rate}" ${rate===(bankRatio||provisional?.give.amount)?'selected':''}>${rate}:1</option>`).join('')}</select></label>`:''}${isBank?'':`<label class="trade-recipient">Offer to<select id="trade-target" data-trade-control data-base-disabled="false">${v.state.game.currentPlayerId===v.you?'<option value="all" '+(tradeDraft.to==='all'?'selected':'')+'>All</option>':''}${peers.filter(s=>v.state.game.currentPlayerId===v.you||s.id===v.state.game.currentPlayerId).map(s=>`<option value="${esc(s.id)}" ${s.id===tradeDraft.to?'selected':''}>${esc(s.name)} · ${count(s.id)} cards</option>`).join('')}</select></label>`}<div class="trade-row trade-row-head"><span>Resource</span><span>In hand</span><span>Give</span><span>${isBank?'Receive':'Request'}</span></div>${rows}</div><div class="trade-footer">${tradeResponses([...(v.trades||[])].reverse().find(t=>t.from===v.you))}<p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>${isBank?'Trade with bank':'Send offer'}</button></div></form>`;
+  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,!isBank?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div>${isBank&&bankGive&&new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount)).size>1?`<label>Exchange rate<select id="bank-rate" data-trade-control data-base-disabled="false">${[...new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount))].map(rate=>`<option value="${rate}" ${rate===(bankRatio||provisional?.give.amount)?'selected':''}>${rate}:1</option>`).join('')}</select></label>`:''}${isBank?'':`<label class="trade-recipient">Offer to<select id="trade-target" data-trade-control data-base-disabled="false">${v.state.game.currentPlayerId===v.you?'<option value="all" '+(tradeDraft.to==='all'?'selected':'')+'>All</option>':''}${peers.filter(s=>v.state.game.currentPlayerId===v.you||s.id===v.state.game.currentPlayerId).map(s=>`<option value="${esc(s.id)}" ${s.id===tradeDraft.to?'selected':''}>${esc(s.name)} · ${count(s.id)} cards</option>`).join('')}</select></label>`}<div class="trade-row trade-row-head"><span>Resource</span><span>In hand</span><span>Give</span><span>${isBank?'Receive':'Request'}</span></div>${rows}</div><div class="trade-footer">${tradeResponses(currentTradeResult(v))}<p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>${isBank?'Trade with bank':'Send offer'}</button></div></form>`;
   const ratio=$('bank-rate');if(ratio)ratio.onchange=()=>{if(blocked()||modalChanged())return;bankRatio=Number(ratio.value);renderTradeComposer();$('bank-rate')?.focus();};
   const recipient=$('trade-target');if(recipient)recipient.onchange=()=>{if(blocked()||modalChanged())return;tradeDraft.to=recipient.value;renderTradeComposer();$('trade-target')?.focus();};
   sheet.querySelector('.trade-scroll').scrollTop=scrollTop;
@@ -346,4 +349,4 @@ async function boot(){
 }
 boot();
 
-setupPwa({canUpdate:async artifact=>!busy&&!saved?.pending&&screen==='home'&&await client.canUpdate(artifact)});
+setupPwa({isIdle:()=>ready&&!error&&!busy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open,canUpdate:async artifact=>!busy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&await client.canUpdate(artifact)});

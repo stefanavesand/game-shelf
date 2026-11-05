@@ -42,7 +42,7 @@ self.addEventListener('message',event=>{
   const type=event.data?.type;
   if(type==='REPAIR'){try{await download();}catch{/* Keep the current app; report verification failure below. */}}
   const ready=['CHECK','REPAIR','ACTIVATE'].includes(type)?await verified():false;
-  event.ports[0]?.postMessage({version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE,ready});
+  event.ports[0]?.postMessage({version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE,breaking:self.OFFLINE_BREAKING===true,releaseVersion:self.OFFLINE_RELEASE||null,ready});
   if(type==='ACTIVATE'&&ready)await self.skipWaiting();
  })());
 });

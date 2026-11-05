@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {offlineVersion} from '../../scripts/offline-version.mjs';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const packageRoot=process.env.GAME_SHELF_STATIC_ROOT==='dist'?'dist':'.';
-async function updateServer({differentEngine=false,workerOnly=false}={}){
+async function updateServer({differentEngine=false,workerOnly=false,automatic=false,breaking=false}={}){
  const script=await readFile(path.join(packageRoot,'play/offline-assets.js'),'utf8');
  const assets=JSON.parse(script.match(/self\.OFFLINE_ASSETS=(\[.*\]);/)[1]),engine=JSON.parse(script.match(/self\.OFFLINE_ENGINE=("[^"]*")/)[1]);
  const version=JSON.parse(script.match(/self\.OFFLINE_VERSION=("[^"]*")/)[1]);
@@ -15,7 +15,7 @@ async function updateServer({differentEngine=false,workerOnly=false}={}){
  const template=(await readFile('scripts/sw-template.js','utf8'))+(workerOnly?'\n// Worker-only test release.\n':'');
  const candidate=new Map(original),changed=workerOnly?original.get('play/help.js'):Buffer.concat([original.get('play/help.js'),Buffer.from('\n// Update test candidate.\n')]);candidate.set('play/help.js',changed);
  const nextAssets=assets.map(a=>a.path==='play/help.js'?{...a,sha256:sha(changed)}:a),nextVersion=offlineVersion(nextAssets,template);
- const nextScript=Buffer.from('// Generated test candidate.\nself.OFFLINE_VERSION='+JSON.stringify(nextVersion)+';self.OFFLINE_ENGINE='+JSON.stringify(differentEngine?'future-engine-test':engine)+';self.OFFLINE_ASSETS='+JSON.stringify(nextAssets)+';\n');candidate.set('play/offline-assets.js',nextScript);
+ const nextScript=Buffer.from('// Generated test candidate.\nself.OFFLINE_VERSION='+JSON.stringify(nextVersion)+';self.OFFLINE_ENGINE='+JSON.stringify(differentEngine?'future-engine-test':engine)+(automatic?';self.OFFLINE_RELEASE="test-auto";self.OFFLINE_BREAKING='+JSON.stringify(breaking):'')+';self.OFFLINE_ASSETS='+JSON.stringify(nextAssets)+';\n');candidate.set('play/offline-assets.js',nextScript);
  candidate.set('play/sw.js',Buffer.from(template.replace('__OFFLINE_SCRIPT_SHA__',sha(nextScript))));
  let next=false,fail=false,failures=0;
  const server=http.createServer((req,res)=>{
@@ -176,4 +176,16 @@ test('same-engine UI repair can install despite an already-incompatible local sa
   await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);await f.page.getByRole('button',{name:'Abandon game',exact:true}).click();await f.page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await expect(f.page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();
   expect(await f.page.evaluate(async room=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('library');r.onsuccess=()=>resolve(r.result);});db.close();return {abandoned:lib.games[room].abandoned,artifact:lib.games[room].artifact,revision:lib.games[room].state.snapshot.revision};},before.room)).toEqual({abandoned:true,artifact:'previous-engine-fixture',revision:before.revision});
  }finally{await cleanup(f);}
+});
+
+test('a declared non-breaking update activates automatically on idle home and keeps a saved game',async({browser})=>{
+ const f=await open(browser,{automatic:true});try{const before=await solo(f.page);await f.page.getByRole('link',{name:'Game Shelf home',exact:true}).click();f.server.upgrade(false);await update(f.page);await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});await expect(f.page.getByRole('button',{name:'Resume game',exact:true})).toBeEnabled();await f.page.getByRole('button',{name:'Resume game',exact:true}).click();await expect(f.page.locator('#connection')).toHaveText('Local · saved');expect(await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};})).toEqual(before);}finally{await cleanup(f);}
+});
+
+test('automatic updates wait while a dialog is open, then activate after it closes',async({browser})=>{
+ const f=await open(browser,{automatic:true});try{await f.page.getByRole('button',{name:'Help and rules',exact:true}).click();f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');expect((await status(f.page)).version).toBe(f.server.version);await expect(f.page.getByRole('dialog')).toBeVisible();await f.page.getByRole('button',{name:'Close panel'}).click();await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});}finally{await cleanup(f);}
+});
+
+test('an explicitly breaking update never auto-activates even on idle home',async({browser})=>{
+ const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.getByRole('button',{name:'Help and rules',exact:true}).click();await f.page.getByRole('button',{name:'Close panel'}).click();expect((await status(f.page)).version).toBe(f.server.version);expect(await f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(true);}finally{await cleanup(f);}
 });

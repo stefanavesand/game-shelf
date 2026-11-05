@@ -21,7 +21,7 @@ const unique=[...new Set(files)].sort();files.splice(0,files.length,...unique);
 const offline=[];for(const name of files.filter(f=>/^(play|ui)\//.test(f)&&!['play/sw.js','play/offline-assets.js'].includes(f))){const bytes=await readFile(path.join(root,name));offline.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex')});}
 const template=await readFile(path.join(root,'scripts/sw-template.js'),'utf8');
 const engine=await catanManifest({check:true}),version=offlineVersion(offline,template);
-const offlineCode='// Generated during build.\nself.OFFLINE_VERSION='+JSON.stringify(version)+';self.OFFLINE_ENGINE='+JSON.stringify(engine.compatibilityId)+';self.OFFLINE_BREAKING='+JSON.stringify(engine.breaking)+';self.OFFLINE_ASSETS='+JSON.stringify(offline)+';\n';
+const offlineCode='// Generated during build.\nself.OFFLINE_VERSION='+JSON.stringify(version)+';self.OFFLINE_ENGINE='+JSON.stringify(engine.compatibilityId)+';self.OFFLINE_RELEASE='+JSON.stringify(engine.releaseVersion)+';self.OFFLINE_BREAKING='+JSON.stringify(engine.breaking)+';self.OFFLINE_ASSETS='+JSON.stringify(offline)+';\n';
 await writeFile(path.join(root,'play/offline-assets.js'),offlineCode);
 const worker=template.replace('__OFFLINE_SCRIPT_SHA__',createHash('sha256').update(offlineCode).digest('hex'));
 await writeFile(path.join(root,'play/sw.js'),worker);
