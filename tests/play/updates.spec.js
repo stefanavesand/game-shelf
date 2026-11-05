@@ -128,7 +128,7 @@ test('a lost online acknowledgment blocks another window update until the origin
   await f.page.evaluate(()=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id:'alice'},access_token:'alice',refresh_token:'fixture',expires_at:4102444800})));
   // A fixed fixture seed gives Alice the first human placement.
   await f.context.addInitScript(()=>{const random=crypto.getRandomValues.bind(crypto);crypto.getRandomValues=value=>{if(value instanceof Uint32Array&&value.length===1){value[0]=42;return value;}return random(value);};});
-  const actor=await actorPage(f);await actor.evaluate(async()=>{const {client}=await import('./session.js');await client.execute('create',{name:'Alice'});});server.loseResponse();
+  const actor=await actorPage(f);await actor.evaluate(async()=>{const {client}=await import('./session.js');const p=await client.execute('create',{name:'Alice'});await client.execute('start',{roomId:p.roomId});});server.loseResponse();
   await actor.evaluate(async()=>{const {client}=await import('./session.js'),p=(await client.inspect()).packet;try{await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:p.view.choices[0]});}catch{}});
   f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toContainText('Update blocked');expect(await f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(false);
   await actor.evaluate(async()=>{const {client}=await import('./session.js');await client.refresh();});await pendingUpdate(f);server.loseResponse();
