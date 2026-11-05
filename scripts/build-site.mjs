@@ -13,7 +13,7 @@ async function collect(relative){
     const name=path.posix.join(relative,entry.name);
     if(entry.isSymbolicLink())throw Error(`Refusing a symbolic link in site assets: ${name}`);
     if(entry.isDirectory())await collect(name);
-    else if(entry.isFile()&&/\.(html|css|js|svg|webmanifest)$/.test(name))files.push(name);
+    else if(entry.isFile()&&/\.(html|css|js|svg|png|webmanifest)$/.test(name))files.push(name);
   }
 }
 files.push('play/sw.js','play/offline-assets.js','index.html');for(const folder of ['play','ui','prototype','recovery'])await collect(folder);
