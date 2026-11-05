@@ -5,11 +5,11 @@ import { validCoordinate, validSetupRoads, validSetupSettlements } from './setup
 import { getHexVertices, vertexKey, edgeKey, getEdgeVertices } from './geometry.js';
 import { applyEconomy, COSTS, createDeck, RESOURCES } from './economy.js';
 import { applyTurn, isTurnAction, robberPlacements, victims } from './turn.js';
-import { bankRate, createBasePorts, validRoads, validSettlements } from './board.js';
+import { bankRate, bankRates, createBasePorts, validRoads, validSettlements } from './board.js';
 import { updateScores, score } from './scoring.js';
 import { projectView } from './projection.js';
 export { RESOURCES, COSTS, vertexKey, edgeKey, getEdgeVertices, getHexVertices, validSetupSettlements, validRoads, validSettlements, score };
-export const CATAN_ENGINE_VERSION = '2.0.0';
+export const CATAN_ENGINE_VERSION = '2.1.0';
 export class CatanRuleError extends Error {
 }
 const reject = (message) => { throw new CatanRuleError(message); };
@@ -40,7 +40,7 @@ export function newCatan(id, seats, context) {
         players: { players, turnOrder: order }, log: { log: [], chat: [], maxLogEntries: 100, maxChatMessages: 0 },
     };
     state.board.ports = createBasePorts(state);
-    return { schemaVersion: 1, engineVersion: CATAN_ENGINE_VERSION, id, revision: 0, state, deck: createDeck(context.randomInt), seats: structuredClone(seats), setupIndex: 0, offer: null, history: [] };
+    return { schemaVersion: 1, engineVersion: CATAN_ENGINE_VERSION, id, revision: 0, state, deck: createDeck(context.randomInt), seats: structuredClone(seats), setupIndex: 0, offer: null, trades: [], history: [] };
 }
 function resourceBundle(value) {
     if (!value || typeof value !== 'object' || Object.keys(value).some(k => !RESOURCES.includes(k)))
@@ -102,6 +102,13 @@ function setup(session, actor, action, context) {
     }
     updateScores(state);
 }
+// Public offer state is persisted so polling/reload cannot lose immediate bot replies.
+export const tradeRecipients = offer => offer ? (offer.recipients ?? [offer.to]) : [];
+export const pendingTradeRecipients = offer => tradeRecipients(offer).filter(id => !offer.responses?.[id]);
+function recordTrade(session, offer, status = 'waiting', by = null) {
+    const entry = {...structuredClone(offer), status, by, revision: session.revision + 1};
+    session.trades = [...(session.trades ?? []).filter(t => t.id !== offer.id), entry].slice(-20);
+}
 export function applyCatan(input, actor, action, context) {
     if (!input || input.schemaVersion !== 1 || input.engineVersion !== CATAN_ENGINE_VERSION)
         reject('Unsupported game version.');
@@ -115,21 +122,29 @@ export function applyCatan(input, actor, action, context) {
     if (state.game.phase.startsWith('setup-'))
         setup(result, actor, action, context);
     else if (action.type === 'TRADE_OFFER') {
-        if (state.game.phase !== 'main' || state.game.currentPlayerId !== actor || result.offer || !input.seats.some(s => s.id === action.to && s.id !== actor))
-            reject('Cannot offer this trade now.');
+        const active = state.game.currentPlayerId, prior = result.offer;
+        const recipients = action.to === 'all' ? input.seats.filter(s => s.id !== actor).map(s => s.id) : [action.to];
+        if (state.game.phase !== 'main' || !recipients.length || recipients.some(id => !input.seats.some(s => s.id === id && id !== actor))
+            || (actor !== active && (recipients.length !== 1 || recipients[0] !== active)))
+            reject('Trades must involve the active player.');
+        if (prior && (action.replaces !== prior.id || (actor !== prior.from && !pendingTradeRecipients(prior).includes(actor))))
+            reject('Review the pending offer before replacing it.');
+        if (!prior && action.replaces) reject('The trade is no longer available.');
         const give = resourceBundle(action.give), receive = resourceBundle(action.receive), from = state.players.players.find(p => p.id === actor);
         if (RESOURCES.some(r => give[r] > from.resources[r] || (give[r] > 0 && receive[r] > 0)))
             reject('You must own the offered resources; a resource cannot be on both sides.');
-        result.offer = { id: context.id(), from: actor, to: action.to, give, receive };
+        if (prior) recordTrade(result, prior, 'replaced', actor);
+        result.offer = { id: context.id(), from: actor, to: action.to, recipients, responses: {}, turnPlayerId: active, give, receive };
+        recordTrade(result, result.offer);
     }
     else if (['TRADE_ACCEPT', 'TRADE_DECLINE', 'TRADE_CANCEL'].includes(action.type)) {
         const response = action, offer = result.offer;
-        if (!offer || response.offerId !== offer.id || state.game.phase !== 'main' || state.game.currentPlayerId !== offer.from)
+        if (!offer || response.offerId !== offer.id || state.game.phase !== 'main' || state.game.currentPlayerId !== (offer.turnPlayerId ?? offer.from))
             reject('The trade is no longer available.');
-        if (response.type === 'TRADE_CANCEL' ? actor !== offer.from : actor !== offer.to)
+        if (response.type === 'TRADE_CANCEL' ? actor !== offer.from : !pendingTradeRecipients(offer).includes(actor))
             reject('You cannot respond to this trade.');
         if (response.type === 'TRADE_ACCEPT') {
-            const from = state.players.players.find(p => p.id === offer.from), to = state.players.players.find(p => p.id === offer.to);
+            const from = state.players.players.find(p => p.id === offer.from), to = state.players.players.find(p => p.id === actor);
             if (RESOURCES.some(r => from.resources[r] < offer.give[r] || to.resources[r] < offer.receive[r]))
                 reject('A player no longer owns the required resources.');
             for (const r of RESOURCES) {
@@ -139,7 +154,11 @@ export function applyCatan(input, actor, action, context) {
             from.totalTradesMade++;
             to.totalTradesMade++;
         }
-        result.offer = null;
+        offer.responses ??= {};
+        if (response.type !== 'TRADE_CANCEL') offer.responses[actor] = response.type === 'TRADE_ACCEPT' ? 'accepted' : 'declined';
+        const status = response.type === 'TRADE_CANCEL' ? 'cancelled' : response.type === 'TRADE_ACCEPT' ? 'accepted' : pendingTradeRecipients(offer).length ? 'waiting' : 'declined';
+        recordTrade(result, offer, status, actor);
+        if (status !== 'waiting') result.offer = null;
     }
     else {
         if (result.offer)
@@ -174,7 +193,7 @@ export function eligibleActors(session) {
     if (session.state.game.phase === 'ended')
         return [];
     if (session.offer)
-        return [session.offer.to, session.offer.from];
+        return [...pendingTradeRecipients(session.offer), session.offer.from];
     return session.state.game.phase === 'discard' ? session.state.game.pendingDiscard : [session.state.game.currentPlayerId];
 }
 function discardChoice(resources, count) {
@@ -194,7 +213,7 @@ export function catanChoices(state, actor, offer) {
     if (offer) {
         if (offer.from === actor)
             return [{ type: 'TRADE_CANCEL', offerId: offer.id }];
-        if (offer.to !== actor)
+        if (!pendingTradeRecipients(offer).includes(actor))
             return [];
         return [{ type: 'TRADE_DECLINE', offerId: offer.id }, ...(canAfford(player.resources, offer.receive) ? [{ type: 'TRADE_ACCEPT', offerId: offer.id }] : [])];
     }
@@ -226,10 +245,11 @@ export function catanChoices(state, actor, offer) {
         if (state.game.developmentDeckCount > 0 && canAfford(player.resources, COSTS.development))
             choices.push({ type: 'BUY_DEVELOPMENT_CARD' });
         for (const give of RESOURCES)
-            if (player.resources[give] >= bankRate(state, actor, give))
+            for (const rate of bankRates(state, actor, give))
+                if (player.resources[give] >= rate)
                 for (const receive of RESOURCES)
                     if (give !== receive && state.game.bank[receive] > 0)
-                        choices.push({ type: 'BANK_TRADE', give: { resource: give, amount: bankRate(state, actor, give) }, receive: { resource: receive, amount: 1 } });
+                        choices.push({ type: 'BANK_TRADE', give: { resource: give, amount: rate }, receive: { resource: receive, amount: 1 } });
     }
     else
         return [];
@@ -253,5 +273,5 @@ export function catanView(session, actor) {
     if (!session.seats.some(s => s.id === actor))
         reject('You are not a participant.');
     const state = structuredClone(projectView(session.state, actor));
-    return { apiVersion: 1, engineVersion: session.engineVersion, id: session.id, revision: session.revision, you: actor, state, seats: structuredClone(session.seats), offer: structuredClone(session.offer), history: structuredClone(session.history), choices: catanChoices(state, actor, session.offer) };
+    return { apiVersion: 1, engineVersion: session.engineVersion, id: session.id, revision: session.revision, you: actor, state, seats: structuredClone(session.seats), offer: structuredClone(session.offer), trades: structuredClone(session.trades ?? []), history: structuredClone(session.history), choices: catanChoices(state, actor, session.offer) };
 }

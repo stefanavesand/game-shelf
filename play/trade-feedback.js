@@ -10,6 +10,16 @@ export function updateTradeFeedback(previous,view,outgoing){
  const label=row=>row.message.replaceAll('_',' ');
  if(outgoing)record.draft=structuredClone(outgoing);
  if(!record.watch&&record.draft){const draft=record.draft,row=view.history.find(row=>row.revision===draft.revision);if(row&&row.playerId===draft.from&&label(row)==='trade offer'){record.watch=draft;record.draft=null;}else if(view.revision>=draft.revision)record.draft=null;}
+ if(view.trades?.length){
+  for(const trade of view.trades){
+   if(trade.status==='waiting')continue;
+   const id=`${view.id}:${trade.id}:${trade.status}`;
+   if(record.events.some(e=>e.id===id))continue;
+   const message=trade.status==='accepted'?`${names(trade.by)} accepted: ${names(trade.from)} gives ${bundle(trade.give)} and receives ${bundle(trade.receive)}.`:trade.status==='declined'?`All recipients declined ${names(trade.from)}’s offer.`:trade.status==='replaced'?`${names(trade.by)} replaced the offer from ${names(trade.from)}.`:`${names(trade.from)} cancelled the offer.`;
+   const event={id,revision:trade.revision,message};record.events.push(event);added.push(event);
+  }
+  record.watch=null;record.draft=null;record.events=record.events.slice(-30);return {record,added};
+ }
  const watch=record.watch;
  if(watch&&view.revision>watch.revision){
   const first=view.history.find(row=>row.revision>watch.revision);

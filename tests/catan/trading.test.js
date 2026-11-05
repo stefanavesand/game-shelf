@@ -72,3 +72,39 @@ test('Standard may decline a payable one-for-one offer when neither hand change 
  let g=fixture(true,'standard');fund(g,'a','grain',1);for(const [r,n]of Object.entries({ore:3,grain:3,wool:3,brick:2,lumber:2}))fund(g,'bot:1',r,n);g.snapshot.state.board.buildings=[{playerId:'bot:1',type:'settlement',vertex:getHexVertices({q:0,r:0})[0]}];player(g,'bot:1').settlementsRemaining--;
  g=act(g,'a',{type:'TRADE_OFFER',to:'bot:1',give:{grain:1},receive:{wool:1}});assert.ok(module.view(g,'bot:1').choices.some(c=>c.type==='TRADE_ACCEPT'));assert.equal(module.nextBot(g).action.type,'TRADE_DECLINE');
 });
+
+test('All is one offer: either recipient accepts once and the other cannot take the same cards',()=>{
+ let g=fixture(false,'standard');fund(g,'a','ore',2);fund(g,'b','brick',1);fund(g,'bot:2','brick',1);
+ g=act(g,'a',{type:'TRADE_OFFER',to:'all',give:{ore:1},receive:{brick:1}});assert.deepEqual(g.snapshot.offer.recipients,['b','bot:2']);
+ for(const winner of ['b','bot:2']){const id=g.snapshot.offer.id,next=act(g,winner,{type:'TRADE_ACCEPT',offerId:id}),before=structuredClone(next);assert.equal(player(next,'a').resources.ore,1);assert.equal(player(next,winner).resources.ore,1);assert.equal(next.snapshot.offer,null);assert.equal(next.snapshot.trades.at(-1).by,winner);assert.throws(()=>act(next,winner==='b'?'bot:2':'b',{type:'TRADE_ACCEPT',offerId:id}));assert.deepEqual(next,before);conserved(next);}
+});
+test('one decline leaves All open; all declines close it and responses survive serialization',()=>{
+ let g=fixture(false,'standard');fund(g,'a','ore',1);fund(g,'b','brick',1);fund(g,'bot:2','brick',1);g=act(g,'a',{type:'TRADE_OFFER',to:'all',give:{ore:1},receive:{brick:1}});const id=g.snapshot.offer.id;
+ g=act(g,'b',{type:'TRADE_DECLINE',offerId:id});assert.ok(g.snapshot.offer);assert.equal(g.snapshot.offer.responses.b,'declined');assert.equal(module.view(g,'b').choices.length,0);const before=structuredClone(g);assert.throws(()=>act(g,'b',{type:'TRADE_ACCEPT',offerId:id}));assert.deepEqual(g,before);
+ g=act(g,'bot:2',{type:'TRADE_DECLINE',offerId:id});assert.equal(g.snapshot.offer,null);const view=module.view(JSON.parse(JSON.stringify(g)),'a');assert.equal(view.trades.at(-1).status,'declined');assert.deepEqual(view.trades.at(-1).responses,{b:'declined','bot:2':'declined'});conserved(g);
+});
+for(const level of ['easy','standard'])test(`${level} bots both answer All rather than blocking a human on the first decline`,()=>{
+ let g=fixture(true,level);fund(g,'a','ore',1);g=act(g,'a',{type:'TRADE_OFFER',to:'all',give:{ore:1},receive:{brick:1}});
+ for(const id of ['bot:1','bot:2']){const response=module.nextBot(g);assert.equal(response.actor,id);assert.equal(response.action.type,'TRADE_DECLINE');g=act(g,id,response.action);}
+ assert.equal(g.snapshot.offer,null);assert.equal(module.nextBot(g),null);assert.equal(g.snapshot.trades.at(-1).status,'declined');conserved(g);
+});
+test('a counteroffer replaces All atomically and only the active player can accept it',()=>{
+ let g=fixture(false,'standard');fund(g,'a','ore',2);fund(g,'b','brick',2);g=act(g,'a',{type:'TRADE_OFFER',to:'all',give:{ore:1},receive:{brick:1}});const old=g.snapshot.offer.id;
+ const before=structuredClone(g);assert.throws(()=>act(g,'b',{type:'TRADE_OFFER',to:'a',give:{brick:2},receive:{ore:2},replaces:'wrong'}));assert.deepEqual(g,before);
+ g=act(g,'b',{type:'TRADE_OFFER',to:'a',give:{brick:2},receive:{ore:2},replaces:old});const id=g.snapshot.offer.id;assert.equal(g.snapshot.trades.at(-2).status,'replaced');assert.equal(g.snapshot.offer.turnPlayerId,'a');assert.throws(()=>act(g,'bot:2',{type:'TRADE_ACCEPT',offerId:id}));assert.throws(()=>act(g,'bot:2',{type:'TRADE_ACCEPT',offerId:old}));g=act(g,'a',{type:'TRADE_ACCEPT',offerId:id});assert.equal(player(g,'a').resources.brick,2);assert.equal(player(g,'b').resources.ore,2);conserved(g);
+});
+test('off-turn proposals must target the active player and cannot trade between inactive seats',()=>{
+ let g=fixture(false,'standard');fund(g,'b','brick',1);fund(g,'a','ore',1);const before=structuredClone(g);
+ for(const to of ['all','bot:2']){assert.throws(()=>act(g,'b',{type:'TRADE_OFFER',to,give:{brick:1},receive:{ore:1}}));assert.deepEqual(g,before);}
+ g=act(g,'b',{type:'TRADE_OFFER',to:'a',give:{brick:1},receive:{ore:1}});g=act(g,'a',{type:'TRADE_ACCEPT',offerId:g.snapshot.offer.id});conserved(g);assert.equal(player(g,'b').resources.ore,1);
+});
+test('editing an outstanding offer makes old responses stale without transferring resources',()=>{
+ let g=fixture(false,'standard');fund(g,'a','ore',2);fund(g,'b','brick',1);g=act(g,'a',{type:'TRADE_OFFER',to:'all',give:{ore:1},receive:{brick:1}});const old=g.snapshot.offer.id;
+ g=act(g,'a',{type:'TRADE_OFFER',to:'b',give:{ore:2},receive:{brick:1},replaces:old});const before=structuredClone(g);assert.throws(()=>act(g,'b',{type:'TRADE_ACCEPT',offerId:old}));assert.deepEqual(g,before);assert.equal(player(g,'a').resources.ore,2);assert.equal(g.snapshot.offer.to,'b');conserved(g);
+});
+test('port owners retain ordinary 4:1 and owned generic 3:1 choices, with finite bank checks',()=>{
+ let g=fixture(false,'standard');const ports=g.snapshot.state.board.ports;g.snapshot.state.board.buildings=['brick','generic'].map(type=>({playerId:'a',type:'settlement',vertex:ports.find(p=>p.type===type).vertices[0]}));fund(g,'a','brick',4);
+ const choices=module.view(g,'a').choices.filter(c=>c.type==='BANK_TRADE'&&c.give.resource==='brick'&&c.receive.resource==='ore');assert.deepEqual(choices.map(c=>c.give.amount),[2,3,4]);
+ for(const action of choices){const next=act(g,'a',action);assert.equal(player(next,'a').resources.brick,4-action.give.amount);assert.equal(player(next,'a').resources.ore,1);conserved(next);}
+ const withoutGeneric=structuredClone(g);withoutGeneric.snapshot.state.board.buildings.pop();assert.throws(()=>act(withoutGeneric,'a',{type:'BANK_TRADE',give:{resource:'brick',amount:3},receive:{resource:'ore',amount:1}}));
+});

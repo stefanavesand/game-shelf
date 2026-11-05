@@ -37,8 +37,8 @@ The owner accepted this split during MVP prioritization. Inclusion is a delivery
 | MVP | HELP-01 | Simple offline-accessible rules and instructions for supported actions. |
 | MVP | TRADE-ELIGIBILITY-01 | Do not offer an actionable incoming trade to a player lacking the requested resources; revalidate before acceptance without expanding bot access to hidden hands. |
 | MVP | TRADE-FEEDBACK-01 | Clear acceptance/decline feedback, with cancellation/invalidation handling and no duplicate notifications after retry/reload. |
-| After MVP | TRADE-EDITOR-01 | Keep a sent offer open and support safe editing/replacement. Existing single-recipient trading remains supported. |
-| After MVP | CATAN-RELAY-03, All-recipient portion only | All-recipient offers/default recipient selection. This does not defer already-delivered relay integration or release acceptance. |
+| Owner extension 2026-11-05 | TRADE-EDITOR-01 | Keep a sent offer open and support safe editing/replacement. Existing single-recipient trading remains supported. |
+| Owner extension 2026-11-05 | CATAN-RELAY-03, All-recipient portion only | All-recipient offers/default recipient selection. This does not defer already-delivered relay integration or release acceptance. |
 | After MVP | CATAN-RELAY-03, bank-batch portion only | Multiple bank/port exchanges in one submission. Existing single exchanges remain supported. |
 
 Detailed acceptance criteria remain in the backlog under the same stable IDs. Validation, device, storage/update, operations and release gates still require the separate prioritization decision.
@@ -158,8 +158,12 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 - [x] CATAN-RELAY-02 — Separate direct-board developer harness for two PWAs and a coordinator bot, with revision-bound confirmations and saved state. Mocked HTTP browser setup/reload passed; physical device/full human game acceptance remains separate.
 - [ ] CATAN-RELAY-03 — Integrate the engine into the approved main Catan workspace; complete trading/All/bank batches and special-phase UX, then real two-human/one-bot iPad acceptance and PWA install/update work. No server game rules required.
 
-- [x] UI-08 — Budget-prioritized resource-row composer in the normal game: compact recipient dropdown, own counts and Give/Request columns; same Bank/ports layout and reviewed exact exchanges. Seven targeted browser checks passed. All-recipient offers and atomic bank batches remain CATAN-RELAY-03; not available on the current managed engine.
+- [x] UI-08 — Budget-prioritized resource-row composer in the normal game: compact recipient dropdown, own counts and Give/Request columns; same Bank/ports layout and reviewed exact exchanges. Seven targeted browser checks passed. All-recipient offers were subsequently added to the PWA engine; see [current trading contract](TRADING.md). Atomic bank batches remain separate.
 
 - [x] SOLO-OFFLINE-01 — Local two-bot Solo in the ordinary UI, transactional saves, cache-verified app shell and explicit safe updates; see [offline/online delivery](OFFLINE_SOLO.md). Real iPad acceptance remains manual.
 - [x] ONLINE-RELAY-01 — Ordinary Friends UI uses the PWA engine and authenticated relay, without the old game-rules endpoint. Retains private projections and stopped-on-divergence behavior for trusted friends.
 - [x] BUG-TRADE-CARDS-01 — Bot proposals/useful acceptance and recipient-first trade scheduling; explicit actual-card purchase confirmation and offline card controls. Targeted regressions added.
+
+## Trading extension — 2026-11-05
+
+TRADE-EDITOR-01 and CATAN-RELAY-03 (All only): [rules 2.1.0 and UI contract](TRADING.md). Adds one multi-recipient offer, first-acceptance-only settlement, per-seat replies, retained dialog/edit/replacement, active-player counteroffers and all owned maritime rates. Backend unchanged. Validation/publication evidence is recorded with delivery; physical iPad/friend acceptance remains open. This supersedes the earlier deferral for these two features, not bank batches or release gates.

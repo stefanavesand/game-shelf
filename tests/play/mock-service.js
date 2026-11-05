@@ -50,7 +50,7 @@ export function service({phase='setup',loseReply=false,futureReply=false,loseCre
             for(const peer of ['p1','p2']){
               const p=current[peer];p.revision++;p.view.revision=p.revision;
               if(body.action.type==='TRADE_OFFER'){
-                const {to,give,receive}=body.action;p.view.offer={from:seat,to,give,receive};p.view.choices=peer===seat?[{type:'TRADE_CANCEL'}]:[{type:'TRADE_ACCEPT'},{type:'TRADE_DECLINE'}];
+                const {to,give,receive}=body.action;p.view.offer={id:`mock-offer-${accepted}`,from:seat,to,give,receive,recipients:to==='all'?p.view.seats.filter(s=>s.id!==seat).map(s=>s.id):[to],responses:{}};p.view.choices=peer===seat?[{type:'TRADE_CANCEL'}]:[{type:'TRADE_ACCEPT'},{type:'TRADE_DECLINE'}];
               }
               if(body.action.type==='BANK_TRADE'){
                 const {give,receive}=body.action,actor=p.view.state.players.players.find(s=>s.id===seat);actor.resourceCount+=receive.amount-give.amount;if(peer===seat){actor.resources[give.resource]-=give.amount;actor.resources[receive.resource]+=receive.amount;}

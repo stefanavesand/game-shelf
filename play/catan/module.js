@@ -1,3 +1,4 @@
+import {pendingTradeRecipients} from './rules/session.js';
 import {newCatan,applyCatan,catanView,eligibleActors,botDecision,CatanRuleError,CATAN_ENGINE_VERSION} from './rules/index.js';
 import {createEntropy,RANDOM_ALGORITHM} from './entropy.js';
 import {RuleRejection} from '../relay/replica.js';
@@ -29,7 +30,7 @@ export function createCatanModule(artifactDigest) {
     },
     view:(state,seat)=>catanView(state.snapshot,seat),
     nextBot(state) {
-      const eligible=state.snapshot.offer?[state.snapshot.offer.to]:eligibleActors(state.snapshot);
+      const eligible=state.snapshot.offer?pendingTradeRecipients(state.snapshot.offer):eligibleActors(state.snapshot);
       const bot=state.snapshot.seats.find(s=>s.kind==='bot'&&eligible.includes(s.id));
       if(!bot)return null;
       const observation=catanView(state.snapshot,bot.id);

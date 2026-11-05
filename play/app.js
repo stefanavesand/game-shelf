@@ -1,7 +1,7 @@
 import {canSupplyOffer,updateTradeFeedback} from './trade-feedback.js';
 import {CARD_RULES,ACTION_CARD_TIMING,HELP_SECTIONS} from './help.js';
 import {setupPwa} from './pwa.js';
-import {offerDraft,offerIssue,handAfter,tradeLabel,bankChoices,bankBundles} from './trade.js';
+import {offerDraft,offerIssue,tradeLimit,handAfter,tradeLabel,bankChoices,bankBundles} from './trade.js';
 import {client} from './session.js';
 import {draw} from './board.js';
 import {symbol} from '../ui/art.js';
@@ -14,7 +14,7 @@ const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[];
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
-let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null;
+let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false;
 let activeSync=null,renderedHTML=null,renderedBoard=null;
 let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={name:'',room:null,level:'standard',gameMode:'friends'};
 function announce(s){$('announcement').textContent=s;}
@@ -25,8 +25,11 @@ const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Pla
 const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
 const blocked=()=>busy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
-const incoming=()=>view()?.offer?.to===view()?.you;
-function closeSheet(){sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
+const offerRecipients=o=>o?(o.recipients||[o.to]):[];
+const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
+const incoming=()=>pendingRecipients(view()?.offer).includes(view()?.you);
+const recipientName=id=>id==='all'?'All':name(id);
+function closeSheet(){sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
 function openSheet(title,body){sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)sheet.showModal();(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
 $('close-sheet').onclick=closeSheet;
 const modalChanged=()=>modalRevision!==null&&(modalRevision!==packet?.revision||modalRoom!==packet?.roomId||modalYou!==packet?.you);
@@ -72,15 +75,16 @@ function actions(){
   if(types.has('STEAL_RESOURCE'))return button('Choose a player','victim','primary',blocked());
   if(types.has('ROLL_DICE'))return button('Roll dice','quick:ROLL_DICE','primary',blocked());
   if(v.state.game.phase==='main'&&v.state.game.currentPlayerId===v.you&&!mode)return `${button('Build','build','primary',blocked()||offered)}${button('Trade','trade','',blocked()||offered)}${button('End turn','quick:END_TURN','turn-end',blocked()||offered||!types.has('END_TURN'))}`;
+  if(v.state.game.phase==='main'&&!offered)return button('Trade','trade','',blocked());
   return '';
 }
-function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.offer?[v.offer.to]:g.phase==='discard'?g.pendingDiscard:[g.currentPlayerId];}
+function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.offer?pendingRecipients(v.offer):g.phase==='discard'?g.pendingDiscard:[g.currentPlayerId];}
 function actorStatus(v){const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
   const v=view(),g=v.state.game,[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
   const players=v.state.players.players.map(p=>`<article class="player ${actingPlayers(v).includes(p.id)?'is-acting':''} ${p.id===v.you?'you':''}" style="border-left:3px solid ${{red:'#b84f3c',blue:'#396a9c',orange:'#b57d27',green:'#397252'}[p.color]}"><div><strong>${esc(p.name)}${p.id===v.you?' · You':''} · ${g.finalScores?.[p.id]??p.victoryPoints} VP${v.seats.find(s=>s.id===p.id)?.kind==='bot'?` <span class="bot-tag">Bot · ${v.seats.find(s=>s.id===p.id).level}</span>`:''}</strong><small>${p.resourceCount} resources · ${p.devCardCount} cards</small>${actingPlayers(v).includes(p.id)?'<span class="acting-marker">Acting now</span>':''}${g.currentPlayerId===p.id&&g.phase!=='ended'?'<span class="active-marker">Current turn</span>':''}</div></article>`).join('');
   const roll=g.lastRoll;
-  return `${recovery()}<p class="actor-status" role="status">${esc(actorStatus(v))}</p><div class="players" aria-label="Players">${players}</div><div class="board-meta"><span class="muted">${v.history.length?esc(name(v.history.at(-1).playerId)+': '+v.history.at(-1).message):''}</span>${button('Score breakdown','scores','quiet')}</div><div class="table-layout"><div class="board-column"><section class="board-wrap"><span class="board-label">Catan · ${g.phase.startsWith('setup')?'Starting placements':`Turn ${g.turn}`}</span><svg id="board" role="group" aria-label="Island board and legal placement choices"></svg><div class="board-tools" aria-label="Board navigation">${button('+','zoom-in','icon-button')}${button('−','zoom-out','icon-button')}${button('⌖','zoom-reset','icon-button')}${zoom>1?button('←','pan-left','icon-button')+button('→','pan-right','icon-button')+button('↑','pan-up','icon-button')+button('↓','pan-down','icon-button'):''}</div></section><p class="board-caption">${g.phase.startsWith('setup')?'Two settlements and two roads each. The second round runs in reverse order.':'Your own hand stays private. Names and piece colors identify each player.'}</p><details class="trade-log"><summary>Trade activity</summary><ol>${tradeFeedback.map(e=>`<li>${esc(e.message)}</li>`).join('')||'<li>No trade outcomes yet.</li>'}</ol></details><details class="public-log"><summary>Recent moves</summary><ol>${v.history.slice(-10).map(h=>`<li>${esc(name(h.playerId))}: ${esc(h.message)}</li>`).join('')||'<li>Your first move is coming.</li>'}</ol></details></div><aside class="action-panel" aria-label="Your hand and turn actions"><div class="turn-line"><span class="turn-icon" aria-hidden="true">${g.phase.startsWith('setup')?'⌂':'☼'}</span><div><h1>${esc(heading)}</h1><p>${esc(description)}</p></div></div>${resourcesPanel()}${cardsPanel()}${v.offer?`<div class="offer-row"><p class="inline-message">${incoming()&&!canSupplyOffer(v)?'An offer you cannot supply is being declined.':incoming()?`${esc(name(v.offer.from))} sent you an offer.`:'Your offer is waiting for a response.'}</p>${button(incoming()?'Review trade':'View your offer','offer','primary full-width',busy||(incoming()&&!canSupplyOffer(v)))}</div>`:''}${placements()}<div class="action-buttons">${actions()}</div>${!v.choices.length&&g.phase!=='ended'?'<p class="turn-actions-empty">Waiting for the next eligible player. You can still read the board and your hand.</p>':''}${roll?`<div class="dice" aria-label="Last roll ${roll.total}"><span class="die">${roll.die1}</span><span class="die">${roll.die2}</span><span>Last roll · ${roll.total}</span></div>`:''}</aside></div>`;
+  return `${recovery()}<p class="actor-status" role="status">${esc(actorStatus(v))}</p><div class="players" aria-label="Players">${players}</div><div class="board-meta"><span class="muted">${v.history.length?esc(name(v.history.at(-1).playerId)+': '+v.history.at(-1).message):''}</span>${button('Score breakdown','scores','quiet')}</div><div class="table-layout"><div class="board-column"><section class="board-wrap"><span class="board-label">Catan · ${g.phase.startsWith('setup')?'Starting placements':`Turn ${g.turn}`}</span><svg id="board" role="group" aria-label="Island board and legal placement choices"></svg><div class="board-tools" aria-label="Board navigation">${button('+','zoom-in','icon-button')}${button('−','zoom-out','icon-button')}${button('⌖','zoom-reset','icon-button')}${zoom>1?button('←','pan-left','icon-button')+button('→','pan-right','icon-button')+button('↑','pan-up','icon-button')+button('↓','pan-down','icon-button'):''}</div></section><p class="board-caption">${g.phase.startsWith('setup')?'Two settlements and two roads each. The second round runs in reverse order.':'Your own hand stays private. Names and piece colors identify each player.'}</p><details class="trade-log"><summary>Trade activity</summary><ol>${tradeFeedback.map(e=>`<li>${esc(e.message)}</li>`).join('')||'<li>No trade outcomes yet.</li>'}</ol></details><details class="public-log"><summary>Recent moves</summary><ol>${v.history.slice(-10).map(h=>`<li>${esc(name(h.playerId))}: ${esc(h.message)}</li>`).join('')||'<li>Your first move is coming.</li>'}</ol></details></div><aside class="action-panel" aria-label="Your hand and turn actions"><div class="turn-line"><span class="turn-icon" aria-hidden="true">${g.phase.startsWith('setup')?'⌂':'☼'}</span><div><h1>${esc(heading)}</h1><p>${esc(description)}</p></div></div>${resourcesPanel()}${cardsPanel()}${v.offer?`<div class="offer-row"><p class="inline-message">${incoming()&&!canSupplyOffer(v)?'An offer you cannot supply is being declined.':incoming()?`${esc(name(v.offer.from))} sent you an offer.`:v.offer.from===v.you?'Your offer is waiting for a response.':'Waiting for the remaining players to respond.'}</p>${button(incoming()?'Review trade':v.offer.from===v.you?'View your offer':'View trade','offer','primary full-width',busy||(incoming()&&!canSupplyOffer(v)))}</div>`:''}${placements()}<div class="action-buttons">${actions()}</div>${!v.choices.length&&g.phase!=='ended'?'<p class="turn-actions-empty">Waiting for the next eligible player. You can still read the board and your hand.</p>':''}${roll?`<div class="dice" aria-label="Last roll ${roll.total}"><span class="die">${roll.die1}</span><span class="die">${roll.die2}</span><span>Last roll · ${roll.total}</span></div>`:''}</aside></div>`;
 }
 function render(){
   const focused=document.activeElement?.id;
@@ -105,6 +109,7 @@ function render(){
   if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}},{zoom,pan});renderedBoard=boardKey;}
   if(replaced)for(const[action,label]of Object.entries({'zoom-in':'Zoom in on board','zoom-out':'Zoom out on board','zoom-reset':'Reset board view','pan-left':'Move board view left','pan-right':'Move board view right','pan-up':'Move board view up','pan-down':'Move board view down'}))document.querySelector(`[data-action="${action}"]`)?.setAttribute('aria-label',label);
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
+  if(sheet.open&&sheet.dataset.trade==='live')refreshTradeDialog();
   if(sheet.open&&sheet.dataset.trade)updateTradeStatus();
 }
 function apply(next){
@@ -149,35 +154,58 @@ async function runSync(op,args={},options={}){
   }catch(e){error=e instanceof PlayError?e:new PlayError('PROTOCOL_ERROR','The game could not be safely read. Your saved data has been kept.');ready=false;notice='';if(screen==='home'&&error.code==='SESSION_EXPIRED'){notice=error.message;error=null;ready=true;}}
   finally{try{saved=(await client.inspect()).state;if(screen==='home')knownGames=await client.games();}catch(e){error=e;ready=false;}busy=false;render();schedule();}
 }
-async function sendAction(action){if(blocked()||!view())return;const roomId=packet.roomId,before=new Set(ownPlayer(view()).developmentCards.map(c=>c.id));closeSheet();await sync('command',{roomId,expectedRevision:packet.revision,action});
+async function sendAction(action){if(blocked()||!view())return;const roomId=packet.roomId,before=new Set(ownPlayer(view()).developmentCards.map(c=>c.id));const keepTrade=action.type.startsWith('TRADE_')||action.type==='BANK_TRADE';if(keepTrade){sheet.dataset.trade='live';tradeEditing=false;tradeViewKey=String(packet.revision);}else closeSheet();await sync('command',{roomId,expectedRevision:packet.revision,action});
  if(action.type==='BUY_DEVELOPMENT_CARD'&&!error&&packet?.roomId===roomId){const card=ownPlayer(view()).developmentCards.find(c=>!before.has(c.id));if(card){announce(`You drew ${CARD_NAMES[card.type]}.`);openSheet('Your new development card',`<h3>${CARD_NAMES[card.type]}</h3><p>${card.type==='victoryPoint'?'This private point already counts toward your score.':'Saved in your hand. It becomes playable on a later turn.'}</p><div class="sheet-actions">${button('Done','close','primary')}</div>`);}}
 }
 function choose(candidates,titleText,intro=''){openSheet(titleText,`${intro}<p class="muted">Choose one of the options available to your hand and the bank.</p><form id="choice-form"><label for="move-choice">Your choice</label><select id="move-choice">${candidates.map((c,i)=>`<option value="${i}">${esc(actionLabel(c))}</option>`).join('')}</select><div class="sheet-actions"><button class="primary" type="submit">Confirm choice</button></div></form>`);modalAction=candidates;}
 function actionLabel(c){if(c.type==='BANK_TRADE')return `${c.give.amount} ${RESOURCE_NAMES[c.give.resource]} → ${c.receive.amount} ${RESOURCE_NAMES[c.receive.resource]}`;if(c.type==='PLAY_YEAR_OF_PLENTY')return c.resources.map(r=>RESOURCE_NAMES[r]).join(' + ');if(c.type==='PLAY_MONOPOLY')return RESOURCE_NAMES[c.resource];return c.type.toLowerCase().replaceAll('_',' ');}
 function buildPanel(){const choices=view().choices,costs={BUILD_ROAD:'1 brick + 1 wood',BUILD_SETTLEMENT:'1 brick + 1 wood + 1 grain + 1 wool',BUILD_CITY:'3 ore + 2 grain',BUY_DEVELOPMENT_CARD:'1 ore + 1 grain + 1 wool'};openSheet('Make your next move',`<p class="muted">Preview a piece before committing it. Unavailable builds need more resources, a legal location, or an available piece.</p><div class="scenario-list">${[['BUILD_ROAD','Road'],['BUILD_SETTLEMENT','Settlement'],['BUILD_CITY','City'],['BUY_DEVELOPMENT_CARD','Development card']].map(([type,label])=>button(`${label}<span class="build-cost">${costs[type]}</span>`,`build:${type}`,'',!choices.some(c=>c.type===type))).join('')}</div>`);}
-function offerPanel(){const v=view(),o=v.offer;if(!o)return;const mine=o.from===v.you;openSheet(mine?'Your offer is waiting':`${name(o.from)} has an offer`,`<p class="muted">${mine?'No cards move until the recipient accepts.':'Review the exact terms before accepting.'}</p><div class="offer-bundle"><span>${mine?'You give':'You receive'}</span><strong>${esc(money(o.give))}</strong></div><div class="offer-bundle"><span>${mine?'You receive':'You give'}</span><strong>${esc(money(o.receive))}</strong></div><div class="sheet-actions">${mine?button('Cancel offer','offer:TRADE_CANCEL','quiet',blocked()):button('Decline','offer:TRADE_DECLINE','quiet',blocked())+button('Accept trade','offer:TRADE_ACCEPT','primary',blocked()||!v.choices.some(c=>c.type==='TRADE_ACCEPT'))}</div>`);}
+function tradeResponses(trade){
+ if(!trade)return '';
+ return `<section class="trade-responses" aria-label="Trade responses" role="status" aria-live="polite"><p>${trade.status==='accepted'?`${esc(name(trade.by))} accepted. Trade completed.`:trade.status==='declined'?'Everyone declined. Edit your offer and try again.':trade.status==='cancelled'?'Offer cancelled.':trade.status==='replaced'?'Offer replaced.':'First acceptance completes one trade.'}</p><ul>${offerRecipients(trade).map(id=>`<li><span>${esc(name(id))}</span><strong>${trade.responses?.[id]==='accepted'?'Accepted':trade.responses?.[id]==='declined'?'Declined':trade.status&&trade.status!=='waiting'?'Closed':'Waiting'}</strong></li>`).join('')}</ul></section>`;
+}
+function offerPanel(){
+ const v=view(),o=v.offer;if(!o)return;const mine=o.from===v.you;
+ if(mine){tradeDraft={...offerDraft(v),to:o.to,give:{...o.give},receive:{...o.receive}};tradeEditing=false;openSheet('Trade','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
+ openSheet(`${name(o.from)} has an offer`,`<p class="muted">Review the exact terms. Only one player can accept this offer.</p><div class="offer-bundle"><span>You give</span><strong>${esc(money(o.receive))}</strong></div><div class="offer-bundle"><span>You receive</span><strong>${esc(money(o.give))}</strong></div>${tradeResponses(o)}<div class="sheet-actions">${button('Decline','offer:TRADE_DECLINE','quiet',blocked()||!incoming())}${button('Accept trade','offer:TRADE_ACCEPT','primary',blocked()||!v.choices.some(c=>c.type==='TRADE_ACCEPT'))}${button('Counteroffer','counteroffer','quiet',blocked()||!incoming())}</div>`);
+}
+function refreshTradeDialog(){
+ const v=view();if(!v||modalRoom!==v.id||modalYou!==v.you){closeSheet();return;}
+ if(tradeViewKey===String(v.revision))return;
+ tradeViewKey=String(v.revision);modalRevision=v.revision;
+ tradeDraft=tradeDraft?.roomId===v.id&&tradeDraft.you===v.you?{...tradeDraft,revision:v.revision}:offerDraft(v);
+ if(v.state.game.currentPlayerId!==v.you)tradeDraft.to=v.state.game.currentPlayerId;
+ const offer=v.offer;
+ if(offer&&!tradeEditing){
+  const mine=offer.from===v.you;
+  $('sheet-title').textContent=mine?'Your trade offer':'Trade';
+  $('sheet-body').innerHTML=`<p class="muted">${mine?`Offer to ${esc(recipientName(offer.to))}`:`Offer from ${esc(name(offer.from))}`}</p><div class="offer-bundle"><span>${mine?'You give':'They give'}</span><strong>${esc(tradeLabel(offer.give))}</strong></div><div class="offer-bundle"><span>${mine?'You request':'They request'}</span><strong>${esc(tradeLabel(offer.receive))}</strong></div>${tradeResponses(offer)}<p id="trade-status" class="trade-help" role="status"></p><div class="sheet-actions">${mine?tradeButton('Edit offer','trade-edit',false,'quiet')+tradeButton('Cancel offer','trade-cancel',false,'quiet'):incoming()?tradeButton('Decline','offer:TRADE_DECLINE',false,'quiet')+tradeButton('Accept trade','offer:TRADE_ACCEPT',!canSupplyOffer(v),'primary')+tradeButton('Counteroffer','counteroffer',false,'quiet'):''}</div>`;
+ }else{
+  $('sheet-title').textContent='Trade';renderTradeComposer();
+ }
+}
 const tradeButton=(label,action,disabled=false,classes='')=>`<button type="button" data-trade-control data-base-disabled="${disabled}" data-action="${action}" class="${classes}" ${disabled?'disabled':''}>${label}</button>`;
 function updateTradeStatus(){
   const unavailable=blocked()||modalChanged();
   for(const el of sheet.querySelectorAll('[data-trade-control]'))el.disabled=unavailable||el.dataset.baseDisabled==='true';
   const status=$('trade-status');if(status){const text=modalChanged()?'The game changed. Close and reopen Trade to review your cards.':blocked()?'Reconnect and resolve any pending move before trading.':status.dataset.hint||'';if(status.textContent!==text)status.textContent=text;}
 }
-function selectedTradeBank(){return bankChoices(view()).find(c=>c.give.resource===bankGive&&c.receive.resource===bankReceive);}
+function selectedTradeBank(){return bankChoices(view()).find(c=>c.give.resource===bankGive&&c.receive.resource===bankReceive&&(!bankRatio||c.give.amount===bankRatio));}
 function tradePanel(nextMode='players'){
   const v=view();tradeDraft=offerDraft(v,tradeDraft);tradeMode=nextMode;
-  if(bankRevision!==`${v.id}:${v.revision}`){bankGive=bankReceive=null;bankRevision=`${v.id}:${v.revision}`;}
+  if(bankRevision!==`${v.id}:${v.revision}`){bankGive=bankReceive=bankRatio=null;bankRevision=`${v.id}:${v.revision}`;}
   openSheet('Trade','');sheet.dataset.trade='composer';modalAction=null;renderTradeComposer(`trade-mode:${nextMode}`);
 }
 function renderTradeComposer(focusAction=null){
   const scrollTop=sheet.querySelector('.trade-scroll')?.scrollTop||0;
-  const v=view(),hand=ownPlayer(v).resources,peers=v.seats.filter(s=>s.id!==v.you),target=player(tradeDraft.to),isBank=tradeMode==='bank',choices=bankChoices(v),bank=selectedTradeBank();
-  const provisional=bank||choices.find(c=>c.give.resource===bankGive),bundles=isBank?bankBundles(provisional):tradeDraft;
-  const issue=isBank?(bank?'':!choices.length?'No affordable bank or port trade is available.':!bankGive?'Choose a resource to give.':'Choose a resource to receive.'):offerIssue(v,tradeDraft);
+  const v=view(),hand=ownPlayer(v).resources,peers=v.seats.filter(s=>s.id!==v.you),isBank=tradeMode==='bank',choices=bankChoices(v),bank=selectedTradeBank();
+  const provisional=bank||choices.find(c=>c.give.resource===bankGive&&(!bankRatio||c.give.amount===bankRatio)),bundles=isBank?bankBundles(provisional):tradeDraft;
+  const issue=isBank?(v.offer?'Cancel the pending offer before a bank exchange.':bank?'':!choices.length?'No affordable bank or port trade is available.':!bankGive?'Choose a resource to give.':'Choose a resource to receive.'):offerIssue(v,tradeDraft);
   const rows=RESOURCES.map(r=>{
-    const rate=choices.find(c=>c.give.resource===r);
+    const rate=choices.find(c=>c.give.resource===r&&(!(bankGive===r&&bankRatio)||c.give.amount===bankRatio));
     const stepper=side=>{
       const amount=isBank?(side==='give'&&bankGive===r?provisional?.give.amount||0:side==='receive'&&bankReceive===r?bank?.receive.amount||0:0):tradeDraft[side][r];
-      const allowed=isBank?(side==='give'?!!rate:!!bankGive&&choices.some(c=>c.give.resource===bankGive&&c.receive.resource===r)):(side==='give'?tradeDraft.give[r]<hand[r]&&!tradeDraft.receive[r]:!tradeDraft.give[r]&&tradeDraft.receive[r]<19&&handCount(tradeDraft.receive)<(target?.resourceCount||0));
+      const allowed=isBank?(side==='give'?!!rate:!!bankGive&&choices.some(c=>c.give.resource===bankGive&&c.receive.resource===r)):(side==='give'?tradeDraft.give[r]<hand[r]&&!tradeDraft.receive[r]:!tradeDraft.give[r]&&tradeDraft.receive[r]<19&&handCount(tradeDraft.receive)<tradeLimit(v,tradeDraft.to));
       const add=isBank?`trade-bank:${side}:${r}`:`trade-add:${side}:${r}`,remove=isBank?`trade-bank-clear:${side}:${r}`:`trade-remove:${side}:${r}`;
       const words=side==='give'?'give':isBank?'receive':'request';
       const control=(text,action,disabled,label)=>tradeButton(text,action,disabled,'icon-button').replace('data-trade-control',`aria-label="${label}" data-trade-control`);
@@ -186,7 +214,8 @@ function renderTradeComposer(focusAction=null){
     return `<div class="trade-row" data-resource="${r}"><span class="trade-row-resource">${art(r)}<span>${RESOURCE_NAMES[r]}</span>${isBank&&rate?`<small>${rate.give.amount}:1</small>`:''}</span><span class="trade-row-hand" aria-label="${RESOURCE_NAMES[r]} in hand">${hand[r]}</span>${stepper('give')}${stepper('receive')}</div>`;
   }).join('');
   const summaryGive=isBank?bankBundles(provisional).give:tradeDraft.give,summaryReceive=isBank?bankBundles(bank).receive:tradeDraft.receive;
-  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,!isBank?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div>${isBank?'':`<label class="trade-recipient">Offer to<select id="trade-target" data-trade-control data-base-disabled="false">${peers.map(s=>`<option value="${esc(s.id)}" ${s.id===tradeDraft.to?'selected':''}>${esc(s.name)} · ${count(s.id)} cards</option>`).join('')}</select></label>`}<div class="trade-row trade-row-head"><span>Resource</span><span>In hand</span><span>Give</span><span>${isBank?'Receive':'Request'}</span></div>${rows}</div><div class="trade-footer"><p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>Review trade</button></div></form>`;
+  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,!isBank?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div>${isBank&&bankGive&&new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount)).size>1?`<label>Exchange rate<select id="bank-rate" data-trade-control data-base-disabled="false">${[...new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount))].map(rate=>`<option value="${rate}" ${rate===(bankRatio||provisional?.give.amount)?'selected':''}>${rate}:1</option>`).join('')}</select></label>`:''}${isBank?'':`<label class="trade-recipient">Offer to<select id="trade-target" data-trade-control data-base-disabled="false">${v.state.game.currentPlayerId===v.you?'<option value="all" '+(tradeDraft.to==='all'?'selected':'')+'>All</option>':''}${peers.filter(s=>v.state.game.currentPlayerId===v.you||s.id===v.state.game.currentPlayerId).map(s=>`<option value="${esc(s.id)}" ${s.id===tradeDraft.to?'selected':''}>${esc(s.name)} · ${count(s.id)} cards</option>`).join('')}</select></label>`}<div class="trade-row trade-row-head"><span>Resource</span><span>In hand</span><span>Give</span><span>${isBank?'Receive':'Request'}</span></div>${rows}</div><div class="trade-footer">${tradeResponses(v.trades?.at(-1))}<p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>Review trade</button></div></form>`;
+  const ratio=$('bank-rate');if(ratio)ratio.onchange=()=>{if(blocked()||modalChanged())return;bankRatio=Number(ratio.value);renderTradeComposer();$('bank-rate')?.focus();};
   const recipient=$('trade-target');if(recipient)recipient.onchange=()=>{if(blocked()||modalChanged())return;tradeDraft.to=recipient.value;renderTradeComposer();$('trade-target')?.focus();};
   sheet.querySelector('.trade-scroll').scrollTop=scrollTop;
   updateTradeStatus();
@@ -196,8 +225,8 @@ function reviewTrade(){
   const v=view(),isBank=tradeMode==='bank',action=isBank?selectedTradeBank():null;
   const issue=isBank?(action?'':'Choose an available bank exchange.'):offerIssue(v,tradeDraft);if(issue)return;
   const {give,receive}=isBank?bankBundles(action):tradeDraft,after=handAfter(ownPlayer(v).resources,give,receive);
-  openSheet(isBank?'Review bank trade':'Review trade',`<p class="muted">${isBank?'Bank or port exchange':`Offer to ${esc(name(tradeDraft.to))}`}. Nothing has moved yet.</p><div class="offer-bundle"><span>You give</span><strong>${esc(tradeLabel(give))}</strong></div><div class="offer-bundle"><span>You receive</span><strong>${esc(tradeLabel(receive))}</strong></div><h3 class="trade-after-title">Your hand after ${isBank?'the exchange':'acceptance'}</h3><div class="trade-after">${RESOURCES.map(r=>`<div>${art(r)}<span>${RESOURCE_NAMES[r]}</span><strong aria-label="${RESOURCE_NAMES[r]} after trade">${after[r]}</strong></div>`).join('')}</div><p id="trade-status" data-hint="" class="trade-help" role="status"></p><div class="sheet-actions">${tradeButton('Edit trade',`trade-mode:${tradeMode}`,false,'quiet')}${tradeButton(isBank?'Confirm trade':'Send offer','modal-confirm',false,'primary')}</div>`);
-  sheet.dataset.trade='review';modalAction=isBank?action:{type:'TRADE_OFFER',to:tradeDraft.to,give:{...give},receive:{...receive}};updateTradeStatus();
+  openSheet(isBank?'Review bank trade':'Review trade',`<p class="muted">${isBank?'Bank or port exchange':`Offer to ${esc(recipientName(tradeDraft.to))}`}. Nothing has moved yet.</p><div class="offer-bundle"><span>You give</span><strong>${esc(tradeLabel(give))}</strong></div><div class="offer-bundle"><span>You receive</span><strong>${esc(tradeLabel(receive))}</strong></div><h3 class="trade-after-title">Your hand after ${isBank?'the exchange':'acceptance'}</h3><div class="trade-after">${RESOURCES.map(r=>`<div>${art(r)}<span>${RESOURCE_NAMES[r]}</span><strong aria-label="${RESOURCE_NAMES[r]} after trade">${after[r]}</strong></div>`).join('')}</div><p id="trade-status" data-hint="" class="trade-help" role="status"></p><div class="sheet-actions">${tradeButton('Edit trade',`trade-mode:${tradeMode}`,false,'quiet')}${tradeButton(isBank?'Confirm trade':'Send offer','modal-confirm',false,'primary')}</div>`);
+  sheet.dataset.trade='review';modalAction=isBank?action:{type:'TRADE_OFFER',to:tradeDraft.to,give:{...give},receive:{...receive},...(v.offer?{replaces:v.offer.id}:{})};updateTradeStatus();
 }
 
 function discardPanel(){const v=view(),me=ownPlayer(v);openSheet(`Return ${v.state.game.discardAmounts[v.you]} cards`,`<p class="muted">Choose exactly the required number from your own hand. Their types stay private.</p><form id="discard-form"><div class="trade-grid"><span></span><span class="column-label">Return</span><span class="column-label">In hand</span>${RESOURCES.map(r=>`<label for="discard-${r}">${art(r)}${RESOURCE_NAMES[r]}</label><input id="discard-${r}" name="${r}" type="number" inputmode="numeric" min="0" max="${me.resources[r]}" value="0"><span class="column-label">${me.resources[r]}</span>`).join('')}</div><p id="discard-total" class="muted">0 selected</p><p id="form-error" class="error-text" role="alert"></p><div class="sheet-actions"><button class="primary" type="submit">Confirm discard</button></div></form>`);}
@@ -235,17 +264,20 @@ async function dispatch(action,el){
   if(action==='reload-app'){location.reload();return;}
   if(action==='help'){helpPanel();return;}
   if(action==='scores'&&view()){scorePanel();return;}
+  if(action==='trade-edit'){if(blocked())return;tradeEditing=true;tradeViewKey=null;refreshTradeDialog();return;}
+  if(action==='trade-cancel'){if(blocked()||staleModal())return;await sendAction({type:'TRADE_CANCEL',offerId:view().offer.id});return;}
+  if(action==='counteroffer'){if(blocked())return;const v=view(),o=v.offer;if(!incoming())return;tradeDraft={...offerDraft(v),to:o.from,give:{...o.receive},receive:{...o.give}};tradeEditing=true;openSheet('Counteroffer','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
   if(action.startsWith('trade-')){
     if(blocked()||staleModal())return;
     if(action.startsWith('trade-mode:')){const next=action.slice(11);if(sheet.dataset.trade==='review'){tradePanel(next);return;}tradeMode=next;renderTradeComposer(action);return;}
     if(action.startsWith('trade-to:')){tradeDraft.to=action.slice(9);renderTradeComposer(action);return;}
     const [kind,side,r]=action.split(':');if(!RESOURCES.includes(r)||!['give','receive'].includes(side))return;
     if(kind==='trade-bank-clear'){if(side==='give'){bankGive=bankReceive=null;}else bankReceive=null;renderTradeComposer(action);return;}
-    if(kind==='trade-bank'){if(side==='give'){bankGive=r;bankReceive=null;}else bankReceive=r;renderTradeComposer(action);return;}
+    if(kind==='trade-bank'){if(side==='give'){bankGive=r;bankReceive=bankRatio=null;}else bankReceive=r;renderTradeComposer(action);return;}
     if(kind==='trade-add'){
-      const hand=ownPlayer(view()).resources,target=player(tradeDraft.to);
+      const hand=ownPlayer(view()).resources;
       if(side==='give'&&(tradeDraft.receive[r]||tradeDraft.give[r]>=hand[r]))return;
-      if(side==='receive'&&(tradeDraft.give[r]||tradeDraft.receive[r]>=19||handCount(tradeDraft.receive)>=(target?.resourceCount||0)))return;
+      if(side==='receive'&&(tradeDraft.give[r]||tradeDraft.receive[r]>=19||handCount(tradeDraft.receive)>=tradeLimit(view(),tradeDraft.to)))return;
       tradeDraft[side][r]++;
     }else if(kind==='trade-remove')tradeDraft[side][r]=Math.max(0,tradeDraft[side][r]-1);
     renderTradeComposer(action);return;

@@ -24,3 +24,7 @@ test('a draft saved before submission recovers immediate acceptance after a lost
 test('an older browser view cannot overwrite a newer pending offer tracker',()=>{
  const newer=updateTradeFeedback(null,view(20,[],offer)).record,older=updateTradeFeedback(newer,view(10,[],offer));assert.deepEqual(older.record,newer);assert.equal(older.added.length,0);
 });
+test('persisted public results recover all recipient responses even when every intermediate poll was missed',()=>{
+ const v=view(20);v.trades=[{...offer,id:'all-offer',to:'all',recipients:['b','c'],responses:{b:'declined',c:'accepted'},status:'accepted',by:'c',revision:20}];v.seats.push({id:'c',name:'Carol'});
+ const result=updateTradeFeedback(null,v);assert.equal(result.added.length,1);assert.match(result.added[0].message,/Carol accepted/);assert.match(result.added[0].message,/2 Ore/);assert.equal(updateTradeFeedback(JSON.parse(JSON.stringify(result.record)),v).added.length,0);
+});

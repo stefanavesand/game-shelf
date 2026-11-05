@@ -22,3 +22,5 @@ dialog[data-trade="composer"]{width:min(620px,calc(100% - 24px));max-width:620px
 .trade-log{margin:16px 0;font-size:13px}.trade-log summary{cursor:pointer;font-weight:700}.trade-log li{margin:6px 0}
 
 #startup-error{max-width:650px;margin:32px auto;padding:24px;background:var(--paper);border:1px solid var(--line);border-radius:16px}#startup-error[hidden]{display:none}
+
+.trade-responses{margin:12px 0;padding:10px 12px;background:var(--surface,#f3f1e6);border-radius:10px;font-size:.9rem}.trade-responses p{margin:0 0 6px}.trade-responses ul{list-style:none;margin:0;padding:0}.trade-responses li{display:flex;justify-content:space-between;gap:12px;padding:4px 0}.trade-responses strong{color:#174e40}

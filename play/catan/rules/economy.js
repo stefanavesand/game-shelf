@@ -2,7 +2,7 @@
 import { DEVELOPMENT_CARD_COUNTS } from './model.js';
 import { edgeKey, vertexKey } from './geometry.js';
 import { validCoordinate } from './setup.js';
-import { bankRate, validRoads, validSettlements } from './board.js';
+import { bankRates, validRoads, validSettlements } from './board.js';
 import { updateScores } from './scoring.js';
 export const RESOURCES = ['brick', 'lumber', 'ore', 'grain', 'wool'];
 export const COSTS = { road: { brick: 1, lumber: 1 }, settlement: { brick: 1, lumber: 1, wool: 1, grain: 1 },
@@ -84,7 +84,7 @@ export function applyEconomy(input, deck, action, playerId, context) {
                 return reject('Trade amounts must be positive integers');
             if (give.resource === receive.resource)
                 return reject('Cannot trade a resource for itself');
-            if (give.amount !== receive.amount * bankRate(input, playerId, give.resource))
+            if (!bankRates(input, playerId, give.resource).includes(give.amount / receive.amount))
                 return reject('Invalid bank trade ratio');
             if (player.resources[give.resource] < give.amount)
                 return reject('Not enough resources to trade');

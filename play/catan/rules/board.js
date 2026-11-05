@@ -33,6 +33,12 @@ export function bankRate(state, playerId, resource) {
     }
     return rate;
 }
+export function bankRates(state, playerId, resource) {
+    const rates = [bankRate(state, playerId, resource), 4];
+    const owned = new Set(state.board.buildings.filter(b => b.playerId === playerId).map(b => vertexKey(b.vertex)));
+    if (state.board.ports.some(p => p.type === 'generic' && p.vertices?.some(v => owned.has(vertexKey(v))))) rates.push(3);
+    return [...new Set(rates)].sort((a, b) => a - b);
+}
 /** Nine non-overlapping ports on actual coastal edges. Rendering and trade rules
  * use these same vertices, rather than separate decorative port definitions. */
 export function createBasePorts(state) {

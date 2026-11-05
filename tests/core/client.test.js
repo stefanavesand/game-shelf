@@ -88,11 +88,16 @@ test('trade preview uses only own holdings and public opponent totals without ch
   assert.equal(offerIssue(v,d),'');assert.equal(v.state.players.players.find(p=>p.id==='p2').resources.ore,0);const after=handAfter(v.state.players.players[0].resources,d.give,d.receive);assert.equal(after.brick,1);assert.equal(after.ore,4);assert.deepEqual(v,before);
 });
 test('trade validation bounds the offer, rejects both-sided resources and handles empty hands',()=>{
-  const v=structuredClone(fixtures.p1.view),d=offerDraft(v);d.give.brick=4;d.receive.ore=1;assert.match(offerIssue(v,d),/available/);d.give.brick=2;d.receive.brick=1;assert.match(offerIssue(v,d),/different/);d.receive.brick=0;d.receive.ore=6;assert.match(offerIssue(v,d),/only 5/);v.state.players.players.find(p=>p.id==='p2').resourceCount=0;assert.match(offerIssue(v,d),/no resource cards/);
+  const v=structuredClone(fixtures.p1.view),d={...offerDraft(v),to:'p2'};d.give.brick=4;d.receive.ore=1;assert.match(offerIssue(v,d),/available/);d.give.brick=2;d.receive.brick=1;assert.match(offerIssue(v,d),/different/);d.receive.brick=0;d.receive.ore=6;assert.match(offerIssue(v,d),/only 5/);v.state.players.players.find(p=>p.id==='p2').resourceCount=0;assert.match(offerIssue(v,d),/no resource cards/);
 });
 test('a trade draft is retained only for its original room and revision',()=>{
   const v=structuredClone(fixtures.p1.view),d=offerDraft(v);d.give.brick=2;assert.equal(offerDraft(v,d),d);assert.equal(offerDraft({...v,revision:v.revision+1},d).give.brick,0);assert.equal(offerDraft({...v,id:'different-room'},d).give.brick,0);assert.equal(offerDraft({...v,you:'p2'},d).give.brick,0);assert.match(offerIssue({...v,revision:v.revision+1},d),/game changed/);
 });
 test('bank preview preserves the exact authoritative exchange and port rate',()=>{
   const v=fixtures.p1.view,c=bankChoices(v).find(c=>c.give.resource==='ore'&&c.receive.resource==='brick');assert.ok(v.choices.includes(c));assert.equal(c.give.amount,2);const b=bankBundles(c),after=handAfter(v.state.players.players[0].resources,b.give,b.receive);assert.equal(after.ore,1);assert.equal(after.brick,4);
+});
+test('persistent trade drafts cannot submit during roll or robber resolution',()=>{
+ const v=structuredClone(fixtures.p1.view),d=offerDraft(v);d.give.brick=1;d.receive.ore=1;assert.equal(d.to,'all');assert.equal(offerIssue(v,d),'');
+ for(const phase of ['roll','discard','robber-move','ended'])assert.match(offerIssue({...v,state:{...v.state,game:{...v.state.game,phase}}},d),/after rolling/);
+ const offTurn={...v,state:{...v.state,game:{...v.state.game,currentPlayerId:'p2'}}};assert.equal(offerDraft(offTurn).to,'p2');assert.match(offerIssue(offTurn,d),/whose turn/);
 });

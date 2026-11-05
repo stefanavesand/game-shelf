@@ -1,5 +1,7 @@
 # Catan PWA engine: deterministic relay slice
 
+Current follow-up: [rules 2.1.0 trading](TRADING.md) adds All offers, public replies, safe replacement/counteroffers and allowed maritime rates to the main PWA. The dated extraction evidence below remains historical.
+
 2026-11-03 · Rules 2.0.0 · Separate developer interface; the main game UI still uses the managed Catan flow.
 
 ## Delivered boundary

@@ -41,7 +41,7 @@ test('rule geometry and original UI geometry agree on every actual edge endpoint
 });
 test('initialization pins seed, versions, finite deck, ports and integer-only state',async()=>{
  const a=initial(123),b=initial(123);assert.equal(await digest(a),await digest(b));assert.notEqual(await digest(a),await digest(initial(124)));
- assert.equal(a.snapshot.deck.length,25);assert.equal(a.snapshot.state.board.ports.length,9);assert.equal(a.snapshot.engineVersion,'2.0.0');assert.doesNotThrow(()=>canonical(a));conserved(a);
+ assert.equal(a.snapshot.deck.length,25);assert.equal(a.snapshot.state.board.ports.length,9);assert.equal(a.snapshot.engineVersion,'2.1.0');assert.doesNotThrow(()=>canonical(a));conserved(a);
  const portVertices=a.snapshot.state.board.ports.flatMap(p=>p.vertices.map(vertexKey));assert.equal(new Set(portVertices).size,18);
 });
 test('entropy resumes exactly, bounds draws and uses logical IDs/time',()=>{
