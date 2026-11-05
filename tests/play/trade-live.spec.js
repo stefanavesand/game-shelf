@@ -73,3 +73,15 @@ test('two consecutive unaffordable offers resolve without leaving the human stuc
   const p=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(p.view.offer).toBeNull();expect(p.view.trades.filter(t=>t.status==='declined')).toHaveLength(2);
  }finally{await context.close();}
 });
+
+test('End turn is shown as saved while a following bot step is held',async({browser})=>{
+ const {context,page}=await scenario(browser,false);
+ try{
+  await page.getByRole('button',{name:'Close panel'}).click();
+  const before=await page.evaluate(async()=>{const {client}=await import('./session.js'),p=(await client.inspect()).packet,refresh=client.refresh;window.botStarted=false;const gate=new Promise(resolve=>window.releaseBot=resolve);let held=false;client.refresh=async options=>{if(options?.botBudget===1&&!held){held=true;window.botStarted=true;await gate;}return refresh(options);};return p.revision;});
+  await page.getByRole('button',{name:'End turn',exact:true}).click();await expect.poll(()=>page.evaluate(()=>window.botStarted),{timeout:2500}).toBe(true);
+  await expect(page.locator('#connection')).toHaveText('Local · saved');const saved=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(saved.revision).toBe(before+1);expect(saved.botWorkPending).toBe(true);
+  await page.getByRole('button',{name:'Help and rules',exact:true}).click();await expect(page.locator('#sheet')).toBeVisible();await page.evaluate(()=>window.releaseBot());
+  await expect.poll(()=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.revision;})).toBeGreaterThan(before+1);
+ }finally{await page.evaluate(()=>window.releaseBot?.()).catch(()=>{});await context.close();}
+});

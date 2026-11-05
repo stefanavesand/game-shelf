@@ -130,7 +130,7 @@ function apply(next){
   const bot=next.view?.seats.find(s=>s.id===next.view.state.game.currentPlayerId)?.kind==='bot';
   if(bot&&next.view.state.game.phase!=='discard'&&!next.view.offer){if(botRevision!==next.revision){botSince=Date.now();botRevision=next.revision;}if(Date.now()-botSince>20000)notice='The bot is taking longer than usual. Check the game to retry its next decision.';}else botSince=0;
 }
-function schedule(){clearTimeout(timer);if(['home','create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
+function schedule(){clearTimeout(timer);if(['home','create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(packet?.botWorkPending?100:client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
 function sync(op,args={},options={}){
   if(activeSync){
     if(!op)return activeSync;
@@ -154,13 +154,13 @@ async function runSync(op,args={},options={}){
     const outgoing=op==='command'&&args.action?.type==='TRADE_OFFER'?{revision:args.expectedRevision+1,from:packet.you,to:args.action.to,give:args.action.give,receive:args.action.receive}:null;
     await observeTrades(view(),outgoing);
     let operationResult;
-    if(op){const result=operationResult=op==='resume'?await client.resume(args.roomId):await client.execute(op,args,options);if(op==='resume'&&!result.ok){notice=result.error.message;ready=true;error=null;return;}apply(result);if(result?.ok){screen='table';history.replaceState(null,'',location.pathname+'#game');}}
+    if(op){const result=operationResult=op==='resume'?await client.resume(args.roomId,{botBudget:0}):await client.execute(op,args,{...options,botBudget:0});if(op==='resume'&&!result.ok){notice=result.error.message;ready=true;error=null;return;}apply(result);if(result?.ok){screen='table';history.replaceState(null,'',location.pathname+'#game');}}
     const recoveringEntry=['create','join'].includes(saved?.pending?.body.op);
-    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh();apply(latest);await observeTrades(view(),outgoing);
+    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh({botBudget:1});apply(latest);await observeTrades(view(),outgoing);
     if(saved?.pending&&latest?.ok)saved=(await client.inspect()).state;
     if(!saved?.pending)await resolveUnavailableOffers(view,async offerId=>{
-     const declined=await client.execute('command',{roomId:packet.roomId,expectedRevision:packet.revision,action:{type:'TRADE_DECLINE',offerId}});apply(declined);
-     if(!declined?.ok||!client.capabilities.commandReturnsCurrentState)apply(await client.refresh());
+     const declined=await client.execute('command',{roomId:packet.roomId,expectedRevision:packet.revision,action:{type:'TRADE_DECLINE',offerId}},{botBudget:0});apply(declined);
+     if(!declined?.ok||!client.capabilities.commandReturnsCurrentState)apply(await client.refresh({botBudget:1}));
      await observeTrades(view());return !!declined?.ok;
     });
     if(latest?.ok&&recoveringEntry){screen='table';history.replaceState(null,'',location.pathname+'#game');}ready=true;error=null;

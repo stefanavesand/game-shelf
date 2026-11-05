@@ -2,7 +2,7 @@
 export const CATAN_ARTIFACT = Object.freeze({
   "schemaVersion": 1,
   "rulesVersion": "2.1.0",
-  "releaseVersion": "0.3.5",
+  "releaseVersion": "0.3.6",
   "breaking": false,
   "compatibilityId": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
   "files": [
@@ -12,7 +12,7 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/catan/module.js",
-      "sha256": "ca5636acba6fd3702841b8f5c90da1a34d9323bb56d3c2e17056e42c8abf2417"
+      "sha256": "0540987a3b29b92e64af4c5f2993546156102d084a175f42919899ab89ff50ee"
     },
     {
       "path": "play/catan/rules/board.js",
@@ -71,5 +71,5 @@ export const CATAN_ARTIFACT = Object.freeze({
       "sha256": "716094de2fe3ff56e48407a7b20a13d28cfef4b302473fad662d1c38e43b48c2"
     }
   ],
-  "digest": "7ee0319f64c02091a67f9c251de6b37596b2999248434794cea13695de15a820"
+  "digest": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d"
 });

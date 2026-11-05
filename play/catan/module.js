@@ -12,6 +12,10 @@ export function catanConfig(humans,{solo=false,level='standard',seed,playerCount
   while(seats.length<playerCount)seats.push({id:`bot:${seats.length}`,name:botName(seed,seats.length-humans.length,seats.map(s=>s.name)),kind:'bot',level});
   return {schemaVersion:1,rulesVersion:CATAN_ENGINE_VERSION,randomAlgorithm:RANDOM_ALGORITHM,seed,seats};
 }
+function eligibleBot(state){
+ const eligible=state.snapshot.offer?pendingTradeRecipients(state.snapshot.offer):eligibleActors(state.snapshot);
+ return state.snapshot.seats.find(s=>s.kind==='bot'&&eligible.includes(s.id));
+}
 export function createCatanModule(artifactDigest) {
   return {
     id:'catan-base',version:2,digest:artifactDigest,
@@ -31,9 +35,9 @@ export function createCatanModule(artifactDigest) {
       catch(error){if(error instanceof CatanRuleError)throw new RuleRejection(error.message);throw error;}
     },
     view:(state,seat)=>catanView(state.snapshot,seat),
+    hasBotWork:state=>!!eligibleBot(state),
     nextBot(state) {
-      const eligible=state.snapshot.offer?pendingTradeRecipients(state.snapshot.offer):eligibleActors(state.snapshot);
-      const bot=state.snapshot.seats.find(s=>s.kind==='bot'&&eligible.includes(s.id));
+      const bot=eligibleBot(state);
       if(!bot)return null;
       const observation=catanView(state.snapshot,bot.id);
       return {actor:bot.id,action:clone(botDecision(observation,bot.level))};

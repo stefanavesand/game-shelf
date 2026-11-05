@@ -197,3 +197,13 @@ test('an online human placement returns committed state without a redundant catc
  const result=await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:p.view.choices[0]});
  assert.ok(result.ok);assert.equal(result.revision,p.revision+1);assert.equal(result.view.state.board.buildings.length,p.view.state.board.buildings.length+1);assert.ok(server.sent.length-before<=6,'A placement must not perform another poll after commit');
 });
+
+test('online UI budgets commit the human move before coordinator bot processing',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js'),{botDecision}=await import('../../play/catan/rules/index.js');
+ const server=fakeRelay({members:['alice']}),client=createOnlineGameClient({store:createMemoryStore(),transport:server.transport(),auth:{savedIdentity:()=>({user:{id:'alice'}}),identity:async()=>({user:{id:'alice'}})}});
+ await client.execute('create',{name:'Alice'},{botBudget:0});let p=await client.execute('start',{roomId:server.channelId},{botBudget:0});
+ for(let i=0;i<80&&!p.view.choices.some(a=>a.type==='END_TURN');i++)p=p.botWorkPending?await client.refresh({botBudget:1}):await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:botDecision(p.view,'standard')},{botBudget:0});
+ assert.ok(p.view.choices.some(a=>a.type==='END_TURN'));const revision=p.revision,n=server.messages.length;
+ p=await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:{type:'END_TURN'}},{botBudget:0});assert.equal(p.revision,revision+1);assert.equal(p.botWorkPending,true);assert.equal(server.messages.slice(n).filter(m=>m.message.type==='game.command').length,1);
+ const next=await client.refresh({botBudget:1});assert.equal(next.revision,p.revision+1);
+});

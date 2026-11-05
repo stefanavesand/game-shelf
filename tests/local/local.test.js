@@ -45,3 +45,15 @@ test('four-player offline solo saves three named bots and restores its roster',a
  assert.equal(p.members.length,4);assert.equal(p.members.filter(m=>m.kind==='bot').length,3);assert.equal(new Set(p.members.map(m=>m.name)).size,4);
  assert.deepEqual((await createLocalClient({storage,locks}).inspect()).packet.members,p.members);assert.equal((await client.games())[0].playerCount,4);
 });
+
+test('a human move commits before bots, which resume one saved step at a time',async()=>{
+ let data={schemaVersion:1,local:false,current:null,games:{}},writes=0;
+ const storage={load:async()=>structuredClone(data),save:async v=>{writes++;data=structuredClone(v);}};
+ let c=createLocalClient({storage,locks,seed:()=>2026}),p=await c.execute('create',{name:'Fast feedback'});
+ for(let i=0;i<150&&!p.view.choices.some(a=>a.type==='END_TURN');i++)p=p.view.choices.length?await c.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:botDecision(p.view,'standard')}):await c.refresh();
+ assert.ok(p.view.choices.some(a=>a.type==='END_TURN'));const before=p.revision,prior=structuredClone(data);writes=0;
+ p=await c.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:{type:'END_TURN'}},{botBudget:0});assert.equal(p.revision,before+1);assert.equal(writes,1);assert.equal(p.botWorkPending,true);
+ c=createLocalClient({storage,locks});assert.equal((await c.inspect()).packet.revision,before+1);writes=0;const one=await c.refresh({botBudget:1});assert.equal(one.revision,before+2);assert.equal(writes,1);
+ let baseline=prior;const batch=createLocalClient({storage:{load:async()=>structuredClone(baseline),save:async v=>{baseline=structuredClone(v);}},locks});const expected=await batch.execute('command',{roomId:p.roomId,expectedRevision:before,action:{type:'END_TURN'}});
+ while((await c.inspect()).packet.revision<expected.revision)await c.refresh({botBudget:1});assert.deepEqual(data.games[p.roomId].state,baseline.games[p.roomId].state);
+});
