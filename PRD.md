@@ -1,5 +1,10 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
+## Google accounts — owner decision 2026-11-06
+
+Add optional Google sign-in and sign-out to the PWA using the existing Supabase identity provider. The owner permits discarding historical data and anonymous account migration is explicitly out of scope: signing in may select a new Google-backed principal for future online games. Do not merge accounts or promise transfer of guest games. Solo remains usable offline without sign-in; anonymous online play remains supported. Google secrets stay in provider settings. Handle denied/cancelled callbacks, PKCE/state loss, changed identity in another window, offline access and persistence errors without accepting unsolicited tokens. Account changes must not race a pending delivery. Cross-device discovery of game lists and synchronization of local Solo saves remain separate features. Test installed iPad browser handoff on the actual device before claiming it verified.
+
+
 ## Current player configurations — 2026-11-05
 
 Owner-approved extension: choose **3 or 4 total players**. Online games open an invitation lobby; the creator explicitly starts after friends join. At start, connected channel members take human seats in admission order (creator first), and bots fill every unclaimed seat. The roster then stays fixed: late joins cannot replace bots. A selected three-player game admits only the first three members as players even though the generic relay channel can hold four. Solo starts immediately offline with two or three bots. Choose Easy/Standard for the bots at creation; deterministic, distinct names replace numbered bot labels in new games. Existing games retain their original roster and rules. This supersedes older fixed-three-seat and automatic-start descriptions below.

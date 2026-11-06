@@ -1,3 +1,5 @@
+import {createGoogleAuth,isGoogleReturn} from './core/google-auth.js';
+import {withUpdateLock} from './lifecycle.js';
 import {canSupplyOffer,updateTradeFeedback,unavailableIncomingOffer,resolveUnavailableOffers} from './trade-feedback.js';
 import {CARD_RULES,ACTION_CARD_TIMING,HELP_SECTIONS} from './help.js';
 import {setupPwa} from './pwa.js';
@@ -12,7 +14,8 @@ const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll
 const button=(label,action,classes='',disabled=false)=>`<button type="button" data-action="${action}" class="${classes}" ${disabled?'disabled':''}>${label}</button>`;
 const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
-let knownGames=[],tradeFeedback=[];
+let knownGames=[],tradeFeedback=[],accountBusy=false;
+const googleAuth=createGoogleAuth();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null;
@@ -23,7 +26,7 @@ const solo=()=>client.isLocal()||(packet?.status!=='waiting'&&packet?.members?.f
 const player=id=>view()?.state.players.players.find(p=>p.id===id);
 const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Player';
 const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
-const blocked=()=>busy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
+const blocked=()=>busy||accountBusy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
@@ -101,7 +104,7 @@ function render(){
   if(screen==='home'){
     const games=[...knownGames];
     if(saved?.roomId&&!games.some(g=>g.roomId===saved.roomId))games.unshift({roomId:saved.roomId,status:packet?.status||'playing',players:packet?.members?.map(m=>m.name)||[],mode:packet?(solo()?'solo':'friends'):null,botLevel:packet?.members?.find(m=>m.kind==='bot')?.level||null});
-    html=`${recovery()}<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Catan</h1><p class="muted">Continue a saved game or start a new one.</p><div class="home-actions">${button('New game','create','primary',blocked())}${button('Join a game','join','',blocked())}</div><section class="saved-games" aria-label="Saved games"><h2>Your games</h2>${games.length?games.map(g=>`<article class="saved-game"><div><h3>${esc(g.players.join(' · ')||'Saved game')}</h3><p>${g.mode?`${g.mode==='solo'?'Solo':'Online'} · ${g.playerCount||3} players`:'Open to check players and bot level'}${g.botLevel?' · '+(g.botLevel==='easy'?'Easy':'Standard'):''}</p><small>${g.status==='waiting'?'Waiting in lobby':g.status==='ended'?'Finished':'In progress'} · ${esc(g.roomId.slice(0,8))}</small></div><div class="saved-game-actions">${button(g.status==='ended'?'View result':'Resume game',`resume-game:${g.roomId}`,'',blocked())}${button('Abandon game',`abandon-game:${g.roomId}`,'quiet',busy||!!saved?.pending)}</div></article>`).join(''):'<p class="muted">No saved games yet. Choose New game to get started.</p>'}<p class="safe-hint">Games opened in this browser appear here. Keep its data to retain your player identity. Solo games work offline. Games with a friend require internet.</p></section></section>`;
+    html=`${recovery()}<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Catan</h1><p class="muted">Continue a saved game or start a new one.</p><div class="home-actions">${button('New game','create','primary',blocked())}${button('Join a game','join','',blocked())}</div><section class="saved-games" aria-label="Saved games"><h2>Your games</h2>${games.length?games.map(g=>`<article class="saved-game"><div><h3>${esc(g.players.join(' · ')||'Saved game')}</h3><p>${g.mode?`${g.mode==='solo'?'Solo':'Online'} · ${g.playerCount||3} players`:'Open to check players and bot level'}${g.botLevel?' · '+(g.botLevel==='easy'?'Easy':'Standard'):''}</p><small>${g.status==='waiting'?'Waiting in lobby':g.status==='ended'?'Finished':'In progress'} · ${esc(g.roomId.slice(0,8))}</small></div><div class="saved-game-actions">${button(g.status==='ended'?'View result':'Resume game',`resume-game:${g.roomId}`,'',blocked())}${button('Abandon game',`abandon-game:${g.roomId}`,'quiet',busy||!!saved?.pending)}</div></article>`).join(''):'<p class="muted">No saved games yet. Choose New game to get started.</p>'}<p class="safe-hint">Games opened in this browser appear here. Keep its data to retain your player identity. Solo games work offline. Games with a friend require internet.</p></section>${accountPanel()}</section>`;
   }
   else if(['create','join'].includes(screen))html=`${recovery()}<section class="form-card">${button('← Back','home','back-link')}<p class="eyebrow">Catan</p><h1>${screen==='create'?'New game':'Join a game'}</h1><p class="muted">${screen==='create'?(formDraft.gameMode==='solo'?'Play offline against bots. Saved on this device.':'Choose the game size, invite friends, then start. Bots fill any empty seats.'):'Join the lobby before the host starts the game.'}</p><form id="entry-form"><div class="form-fields"><label for="player-name">Your name</label><input id="player-name" maxlength="30" autocomplete="nickname" placeholder="Your name" value="${esc(formDraft.name)}" required>${screen==='create'?`<label for="player-count">Game size</label><select id="player-count"><option value="3" ${formDraft.playerCount===3?'selected':''}>3 players</option><option value="4" ${formDraft.playerCount===4?'selected':''}>4 players</option></select><label for="game-mode">Play mode</label><select id="game-mode"><option value="friends" ${formDraft.gameMode==='friends'?'selected':''}>Online · invite friends</option><option value="solo" ${formDraft.gameMode==='solo'?'selected':''}>Solo offline · play against bots</option></select><label for="bot-level">Bot level</label><select id="bot-level"><option value="standard" ${formDraft.level==='standard'?'selected':''}>Standard · resource priorities</option><option value="easy" ${formDraft.level==='easy'?'selected':''}>Easy · more varied choices</option></select>`:`<label for="room-id">Room ID</label><input id="room-id" value="${esc(formDraft.room??invitedRoom()??'')}" autocomplete="off"><label for="invite-token">Invitation link or token</label><input id="invite-token" value="${esc(invitationToken||'')}" required autocomplete="off">`}</div><button class="primary" type="submit" ${blocked()||(!navigator.onLine&&(screen==='join'||formDraft.gameMode!=='solo'))?'disabled':''}>${screen==='create'?(formDraft.gameMode==='solo'?'Start solo game':'Create game'):'Join game'}</button></form><p class="safe-hint">${saved?.persistent===false&&client.isLocal()?'Persistent storage was not granted. Your browser may remove local saves.':'Local games stay on this device. Clearing browser data removes saves and identity.'}</p></section>`;
   else if(packet?.status==='waiting'&&packet.lobby)html=recovery()+renderLobby();
@@ -278,6 +281,23 @@ function scorePanel(){const v=view(),g=v.state.game;openSheet('Score breakdown',
 
 function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<div class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP</span></div>`).join('')}<div class="sheet-actions">${button('View the board','close','quiet')}${button('New game','create','primary')}</div></div>`);}
 function invitedRoom(){return new URLSearchParams(location.hash.split('?')[1]||'').get('room');}
+function accountPanel(){
+ try{const p=googleAuth.profile();return `<section class="account-section" aria-label="Account"><div><h2>${p?'Google account':'Optional account'}</h2><p class="muted">${p?esc(p.email||p.name):'Use Google to keep the same online player identity on other devices. Guest games are not transferred. Solo works without signing in.'}</p></div>${p?button('Sign out','google-sign-out','quiet',blocked()||!navigator.onLine):button('Sign in with Google','google-sign-in','',blocked()||!navigator.onLine)}</section>`;}catch{return '<section class="account-section"><p>Saved account details could not be read. Your data has been kept.</p></section>';}
+}
+async function changeAccount(work){
+ const result=await withUpdateLock(async()=>{
+  if(!await client.canUpdate(self.OFFLINE_ENGINE))throw new PlayError('ACCOUNT_BUSY','Resolve pending moves before changing account.');
+  await work();return true;
+ });
+ if(result===null)throw new PlayError('ACCOUNT_BUSY','Another window is saving a move. Wait for it to finish before signing in or out.');
+}
+async function accountAction(signOut=false){
+ if(accountBusy||busy||saved?.pending||!navigator.onLine||screen!=='home')return;
+ accountBusy=true;let navigating=false;notice=signOut?'Signing out…':'Opening Google sign-in…';render();
+ try{await changeAccount(async()=>{if(signOut){await googleAuth.signOut();history.replaceState(null,'',location.pathname+'#home');location.reload();}else location.assign(await googleAuth.start(location.href));navigating=true;});}
+ catch(e){notice=e.message||'Sign-in could not be started. Please try again.';}
+ finally{if(!navigating)accountBusy=false;render();}
+}
 function renderLobby(){
  const l=packet.lobby;
  if(l.full)return `<section class="form-card"><h1>Game full</h1><p class="muted">${l.started?'This game has already started. Its seats are fixed.':'All human seats are taken.'} Ask your friends to create another game.</p>${button('Return to start','home','primary')}</section>`;
@@ -289,6 +309,9 @@ function begin(next){
   setScreen(next);
 }
 async function dispatch(action,el){
+  if(action==='google-sign-in'){await accountAction();return;}
+  if(action==='google-sign-out'){if(blocked())return;openSheet('Sign out?',`<p>Your online games pause until you sign in again. Local Solo games stay on this device.</p><div class="sheet-actions">${button('Cancel','close','quiet')}${button('Sign out','google-sign-out-confirm','primary')}</div>`);return;}
+  if(action==='google-sign-out-confirm'){closeSheet();await accountAction(true);return;}
   if(action==='apply-update'){error=null;ready=true;closeSheet();setScreen('home');$('offline-status').click();return;}
   if(action==='reload-app'){location.reload();return;}
   if(action==='help'){helpPanel();return;}
@@ -360,8 +383,9 @@ window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){
 window.addEventListener('offline',()=>{clearTimeout(timer);if(offlineAllowed()){error=null;render();schedule();return;}ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
 window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
 async function boot(){
+  if(isGoogleReturn(location.href)){const href=location.href;history.replaceState(null,'',location.pathname+'#home');accountBusy=true;notice='Completing Google sign-in…';render();try{await changeAccount(()=>googleAuth.finish(href,path=>history.replaceState(null,'',path)));notice='Signed in with Google.';}catch(e){notice=e.message||'Google sign-in could not be completed. Please try again.';}finally{accountBusy=false;}}
   try{knownGames=await client.games();const existing=await client.inspect();saved=existing.state;packet=existing.packet;screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if((navigator.onLine||client.isLocal())&&(saved.roomId||saved.pending)&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
 }
 boot();
 
-setupPwa({isIdle:()=>ready&&!error&&!busy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open,canUpdate:async artifact=>!busy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&await client.canUpdate(artifact)});
+setupPwa({isIdle:()=>ready&&!error&&!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open,canUpdate:async artifact=>!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&await client.canUpdate(artifact)});

@@ -1,7 +1,7 @@
 import {PlayError,locked,retryDelay} from './errors.js';
 export const AUTH_KEY='spelhyllan-online-auth-v1';
-const AUTH_URL='https://ppaixjqaixwnebhxfjeb.supabase.co';
-const PUBLISHABLE_KEY='sb_publishable_i1LT3xs1l0Fm0ozPVlo7pA_HBfIbcoq'; // Public publishable key.
+export const AUTH_URL='https://ppaixjqaixwnebhxfjeb.supabase.co';
+export const PUBLISHABLE_KEY='sb_publishable_i1LT3xs1l0Fm0ozPVlo7pA_HBfIbcoq'; // Public publishable key.
 export function createIdentity({fetcher=globalThis.fetch,local,locks=globalThis.navigator?.locks,now=Date.now}={}){
   function savedIdentity(){try{const raw=(local??globalThis.localStorage).getItem(AUTH_KEY);if(!raw)return null;const value=JSON.parse(raw);if(!value?.user?.id||!value.refresh_token||!value.access_token)throw new Error();return value;}catch{throw new PlayError('AUTH_REQUIRED','Saved sign-in data could not be read. It has been kept and has not been replaced.');}}
   async function http(url,body,token){
