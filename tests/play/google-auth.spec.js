@@ -10,6 +10,7 @@ async function setup(browser,{initial=guest,cancel=false}={}){
  await context.route('https://ppaixjqaixwnebhxfjeb.supabase.co/**',async route=>{
   const r=route.request(),u=new URL(r.url());if(r.method()==='OPTIONS'){await route.fulfill({status:204,headers:cors});return;}
   if(u.pathname.endsWith('/authorize')){calls.authorize++;challenge=u.searchParams.get('code_challenge');const back=u.searchParams.get('redirect_to');expect(new URL(back).pathname).toBe(root);await route.fulfill({status:302,headers:{location:back+(cancel?'?error=access_denied':'?code=fixture-code')}});return;}
+  if(u.searchParams.get('grant_type')==='refresh_token'){await route.fulfill({status:401,json:{error:'invalid_refresh_token'},headers:cors});return;}
   if(u.searchParams.get('grant_type')==='pkce'){calls.token.push(r.postDataJSON());await route.fulfill({json:google,headers:cors});return;}
   if(u.pathname.endsWith('/logout')){calls.logout++;expect(u.searchParams.get('scope')).toBe('local');await route.fulfill({status:204,headers:cors});return;}
   if(u.pathname.endsWith('/signup'))calls.signup++;await route.abort();
@@ -31,4 +32,11 @@ test('an unsolicited callback cannot replace a player or lock the home screen',a
 });
 test('a pending delivery in another saved room blocks changing account',async({browser})=>{
  const f=await setup(browser);try{await f.page.evaluate(async()=>{const {createRelayStore}=await import('./relay/store.js'),s=createRelayStore({name:'game-shelf-online-catan-v1'}),index=await s.load('guest','@index');index.rooms={old:{}};index.current=null;await s.save(index);const record=await s.load('guest','old');record.outbox.push({message:{type:'game.command'},request:null});await s.save(record);});await f.page.reload();await f.page.getByRole('button',{name:'Sign in with Google',exact:true}).click();await expect(f.page.getByText('Resolve pending moves before changing account.',{exact:true})).toBeVisible();expect(f.calls.authorize).toBe(0);}finally{await f.context.close();}
+});
+
+test('an expired rejected session can be repaired with Google without clearing app data',async({browser})=>{
+ const f=await setup(browser,{initial:google});try{
+  await f.page.evaluate(key=>{const s=JSON.parse(localStorage.getItem(key));s.expires_at=1;localStorage.setItem(key,JSON.stringify(s));},key);await f.page.locator('#refresh').click();await expect(f.page.getByRole('heading',{name:'Your player identity needs attention',exact:true})).toBeVisible();
+  await expect(f.page.getByRole('button',{name:'Sign in again',exact:true})).toBeEnabled();await f.page.getByRole('button',{name:'Sign in again',exact:true}).click();await expect(f.page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();await expect(f.page.getByRole('heading',{name:'Your player identity needs attention',exact:true})).toHaveCount(0);expect(f.calls.token).toHaveLength(1);expect(await f.page.evaluate(key=>JSON.parse(localStorage.getItem(key)).user.id,key)).toBe('google-player');
+ }finally{await f.context.close();}
 });

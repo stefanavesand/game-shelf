@@ -30,3 +30,4 @@ body{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-l
 .app-header{background:#f7f3e9}
 
 .account-section{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:28px;padding-top:20px;border-top:1px solid var(--line)}.account-section h2{font-size:18px;margin:0 0 8px}.account-section p{font-size:13px;line-height:1.6;max-width:480px;margin:0;overflow-wrap:anywhere}
+.account-actions{display:flex;gap:8px;flex-wrap:wrap}
