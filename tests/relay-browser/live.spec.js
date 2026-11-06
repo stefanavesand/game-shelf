@@ -3,10 +3,11 @@ import {test,expect as baseExpect} from '@playwright/test';
 const expect=baseExpect.configure({timeout:20000});
 // Explicit opt-in only. Never capture tokens, invitations or private HTTP traces.
 test.use({trace:'off',screenshot:'off',video:'off'});
-test('LIVE relay: two new identities create, join, replicate and reopen a counter',async({browser})=>{
+test('LIVE relay: two signed-in accounts create, join, replicate and reopen a counter',async({browser})=>{
  test.skip(process.env.GAME_SHELF_RELAY_LIVE!=='1','Requires explicit live relay authorization.');
  test.setTimeout(120000);
- const a=await browser.newContext(),b=await browser.newContext();
+ if(!process.env.GAME_SHELF_ACCOUNT_A_STATE||!process.env.GAME_SHELF_ACCOUNT_B_STATE)throw Error('Provide two private, preauthenticated Google storage-state files.');
+ const a=await browser.newContext({storageState:process.env.GAME_SHELF_ACCOUNT_A_STATE}),b=await browser.newContext({storageState:process.env.GAME_SHELF_ACCOUNT_B_STATE});
  await configureLiveEgress([a,b]);
  try {
   const host=await a.newPage(),guest=await b.newPage();await host.goto('/game-shelf/play/relay/');await guest.goto('/game-shelf/play/relay/');

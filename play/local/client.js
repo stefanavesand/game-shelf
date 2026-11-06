@@ -4,11 +4,11 @@ import {digest,clone} from '../relay/protocol.js';
 import {RuleRejection} from '../relay/replica.js';
 import {PlayError,locked} from '../core/errors.js';
 const module=createCatanModule(CATAN_ARTIFACT.compatibilityId),blank=()=>({schemaVersion:1,local:false,current:null,games:{}});
-export function createLocalStorage({indexedDB=globalThis.indexedDB}={}){
+export function createLocalStorage({indexedDB=globalThis.indexedDB,owner=()=>null}={}){
  let database;
  const failure=()=>new PlayError('STORAGE_FAILURE','Local storage is unavailable. No new move was saved.');
  async function db(){if(!database)database=new Promise((resolve,reject)=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onupgradeneeded=()=>r.result.createObjectStore('records');r.onerror=r.onblocked=()=>reject(failure());r.onsuccess=()=>{r.result.onversionchange=()=>{r.result.close();database=null;};resolve(r.result);};});return database;}
- async function record(value){try{const d=await db();return await new Promise((resolve,reject)=>{const tx=d.transaction('records',value?'readwrite':'readonly'),s=tx.objectStore('records'),r=value?s.put(value,'library'):s.get('library');let result;r.onsuccess=()=>{result=r.result;};tx.oncomplete=()=>resolve(value??result??blank());tx.onabort=tx.onerror=()=>reject(failure());});}catch{throw failure();}}
+ async function record(value){try{const d=await db();return await new Promise((resolve,reject)=>{const tx=d.transaction('records',value?'readwrite':'readonly'),s=tx.objectStore('records'),r=value?s.put(value,'account:'+owner()):s.get('account:'+owner());let result;r.onsuccess=()=>{result=r.result;};tx.oncomplete=()=>resolve(value??result??blank());tx.onabort=tx.onerror=()=>reject(failure());});}catch{throw failure();}}
  return {load:()=>record(),save:value=>record(clone(value))};
 }
 export function createLocalClient({storage=createLocalStorage(),locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),seed=()=>{const n=new Uint32Array(1);do{crypto.getRandomValues(n);}while(!n[0]);return n[0];}}={}){

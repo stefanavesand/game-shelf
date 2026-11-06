@@ -1,9 +1,9 @@
-import {createIdentity,AUTH_KEY,AUTH_URL,PUBLISHABLE_KEY} from './identity.js';
+import {createIdentity,AUTH_KEY,AUTH_URL,PUBLISHABLE_KEY,isAccount,accountName} from './identity.js';
 import {PlayError,locked} from './errors.js';
 export const GOOGLE_FLOW_KEY='game-shelf-google-pkce-v1';
 const LOCK='spelhyllan-online-auth';
 export function isGoogleReturn(href){const u=new URL(href),f=new URLSearchParams(u.hash.slice(1));return u.searchParams.has('code')||u.searchParams.has('error')||u.searchParams.has('error_description')||['access_token','refresh_token','error','error_description'].some(k=>f.has(k));}
-const google=user=>user?.is_anonymous!==true&&(user?.app_metadata?.provider==='google'||user?.app_metadata?.providers?.includes('google')||user?.identities?.some(i=>i.provider==='google'));
+const google=isAccount;
 const base64url=bytes=>btoa(String.fromCharCode(...bytes)).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
 export function createGoogleAuth({identity=createIdentity(),local,fetcher=globalThis.fetch,locks=globalThis.navigator?.locks,now=Date.now,random=globalThis.crypto}={}){
  const lock=work=>locked(LOCK,work,locks),storage=()=>local??globalThis.localStorage;
@@ -18,11 +18,11 @@ export function createGoogleAuth({identity=createIdentity(),local,fetcher=global
   }catch(e){if(e instanceof PlayError)throw e;throw failure('NETWORK_UNAVAILABLE','Sign-in was interrupted. Reconnect and start sign-in again.');}finally{clearTimeout(timer);}
  }
  return {
-  profile(){const s=identity.savedIdentity();return google(s?.user)?{id:s.user.id,email:s.user.email||'',name:s.user.user_metadata?.full_name||s.user.email||'Google account'}:null;},
+  profile(){const s=identity.savedIdentity();return google(s?.user)?{id:s.user.id,email:s.user.email||'',name:accountName(s.user)}:null;},
   start(href){return lock(async()=>{
    const old=identity.savedIdentity(),returnUrl=new URL('.',href);if(!['https:','http:'].includes(returnUrl.protocol))throw failure('AUTH_FAILED','Open the installed app or website to sign in.');
    const verifier=base64url(random.getRandomValues(new Uint8Array(32))),challenge=base64url(new Uint8Array(await random.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
-   store(GOOGLE_FLOW_KEY,{schemaVersion:1,verifier,createdAt:now(),principal:old?.user.id??null,returnUrl:returnUrl.href});
+   store(GOOGLE_FLOW_KEY,{schemaVersion:1,verifier,createdAt:now(),principal:old?.user.id??null,returnUrl:returnUrl.href,returnHash:new URL(href).hash});
    const url=new URL(AUTH_URL+'/auth/v1/authorize');for(const [key,value] of Object.entries({provider:'google',redirect_to:returnUrl.href,code_challenge:challenge,code_challenge_method:'s256',scopes:'openid email profile',prompt:'select_account'}))url.searchParams.set(key,value);
    return url.href;
   });},
@@ -39,13 +39,13 @@ export function createGoogleAuth({identity=createIdentity(),local,fetcher=global
     const result=await request('token?grant_type=pkce',{auth_code:code,code_verifier:flow.verifier});
     if(typeof result?.access_token!=='string'||!result.access_token||typeof result.refresh_token!=='string'||!result.refresh_token||typeof result.user?.id!=='string'||!result.user.id||!google(result.user))throw failure('AUTH_FAILED','The Google account could not be verified. Your previous identity has been kept.');
     const session={access_token:result.access_token,refresh_token:result.refresh_token,expires_at:result.expires_at||Math.floor(now()/1000)+(result.expires_in||3600),user:result.user};
-    store(AUTH_KEY,session);return {signedIn:true};
+    store(AUTH_KEY,session);if(flow.returnHash?.startsWith('#join?'))cleanUrl(url.pathname+flow.returnHash);return {signedIn:true};
    }finally{try{store(GOOGLE_FLOW_KEY,null);}catch{/* A completed exchange cannot be replayed; an unreadable flow is rejected. */}}
   });},
   async signOut(){
    const session=await identity.identity();return lock(async()=>{
     if(identity.savedIdentity()?.user.id!==session.user.id)throw failure('AUTH_CHANGED','Your account changed in another window. Please try again.');
-    if(!google(session.user))throw failure('AUTH_FAILED','Guest identities cannot be restored after sign-out.');
+    if(!google(session.user))throw failure('AUTH_FAILED','Sign in with Google to manage your account.');
     await request('logout?scope=local',{},session.access_token);store(AUTH_KEY,null);store(GOOGLE_FLOW_KEY,null);
    });
   }

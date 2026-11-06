@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './account-fixture.js';
 import {fakeRelay} from '../relay/fake-relay.js';
 import http from 'node:http';
 import {readFile} from 'node:fs/promises';
@@ -32,7 +32,7 @@ async function updateServer({differentEngine=false,workerOnly=false,automatic=fa
 async function open(browser,options){
  const server=await updateServer(options),context=await browser.newContext();await context.route(/^https:\/\//,route=>route.abort());const page=await context.newPage();await page.goto(server.url+'#home');await expect(page.locator('#offline-status')).toHaveText('Ready for offline',{timeout:30000});return {server,context,page};
 }
-async function solo(page){await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Update tester');await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');await expect.poll(()=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.botWorkPending;})).toBe(false);return page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});}
+async function solo(page){await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');await expect.poll(()=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.botWorkPending;})).toBe(false);return page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});}
 async function status(page){return page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();return new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=e=>resolve(e.data);r.active.postMessage({type:'CHECK'},[c.port2]);});});}
 async function update(page){await page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update();});}
 async function cleanup(f){await f.context.close();await f.server.close();}
@@ -118,14 +118,14 @@ test('a stale window that missed reload is fenced before it can persist another 
   expect(await stale.evaluate(()=>self.OFFLINE_VERSION)).toBe(f.server.version);
   const error=await stale.evaluate(async()=>{try{const {client}=await import('./session.js');await client.execute('create',{name:'Stale',mode:'solo'});return null;}catch(e){return e.code;}});expect(error).toBe('UNSUPPORTED_VERSION');
   expect(await f.page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.games()).length;})).toBe(0);
-  await stale.getByRole('button',{name:'New game',exact:true}).click();await stale.getByLabel('Your name',{exact:true}).fill('Stale');await stale.getByLabel('Play mode',{exact:true}).selectOption('solo');await stale.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(stale.getByRole('button',{name:'Reload app',exact:true})).toBeVisible();await stale.getByRole('button',{name:'Reload app',exact:true}).click();await expect(stale.getByRole('button',{name:'New game',exact:true})).toBeEnabled();await solo(stale);expect(await stale.evaluate(()=>self.OFFLINE_VERSION)).toBe(f.server.nextVersion);
+  await stale.getByRole('button',{name:'New game',exact:true}).click();await stale.getByLabel('Play mode',{exact:true}).selectOption('solo');await stale.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(stale.getByRole('button',{name:'Reload app',exact:true})).toBeVisible();await stale.getByRole('button',{name:'Reload app',exact:true}).click();await expect(stale.getByRole('button',{name:'New game',exact:true})).toBeEnabled();await solo(stale);expect(await stale.evaluate(()=>self.OFFLINE_VERSION)).toBe(f.server.nextVersion);
  }finally{await cleanup(f);}
 });
 
 test('a lost online acknowledgment blocks another window update until the original intent resolves once',async({browser})=>{
  const f=await open(browser),server=fakeRelay({channelId:'10000000-0000-4000-8000-000000000001'});try{
   await f.context.route('**/api/public/relay/v1',async route=>{try{const packet=await server.transport().request(route.request().postDataJSON(),'alice');await route.fulfill({json:{ok:true,protocolVersion:1,...packet}});}catch(e){await route.fulfill({status:409,json:{ok:false,protocolVersion:1,error:{code:e.code,message:e.message,retryable:!!e.retryable}}});}});
-  await f.page.evaluate(()=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id:'alice'},access_token:'alice',refresh_token:'fixture',expires_at:4102444800})));
+  await f.page.evaluate(()=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id:'alice',app_metadata:{provider:'google'},user_metadata:{full_name:'Alice'}},access_token:'alice',refresh_token:'fixture',expires_at:4102444800})));
   // A fixed fixture seed gives Alice the first human placement.
   await f.context.addInitScript(()=>{const random=crypto.getRandomValues.bind(crypto);crypto.getRandomValues=value=>{if(value instanceof Uint32Array&&value.length===1){value[0]=42;return value;}return random(value);};});
   const actor=await actorPage(f);await actor.evaluate(async()=>{const {client}=await import('./session.js');const p=await client.execute('create',{name:'Alice'});await client.execute('start',{roomId:p.roomId});});server.loseResponse();
@@ -169,12 +169,12 @@ test('a failed engine download releases its obsolete fence so the previous app c
 test('same-engine UI repair can install despite an already-incompatible local save and reveal abandonment after reopening',async({browser})=>{
  const f=await open(browser);try{
   const before=await solo(f.page);
-  await f.page.evaluate(async()=>navigator.locks.request('game-shelf-local-solo',async()=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});await new Promise(resolve=>{const tx=db.transaction('records','readwrite'),store=tx.objectStore('records'),r=store.get('library');r.onsuccess=()=>{const lib=r.result;lib.games[lib.current].artifact='previous-engine-fixture';store.put(lib,'library');};tx.oncomplete=resolve;});db.close();}));
+  await f.page.evaluate(async()=>navigator.locks.request('game-shelf-local-solo',async()=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});await new Promise(resolve=>{const tx=db.transaction('records','readwrite'),store=tx.objectStore('records'),r=store.get('account:alice');r.onsuccess=()=>{const lib=r.result;lib.games[lib.current].artifact='previous-engine-fixture';store.put(lib,'account:alice');};tx.oncomplete=resolve;});db.close();}));
   await f.page.goto(f.server.url+'#home');await f.page.reload();await expect(f.page.getByRole('heading',{name:'An older saved game needs attention'})).toBeVisible();await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);
   f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');
   await f.page.close();f.page=await f.context.newPage();await f.page.goto(f.server.url+'#home');await expect.poll(async()=>(await status(f.page)).version).toBe(f.server.nextVersion);
   await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);await f.page.getByRole('button',{name:'Abandon game',exact:true}).click();await f.page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await expect(f.page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();
-  expect(await f.page.evaluate(async room=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('library');r.onsuccess=()=>resolve(r.result);});db.close();return {abandoned:lib.games[room].abandoned,artifact:lib.games[room].artifact,revision:lib.games[room].state.snapshot.revision};},before.room)).toEqual({abandoned:true,artifact:'previous-engine-fixture',revision:before.revision});
+  expect(await f.page.evaluate(async room=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('account:alice');r.onsuccess=()=>resolve(r.result);});db.close();return {abandoned:lib.games[room].abandoned,artifact:lib.games[room].artifact,revision:lib.games[room].state.snapshot.revision};},before.room)).toEqual({abandoned:true,artifact:'previous-engine-fixture',revision:before.revision});
  }finally{await cleanup(f);}
 });
 

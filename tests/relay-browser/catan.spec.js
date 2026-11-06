@@ -7,7 +7,7 @@ import {digest} from '../../play/relay/protocol.js';
 const alice='00000000-0000-4000-8000-000000000001',bob='00000000-0000-4000-8000-000000000002',channelId='10000000-0000-4000-8000-000000000001';
 async function player(browser,server,id){
  const context=await browser.newContext({viewport:{width:390,height:844}});
- await context.addInitScript(id=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id},access_token:id,refresh_token:'fixture',expires_at:4102444800})),id);
+ await context.addInitScript(id=>localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id,app_metadata:{provider:'google'}},access_token:id,refresh_token:'fixture',expires_at:4102444800})),id);
  await context.route('**/api/public/relay/v1',async route=>{const body=route.request().postDataJSON();try{const packet=await server.transport().request(body,id);await route.fulfill({json:{ok:true,protocolVersion:1,...packet}});}catch(error){await route.fulfill({status:409,json:{ok:false,protocolVersion:1,error:{code:error.code,message:error.message,retryable:false}}});}});
  const page=await context.newPage();await page.goto('/game-shelf/play/catan/');await page.getByRole('button',{name:'Connect',exact:true}).click();await expect(page.locator('#create')).toBeEnabled();return {context,page,id};
 }

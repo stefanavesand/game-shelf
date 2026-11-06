@@ -36,7 +36,7 @@ async function work(task) {
 }
 $('connection').onsubmit=event=>{event.preventDefault();work(async()=>{
  const endpoint=new URL($('endpoint').value);invariant(endpoint.hostname==='localhost'||endpoint.hostname==='127.0.0.1'||endpoint.hostname.endsWith('.lovable.app'),'INVALID_ENDPOINT','Use the configured Lovable relay or localhost.');
- const identity=await auth.identity({allowCreate:true});principalId=identity.user.id;
+ const identity=await auth.identity();principalId=identity.user.id;
  transport=createRelayTransport({endpoint:endpoint.href,identity:options=>auth.identity(options)});
  await transport.request({protocolVersion:1,op:'capabilities'},principalId);
  lobby=createRelayLobby({principalId,transport,store});

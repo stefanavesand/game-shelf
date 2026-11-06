@@ -4,9 +4,10 @@ const expect=baseExpect.configure({timeout:30000});
 // No traces/screenshots: identities, invitations and game state are private.
 test.use({trace:'off',screenshot:'off',video:'off',actionTimeout:30000,navigationTimeout:30000});
 test('LIVE: two emulated humans and the normal PWA bot finish over the real relay',async({browser},testInfo)=>{
- test.skip(process.env.GAME_SHELF_FULL_RELAY_LIVE!=='1','Opt in: creates two anonymous identities and one real relay channel.');
+ test.skip(process.env.GAME_SHELF_FULL_RELAY_LIVE!=='1','Opt in with two preauthenticated Google browser storage-state files.');
+ if(!process.env.GAME_SHELF_ACCOUNT_A_STATE||!process.env.GAME_SHELF_ACCOUNT_B_STATE)throw Error('Set GAME_SHELF_ACCOUNT_A_STATE and GAME_SHELF_ACCOUNT_B_STATE to private Playwright storage-state files for two distinct Google accounts. Never commit these files.');
  test.setTimeout(5400000);
- const contexts=await Promise.all([browser.newContext(),browser.newContext()]);
+ const contexts=await Promise.all([process.env.GAME_SHELF_ACCOUNT_A_STATE,process.env.GAME_SHELF_ACCOUNT_B_STATE].map(storageState=>browser.newContext({storageState})));
  let requests=0,forbidden=0,commands=0,staleRetries=0,reloaded=false,lastLog=Date.now();
  const counts={};
  try{
@@ -34,10 +35,10 @@ test('LIVE: two emulated humans and the normal PWA bot finish over the real rela
   }
   const pages=await Promise.all(contexts.map(c=>c.newPage())),[host,guest]=pages;
   await host.goto('/game-shelf/play/#home');await expect(host.locator('#connection')).toHaveText('Up to date');
-  await host.getByRole('button',{name:'New game',exact:true}).click();await host.getByLabel('Your name',{exact:true}).fill('Live test A');await host.getByRole('button',{name:'Create game',exact:true}).click();
+  await host.getByRole('button',{name:'New game',exact:true}).click();await host.getByRole('button',{name:'Create game',exact:true}).click();
   await expect(host.locator('#connection')).toHaveText('Up to date');console.log('Live stage: creator ready');
   await host.locator('#room').click();await host.getByRole('button',{name:'Invitation details',exact:true}).click();const invite=await host.getByLabel('Invitation link').inputValue();await host.getByRole('button',{name:'Close panel'}).click();
-  console.log('Live stage: invite read');await guest.goto(invite);await guest.getByLabel('Your name',{exact:true}).fill('Live test B');await guest.getByRole('button',{name:'Join game',exact:true}).click();await expect(guest.locator('#connection')).toHaveText('Up to date');
+  console.log('Live stage: invite read');await guest.goto(invite);await guest.getByRole('button',{name:'Join game',exact:true}).click();await expect(guest.locator('#connection')).toHaveText('Up to date');
   console.log('Live stage: guest joined');
   // Home stops automatic foreground polling; the driver explicitly synchronizes
   // the unmodified production session, avoiding unrelated polling/quota traffic.

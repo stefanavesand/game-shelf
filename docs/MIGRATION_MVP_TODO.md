@@ -1,5 +1,10 @@
 # Migration and private MVP release todo
 
+## Account simplification — 2026-11-06
+
+Google sign-in is required by the PWA for all gameplay, including Solo. Home shows sign-in and Help when signed out. Game dialogs use the Google profile name automatically and never ask for a player name. After a successful sign-in, Solo can create/resume games offline even with an expired internet access token. Solo saves are scoped to the account on this device; signing out hides all games, and signing back into the same account restores access. Invitation room/token survive the OAuth round trip. Anonymous signup and guest-play branches are removed from the PWA. The existing backend and its anonymous-token policy remain unchanged for now; this is a product/code simplification, not a new server authorization boundary. Historical anonymous accounts/unowned saves are not migrated. No server data is deleted. Account changes remain fenced against pending moves. Cross-device game discovery, Solo synchronization, other OAuth providers and device handoff verification remain separate work.
+
+
 Current readiness assessment and consolidated scope discussion: [MVP review](MVP_REVIEW.md). Decisions below record accepted scope; other recommendations await owner decisions; historical checkboxes below have not been silently reclassified.
 
 Owner decision (2026-11-04): MVP-L01–05 in [MVP requirements](MVP_REQUIREMENTS.md) are accepted: trusted friends, anonymous storage-loss limitation, seven-day online access, creator-dependent bot pause/resume and iPad-first certification with responsive phone design. REQ-01 remains open for device/OS and other release decisions. UX priorities and release gates MVP-R01–06 are accepted as recorded below; device/OS and concrete operating values still need specification.
@@ -148,7 +153,7 @@ Full offline Catan, LAN/Bluetooth/native, additional internet seat configuration
 - [ ] API-02 — Extract one pinned deterministic PWA engine/session module with explicit effects and local persistence; validate replay, bot projection and halt-on-divergence (RELAY-10–13). No server game rules or automatic recovery. Resolve provenance before copying runtime.
 - [ ] API-03 — Reconcile new-mode PRD/HLD/privacy/operations acceptance, then integrate new Catan games behind a versioned opt-in. Trusted members can inspect full state; fixed relay access expiry must be disclosed. Preserve old identities, saves, endpoints and unresolved intents.
 
-- [ ] AUTH-01 — Add Google and Microsoft OAuth account sign-in after the anonymous pilot. Link/upgrade the existing principal without losing channel memberships, game seats, saves or unresolved mutation IDs; explicitly handle provider collisions, cancelled login, account switching and cross-device access. Anonymous token verification is already required now; OAuth UI/provider setup is deferred by owner agreement on 2026-11-03.
+- [ ] AUTH-01 — Google sign-in/out and account-only PWA gameplay are implemented; profile names replace entry-form names, and Solo remains available offline after sign-in. Remaining: physical iPad OAuth handoff acceptance, Microsoft (if selected), cross-device game discovery and a later decision on backend anonymous-token acceptance. Anonymous account/game migration and account merging are outside the approved scope.
 
 - [x] PWA-RELAY-01 — Original relay transport, neutral identity adapter, transactional IndexedDB checkpoint/outbox, deterministic fixture replica and separate developer UI. 20 new core and four mocked-HTTP browser tests passed; Catan engine/live relay/iPad work remain API-02/03. See [PWA relay foundation](PWA_RELAY.md).
 
@@ -172,4 +177,4 @@ TRADE-EDITOR-01 and CATAN-RELAY-03 (All only): [rules 2.1.0 and UI contract](TRA
 
 ## Google account slice — 2026-11-06
 
-AUTH-01 now has an owner-approved narrower first slice: optional Google sign-in/out with no anonymous-account migration, following the owner's permission to discard old data. Provider configuration is enabled; the PWA implements PKCE and guarded account changes. See [configuration, tests and remaining device acceptance](GOOGLE_SIGN_IN.md). Microsoft sign-in, account merging, cross-device game discovery and physical iPad OAuth acceptance remain separate follow-ups; do not mark the entire historical AUTH-01 item complete on the strength of simulated callback tests.
+AUTH-01 now has an owner-approved narrower first slice: required Google sign-in/out in the PWA with no anonymous-account migration, following the owner's permission to discard old data. Provider configuration is enabled; the PWA implements PKCE and guarded account changes. See [configuration, tests and remaining device acceptance](GOOGLE_SIGN_IN.md). Microsoft sign-in, account merging, cross-device game discovery and physical iPad OAuth acceptance remain separate follow-ups; do not mark the entire historical AUTH-01 item complete on the strength of simulated callback tests.

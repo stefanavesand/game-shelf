@@ -4,7 +4,7 @@ const alice='00000000-0000-4000-8000-000000000001',bob='00000000-0000-4000-8000-
 async function browserPlayer(browser,server,principal,{lose=false,storageFail=false}={}) {
  const context=await browser.newContext({viewport:{width:390,height:844}});
  await context.addInitScript(({principal,storageFail})=>{
-  localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id:principal},access_token:principal,refresh_token:'fixture',expires_at:4102444800}));
+  localStorage.setItem('spelhyllan-online-auth-v1',JSON.stringify({user:{id:principal,app_metadata:{provider:'google'}},access_token:principal,refresh_token:'fixture',expires_at:4102444800}));
   if(storageFail)Object.defineProperty(globalThis,'indexedDB',{value:{open(){throw Error('Storage denied');}}});
   if(navigator.storage)navigator.storage.persist=async()=>false;
  },{principal,storageFail});

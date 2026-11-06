@@ -47,3 +47,7 @@ The owner selected the original card/die/board concept B and approved its refine
 ## Original Google identity adapter (2026-11-06)
 
 `play/core/google-auth.js` and its UI/test integration are original code for this repository, implemented against the documented Supabase OAuth/PKCE HTTP contract. No vendor SDK or third-party runtime was copied or added. Google credentials stay in the managed auth configuration. The owner explicitly waived anonymous-account/game migration for this feature; [scope and verification](docs/GOOGLE_SIGN_IN.md) distinguish simulated auth tests from the remaining physical Google/iPad test.
+
+## Account simplification (2026-11-06)
+
+Original PWA session, identity and UI changes remove anonymous signup, derive player names from Google profile metadata and scope Solo storage to the account. No external runtime code, assets or dependencies were added. The backend is unchanged.

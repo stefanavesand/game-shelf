@@ -55,12 +55,12 @@ test('wire-coordinate adapter matches standard v1 vertex and edge projections',(
 test('Retry-After respects seconds and HTTP date formats',()=>{assert.equal(retryDelay('12',0),12000);assert.equal(retryDelay('Mon, 02 Nov 2026 10:00:12 GMT',Date.parse('2026-11-02T10:00:00Z')),12000);});
 
 test('token refresh failure preserves the old identity and never falls back to signup',async()=>{
-  const original={user:{id:'same-principal'},access_token:'old',refresh_token:'refresh',expires_at:1};let saved=JSON.stringify(original);const requests=[];
+  const original={user:{id:'same-principal',app_metadata:{provider:'google'}},access_token:'old',refresh_token:'refresh',expires_at:1};let saved=JSON.stringify(original);const requests=[];
   const transport=createTransport({local:{getItem:()=>saved,setItem:(_key,value)=>{saved=value;}},locks:{request:(_name,work)=>work()},now:()=>100000,fetcher:async url=>{requests.push(url);throw Error('offline');}});
   await assert.rejects(transport.identity(),e=>e.retryable);assert.equal(saved,JSON.stringify(original));assert.equal(requests.length,1);assert.ok(requests[0].includes('grant_type=refresh_token'));assert.ok(!requests[0].includes('signup'));
 });
 test('a refresh response cannot silently change the principal',async()=>{
-  const original={user:{id:'original'},access_token:'old',refresh_token:'refresh',expires_at:1};let saved=JSON.stringify(original);
+  const original={user:{id:'original',app_metadata:{provider:'google'}},access_token:'old',refresh_token:'refresh',expires_at:1};let saved=JSON.stringify(original);
   const transport=createTransport({local:{getItem:()=>saved,setItem:(_key,value)=>{saved=value;}},locks:{request:(_name,work)=>work()},now:()=>100000,fetcher:async()=>new Response(JSON.stringify({user:{id:'another'},access_token:'new',refresh_token:'different',expires_in:3600}))});
   await assert.rejects(transport.identity(),e=>e.code==='AUTH_REQUIRED');assert.equal(saved,JSON.stringify(original));
 });

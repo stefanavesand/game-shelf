@@ -1,18 +1,19 @@
 // Standalone metadata recovery: deliberately imports no cached app/engine code.
 const status=document.getElementById('status'),list=document.getElementById('games');
 let database;
+function libraryKey(){const user=JSON.parse(localStorage.getItem('spelhyllan-online-auth-v1')||'null')?.user;if(!user?.id||user.is_anonymous===true)throw Error('Sign in to Game Shelf before managing local games.');return 'account:'+user.id;}
 async function db(){
  if(!navigator.locks)throw Error('This browser cannot coordinate recovery safely.');
  if(database)return database;
  database=await new Promise((resolve,reject)=>{const request=indexedDB.open('game-shelf-solo-v1',1);request.onupgradeneeded=()=>request.result.createObjectStore('records');request.onsuccess=()=>resolve(request.result);request.onerror=request.onblocked=()=>reject(Error('Local storage could not be opened. Nothing was changed.'));});return database;
 }
-async function read(){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('records'),r=tx.objectStore('records').get('library');let value;r.onsuccess=()=>{value=r.result;};tx.oncomplete=()=>resolve(value);tx.onerror=tx.onabort=()=>reject(Error('Local games could not be read. Nothing was changed.'));});}
+async function read(){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('records'),r=tx.objectStore('records').get(libraryKey());let value;r.onsuccess=()=>{value=r.result;};tx.oncomplete=()=>resolve(value);tx.onerror=tx.onabort=()=>reject(Error('Local games could not be read. Nothing was changed.'));});}
 async function abandon(key){
  if(!confirm('Abandon this local game? Its snapshot will be kept, but it will no longer be resumable in the app.'))return;
  await navigator.locks.request('game-shelf-app-lifecycle',{mode:'exclusive'},()=>navigator.locks.request('game-shelf-local-solo',async()=>{
   const d=await db();await new Promise((resolve,reject)=>{
-   const tx=d.transaction('records','readwrite'),store=tx.objectStore('records'),r=store.get('library');
-   r.onsuccess=()=>{const value=r.result;if(value?.schemaVersion!==1||!value.games?.[key]){tx.abort();return;}value.games[key].abandoned=true;if(value.current===key){value.current=null;value.local=false;}store.put(value,'library');};
+   const tx=d.transaction('records','readwrite'),store=tx.objectStore('records'),r=store.get(libraryKey());
+   r.onsuccess=()=>{const value=r.result;if(value?.schemaVersion!==1||!value.games?.[key]){tx.abort();return;}value.games[key].abandoned=true;if(value.current===key){value.current=null;value.local=false;}store.put(value,libraryKey());};
    tx.oncomplete=resolve;tx.onabort=tx.onerror=()=>reject(Error('The save could not be updated. Recovery was not completed.'));
   });
  }));

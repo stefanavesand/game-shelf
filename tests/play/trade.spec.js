@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './account-fixture.js';
 import {service} from './mock-service.js';
 import {RESOURCES} from '../../play/core/protocol.js';
 const url='http://127.0.0.1:4176/game-shelf/play/';

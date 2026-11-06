@@ -13,7 +13,7 @@ export function createClient({store=createStore(),transport=createTransport(),lo
   async function send(state,op,args={},replace=false){
     cooldown(state);
     if(state.roomId&&!state.pending&&['create','join'].includes(op)&&!replace&&!(op==='join'&&args.roomId===state.roomId))throw new PlayError('ROOM_SWITCH','Confirm that you want to switch games before creating or joining another room.');
-    let principal;try{principal=await transport.identity({allowCreate:!state.roomId&&!state.pending});}catch(error){await rememberFailure(state,error);throw error;}
+    let principal;try{principal=await transport.identity();}catch(error){await rememberFailure(state,error);throw error;}
     const pending=state.pending||{principalId:principal.user.id,body:{apiVersion:1,op,...args,commandId:id()}};
     if(pending.principalId!==principal.user.id)throw new PlayError('AUTH_REQUIRED','This unresolved move belongs to another player identity. It has been kept.');
     const persisted={...state,pending};if(!state.pending)await store.save(persisted);
@@ -28,7 +28,7 @@ export function createClient({store=createStore(),transport=createTransport(),lo
     let state=await store.state();
     if(state.pending){const recovered=await send(state);if(!recovered.ok)return recovered;state=await store.state();}
     if(!state.roomId)return null;
-    cooldown(state);let principal;try{principal=await transport.identity({allowCreate:false});}catch(error){await rememberFailure(state,error);throw error;}
+    cooldown(state);let principal;try{principal=await transport.identity();}catch(error){await rememberFailure(state,error);throw error;}
     let packet;try{packet=await transport.request({apiVersion:1,op:'view',roomId:state.roomId},principal);}catch(error){await rememberFailure(state,error);throw error;}
     if(packet.ok){await store.cache(packet,principal.user.id);if(state.retryAt||state.retryCount)await store.save({...state,retryAt:0,retryCount:0});}
     return packet;
@@ -41,7 +41,7 @@ export function createClient({store=createStore(),transport=createTransport(),lo
     if(state.pending)throw new PlayError('ROOM_SWITCH','Resolve your original move before opening another game.');
     cooldown(state);
     let principal,packet;
-    try{principal=await transport.identity({allowCreate:false});packet=await transport.request({apiVersion:1,op:'view',roomId},principal);}catch(error){await rememberFailure(state,error);throw error;}
+    try{principal=await transport.identity();packet=await transport.request({apiVersion:1,op:'view',roomId},principal);}catch(error){await rememberFailure(state,error);throw error;}
     if(!packet.ok)return packet;
     if(packet.roomId!==roomId)throw new PlayError('UNSUPPORTED_VERSION','The response did not match the selected game. Your current game has been kept.');
     await store.cache(packet,principal.user.id);

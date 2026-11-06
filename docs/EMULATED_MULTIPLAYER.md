@@ -24,10 +24,10 @@ This is production-session integration coverage in browsers, **not** a full clic
 
 ## Opt-in real-service game
 
-`tests/play/relay-game-live.spec.js` uses the current home/create/invitation flow with two new anonymous identities and one real channel. The human drivers use the production session API; the ordinary creator-side scheduler runs the third seat. After admission, the UI stays on home to avoid redundant background polling while the driver explicitly synchronizes. The game still uses the unmodified production local rules, IndexedDB and relay adapters.
+`tests/play/relay-game-live.spec.js` uses the current home/create/invitation flow with two previously authenticated Google accounts and one real channel (the historical run below used anonymous identities). The human drivers use the production session API; the ordinary creator-side scheduler runs the third seat. After admission, the UI stays on home to avoid redundant background polling while the driver explicitly synchronizes. The game still uses the unmodified production local rules, IndexedDB and relay adapters.
 
 ```sh
-GAME_SHELF_FULL_RELAY_LIVE=1 npx playwright test --project=play tests/play/relay-game-live.spec.js
+GAME_SHELF_ACCOUNT_A_STATE=/private/account-a.json GAME_SHELF_ACCOUNT_B_STATE=/private/account-b.json GAME_SHELF_FULL_RELAY_LIVE=1 npx playwright test --project=play tests/play/relay-game-live.spec.js
 ```
 
 In a managed executor using an environment HTTPS proxy, Node 24 can require `NODE_USE_ENV_PROXY=1`. Browser HTTPS is forwarded through TLS-verifying Node fetch; responses are genuine service responses, not fixtures. This is not a test of direct browser CORS or iPad networking. The runner paces requests per principal, stops on quota exhaustion and bounds the attempt to one game, 1,600 driver iterations and 90 minutes. Traces/screenshots/video are disabled; sanitized progress reports contain only counts/revisions. Ordinary CI explicitly disables the live opt-in. No cleanup endpoint exists: test channels follow the service's access-expiry policy, which is not a deletion guarantee.
@@ -60,3 +60,5 @@ Earlier attempts exposed the fresh-guest boot bug and a concurrent creator-start
 Verification for the app fixes: fresh-invitation browser regression passed; relay suite passed 22 tests including concurrent creator refreshes; `npm run check`, build and two packaged-site checks passed. Full Actions checks, Pages deployment and public asset verification passed for `52d2d0` in run `41819608909`.
 
 Still open: real iPad/Safari and two physical-network acceptance, direct-browser networking/CORS, full click-by-click UI usability, independent rule validation, all special-case scenarios and a multi-seed bot completion baseline. One successful emulated live game closes none of those gates automatically.
+
+Storage-state files contain private credentials: obtain them through explicit Google sign-in, keep them outside the repository and never attach or commit them. The live probe does not create anonymous accounts.

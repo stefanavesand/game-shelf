@@ -1,4 +1,4 @@
-import {test,expect} from '@playwright/test';
+import {test,expect} from './account-fixture.js';
 import {service,STATE,AUTH,roomId} from './mock-service.js';
 const url='/game-shelf/play/';
 const ready=page=>expect(page.locator('#connection')).toHaveText('Up to date');
@@ -7,8 +7,8 @@ test('two browsers join separate seats and finish both setup rounds from authori
   const backend=service(),a=await browser.newContext(),b=await browser.newContext();
   try{
     await backend.attach(a,'alice');await backend.attach(b,'bob');const x=await a.newPage(),y=await b.newPage();await x.goto('http://127.0.0.1:4176'+url);await ready(x);
-    await x.getByRole('button',{name:'New game',exact:true}).click();await x.getByLabel('Your name',{exact:true}).fill('Alice');await x.getByRole('button',{name:'Create game',exact:true}).click();await expect(x.getByRole('heading',{name:'One seat for a friend.'})).toBeVisible();
-    await x.getByRole('button',{name:'Share invitation',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();await y.goto(invite);await ready(y);await expect(y.getByLabel('Room ID',{exact:true})).toHaveValue(roomId);await y.getByLabel('Your name',{exact:true}).fill('Bob');await y.getByRole('button',{name:'Join game',exact:true}).click();await ready(y);
+    await x.getByRole('button',{name:'New game',exact:true}).click();await x.getByRole('button',{name:'Create game',exact:true}).click();await expect(x.getByRole('heading',{name:'One seat for a friend.'})).toBeVisible();
+    await x.getByRole('button',{name:'Share invitation',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();await y.goto(invite);await ready(y);await expect(y.getByLabel('Room ID',{exact:true})).toHaveValue(roomId);await y.getByRole('button',{name:'Join game',exact:true}).click();await ready(y);
     for(let i=0;i<8;i++){
       const actor=backend.current.p1.view.state.game.currentPlayerId,page=actor==='p1'?x:y;
       await page.locator('#refresh').click();await ready(page);const before=backend.accepted;
@@ -33,7 +33,7 @@ test('unsupported reply keeps unresolved move and stops automatic retry',async({
 });
 test('missing saved identity never creates a replacement principal',async({browser})=>{
   const backend=service({phase:'main'}),context=await browser.newContext();
-  try{await backend.attach(context,'alice',{legacy:true,identity:false});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await expect(page.getByRole('heading',{name:'Your player identity needs attention'})).toBeVisible();expect(backend.authCalls).toBe(0);}finally{await context.close();}
+  try{await backend.attach(context,'alice',{legacy:true,identity:false});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await expect(page.getByRole('button',{name:'Sign in with Google',exact:true})).toBeVisible();expect(backend.authCalls).toBe(0);}finally{await context.close();}
 });
 test('IndexedDB refusal prevents creating an identity or sending a game mutation',async({browser})=>{
   const backend=service(),context=await browser.newContext();
@@ -78,7 +78,7 @@ test('solo starts immediately with two bots, retains level and room after reload
   const backend=service(),context=await browser.newContext({viewport:{width:390,height:844}});
   try{
     await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
-    await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByLabel('Play mode',{exact:true})).toHaveValue('solo');await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await ready(page);
+    await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByLabel('Play mode',{exact:true})).toHaveValue('solo');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await ready(page);
     expect(backend.creates[0]).toMatchObject({mode:'solo',name:'Alice',botLevel:'easy'});expect(backend.current.p1.view.seats.filter(s=>s.kind==='bot')).toHaveLength(2);await expect(page.locator('.players .bot-tag')).toHaveCount(2);await expect(page.getByRole('heading',{name:'One seat for a friend.'})).toHaveCount(0);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.reload();await ready(page);await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect((await state(page)).roomId).toBe(roomId);expect(backend.creates).toHaveLength(1);
     await page.locator('#room').click();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);await expect(page.getByText('Solo · you and 2 bots. No invitation is needed.')).toBeVisible();
@@ -87,7 +87,7 @@ test('solo starts immediately with two bots, retains level and room after reload
 test('a lost solo creation reply retries the same mode and UUID rather than creating a friends lobby',async({browser})=>{
   const backend=service({loseCreateReply:true}),context=await browser.newContext();
   try{
-    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByText('Play offline against bots. Saved on this device.')).toBeVisible();await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
+    await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByText('Play offline against bots. Saved on this device.')).toBeVisible();await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.getByRole('heading',{name:'Let’s check your original move'})).toBeVisible();
     const pending=(await state(page)).pending;expect(pending.body.mode).toBe('solo');await page.reload();await expect.poll(()=>backend.creates.length,{timeout:15000}).toBeGreaterThanOrEqual(2);await ready(page);expect(backend.creates[1]).toEqual(backend.creates[0]);expect((await state(page)).pending).toBeNull();await expect(page.locator('.players .bot-tag')).toHaveCount(2);
   }finally{await context.close();}
 });
@@ -146,7 +146,7 @@ test('home has one new-game flow, explicit configuration and no decorative board
   const backend=service(),context=await browser.newContext({viewport:{width:390,height:844}});
   try{
     await backend.attach(context,'alice');const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url+'#home');await ready(page);await expect(page.getByRole('heading',{name:'Catan',exact:true})).toBeVisible();await expect(page.getByRole('button',{name:'New game',exact:true})).toHaveCount(1);await expect(page.locator('svg')).toHaveCount(0);expect(await page.locator('body').innerText()).not.toMatch(/\btable\b|calm table/i);
-    await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Your name',{exact:true}).fill('Alice');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByLabel('Your name',{exact:true})).toHaveValue('Alice');await expect(page.getByLabel('Bot level',{exact:true})).toHaveValue('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect(backend.creates[0]).toMatchObject({mode:'solo',botLevel:'easy'});
+    await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByLabel('Your name',{exact:true})).toHaveCount(0);await expect(page.getByLabel('Bot level',{exact:true})).toHaveValue('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect(backend.creates[0]).toMatchObject({mode:'solo',botLevel:'easy'});
     await expect(page.getByRole('button',{name:/^Location \d+$/})).toHaveCount(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
   }finally{await context.close();}
 });

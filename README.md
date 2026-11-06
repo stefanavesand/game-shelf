@@ -40,7 +40,7 @@ The new trusted-friend session foundation has a separate [developer counter and 
 
 ## Real client development
 
-Run `npm ci`, then `npm run play:dev`, and open `http://127.0.0.1:4176/game-shelf/play/`. `npm run check`, `npm run test:core` and `npm run test:browser` run syntax checks, core tests and deterministic browser tests. The live service test is opt-in; see ONLINE_INTEGRATION.md. The real client uses persistent anonymous identity and saved server games; it is not a scripted demo. Its new browser URL does not yet provide installable/offline PWA startup.
+Run `npm ci`, then `npm run play:dev`, and open `http://127.0.0.1:4176/game-shelf/play/`. `npm run check`, `npm run test:core` and `npm run test:browser` run syntax checks, core tests and deterministic browser tests. The live service test is opt-in; see ONLINE_INTEGRATION.md. The installable PWA requires Google sign-in and uses the account profile name automatically. Solo saves are account-scoped on this device and work offline after sign-in and verified caching; internet games use the generic relay with rules in the PWA. Backend authentication policy is unchanged. See [Google sign-in](docs/GOOGLE_SIGN_IN.md).
 
 ## Existing pilot
 

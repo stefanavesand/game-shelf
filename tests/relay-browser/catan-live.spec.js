@@ -4,7 +4,8 @@ const expect=baseExpect.configure({timeout:20000});
 test.use({trace:'off',screenshot:'off',video:'off'});
 test('LIVE Catan relay: independent PWAs initialize, place and verify a real move',async({browser})=>{
  test.skip(process.env.GAME_SHELF_CATAN_RELAY_LIVE!=='1','Requires explicit live Catan relay authorization.');test.setTimeout(180000);
- const a=await browser.newContext(),b=await browser.newContext();await configureLiveEgress([a,b]);
+ if(!process.env.GAME_SHELF_ACCOUNT_A_STATE||!process.env.GAME_SHELF_ACCOUNT_B_STATE)throw Error('Provide two private, preauthenticated Google storage-state files.');
+ const a=await browser.newContext({storageState:process.env.GAME_SHELF_ACCOUNT_A_STATE}),b=await browser.newContext({storageState:process.env.GAME_SHELF_ACCOUNT_B_STATE});await configureLiveEgress([a,b]);
  try{
   const host=await a.newPage(),guest=await b.newPage();for(const [page,name]of [[host,'Catan engine test A'],[guest,'Catan engine test B']]){await page.goto('/game-shelf/play/catan/');await page.locator('#name').fill(name);await page.getByRole('button',{name:'Connect',exact:true}).click();await expect(page.locator('#create')).toBeEnabled();}
   await host.locator('#create').click();await expect(host.locator('#game')).toBeVisible();await expect(host.locator('#sync')).toBeEnabled();

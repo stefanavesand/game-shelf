@@ -37,3 +37,10 @@ test('sign-out revokes only the current session and keeps credentials if the req
  const failed=harness({saved:signed,respond:()=>new Response('{}',{status:500})});await assert.rejects(failed.auth.signOut());assert.equal(failed.identity.savedIdentity().user.id,'google-player');
  const anonymous=harness();await assert.rejects(anonymous.auth.signOut());assert.equal(anonymous.calls.length,0);
 });
+
+test('game identity never creates an anonymous account, even when an old caller requests it',async()=>{
+ for(const saved of [null,guest]){const h=harness({saved});await assert.rejects(h.identity.identity({allowCreate:true}),e=>e.code==='AUTH_REQUIRED');assert.equal(h.calls.length,0);}
+});
+test('Google flow restores an invitation after a successful exchange',async()=>{
+ const h=harness({saved:null});await h.auth.start(href.replace('#home','#join?room=room-id&invite=private-token'));let clean;await h.auth.finish(callback,path=>{clean=path;});assert.equal(clean,'/game-shelf/play/#join?room=room-id&invite=private-token');
+});

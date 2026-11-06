@@ -4,7 +4,7 @@ const main=JSON.parse(readFileSync(new URL('../fixtures/main-view.json',import.m
 export const roomId=main.p1.roomId;
 export const AUTH='spelhyllan-online-auth-v1',STATE='game-shelf-catan-online-v1';
 const endpoint='https://stefan-game-shelf.lovable.app/api/public/catan';
-export const auth=principal=>({access_token:principal,refresh_token:`refresh-${principal}`,expires_at:9999999999,user:{id:principal}});
+export const auth=principal=>({access_token:principal,refresh_token:`refresh-${principal}`,expires_at:9999999999,user:{id:principal,is_anonymous:false,app_metadata:{provider:'google'},user_metadata:{full_name:principal==='alice'?'Alice':'Bob'}}});
 export function service({phase='setup',loseReply=false,futureReply=false,loseCreateReply=false,expectedAction=null}={}){
   let host=phase==='main'?'alice':'',guest=phase==='main'?'bob':'',started=phase==='main',index=0,current=phase==='main'?structuredClone(main):null,dropped=false,accepted=0;
   let solo=false,createDropped=false;const creates=[],createReceipts=new Map();
@@ -14,7 +14,7 @@ export function service({phase='setup',loseReply=false,futureReply=false,loseCre
   async function attach(context,principal,{legacy=false,identity=true}={}){
     // UI fixture port only. Real local/relay sessions are covered separately.
     await context.route('**/play/session.js',route=>route.fulfill({contentType:'text/javascript',body:"import {createClient} from './core/client.js';export const client=createClient();client.isLocal=()=>false;client.canUpdate=async()=>true;"}));
-    if(legacy)await context.addInitScript(({AUTH,STATE,session,roomId,identity})=>{if(identity&&!localStorage.getItem(AUTH))localStorage.setItem(AUTH,JSON.stringify(session));if(!localStorage.getItem(STATE))localStorage.setItem(STATE,JSON.stringify({schemaVersion:1,roomId,pending:null}));},{AUTH,STATE,session:auth(principal),roomId,identity});
+    await context.addInitScript(({AUTH,STATE,session,roomId,identity,legacy})=>{if(identity)localStorage.setItem(AUTH,JSON.stringify(session));else{localStorage.removeItem(AUTH);localStorage.setItem('account-fixture-initialized','yes');}if(legacy&&!localStorage.getItem(STATE))localStorage.setItem(STATE,JSON.stringify({schemaVersion:1,roomId,pending:null}));},{AUTH,STATE,session:auth(principal),roomId,identity,legacy});
     await context.route('https://ppaixjqaixwnebhxfjeb.supabase.co/**',async route=>{authCalls++;const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*'};if(route.request().method()==='OPTIONS'){await route.fulfill({status:204,headers});return;}await route.fulfill({headers,json:auth(principal)});});
     await context.route(endpoint,async route=>{
       const headers={'access-control-allow-origin':'*','access-control-allow-headers':'*','cache-control':'no-store'};
