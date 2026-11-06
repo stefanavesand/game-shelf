@@ -5,7 +5,8 @@ test('previously signed-in solo starts with an expired token, plays, and fully r
  try{const page=await context.newPage();await page.goto(root+'#home');await expect(page.locator('#offline-status')).toHaveText('Ready for offline',{timeout:30000});
   await page.evaluate(()=>{const k='spelhyllan-online-auth-v1',s=JSON.parse(localStorage.getItem(k));s.expires_at=1;localStorage.setItem(k,JSON.stringify(s));});await context.setOffline(true);await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');await expect(page.locator('.players .bot-tag')).toHaveCount(2);
   await expect(page.locator('#board [role="button"]').first()).toBeVisible();await page.locator('#board [role="button"]').first().click();await page.getByRole('button',{name:'Confirm',exact:true}).click();
-  const before=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(before.revision).toBeGreaterThan(0);
+  await expect.poll(()=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.revision;})).toBeGreaterThan(0);
+  const before=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});
   await page.reload();await expect(page.locator('#connection')).toHaveText('Local · saved');const after=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(after.roomId).toBe(before.roomId);expect(after.revision).toBeGreaterThanOrEqual(before.revision);expect(external).toBe(0);
  }finally{await context.close();}
 });

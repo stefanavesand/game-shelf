@@ -189,3 +189,10 @@ test('automatic updates wait while a dialog is open, then activate after it clos
 test('an explicitly breaking update never auto-activates even on idle home',async({browser})=>{
  const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.getByRole('button',{name:'Help and rules',exact:true}).click();await f.page.getByRole('button',{name:'Close panel'}).click();expect((await status(f.page)).version).toBe(f.server.version);expect(await f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(true);}finally{await cleanup(f);}
 });
+
+test('foreground checks discover a release without pressing the update button',async({browser})=>{
+ const f=await open(browser);try{
+  await f.page.clock.install();f.server.upgrade(false);await f.page.clock.fastForward(31000);await f.page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await expect(f.page.locator('#offline-status')).toHaveText('Update available');expect((await status(f.page)).version).toBe(f.server.version);
+ }finally{await cleanup(f);}
+});
