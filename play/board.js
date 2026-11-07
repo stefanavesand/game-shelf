@@ -15,8 +15,8 @@ const tiles={hills:['#cb8661','brick','Brick'],forest:['#729978','wood','Wood'],
 const n=(tag,attrs={},text)=>{const el=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=text;return el;};
 const p=pos=>({x:pos.x+320,y:pos.y+275});
 export function choicePoint(choice){if(choice.vertex)return p(vertexPoint(choice.vertex));if(choice.edge){const[a,b]=edgePoints(choice.edge);return p({x:(a.x+b.x)/2,y:(a.y+b.y)/2});}if(choice.hex)return p(center(choice.hex));return null;}
-export function draw(root,view,choices,selected,disabled,onSelect,{zoom=1,pan={x:100,y:82}}={}){
-  root.replaceChildren();root.setAttribute('viewBox',zoom>1?`${pan.x} ${pan.y} 440 390`:'0 0 640 550');
+export function draw(root,view,choices,selected,disabled,onSelect){
+  root.replaceChildren();root.setAttribute('viewBox','0 0 640 550');root.setAttribute('preserveAspectRatio','xMidYMid meet');
   for(const tile of view.state.board.tiles){const c=p(center(tile.coord)),[fill,art,name]=tiles[tile.terrain]||tiles.desert,group=n('g',{'aria-hidden':true});
     const points=Array.from({length:6},(_,i)=>({x:c.x+SIZE*Math.cos((i*60-30)*Math.PI/180),y:c.y+SIZE*Math.sin((i*60-30)*Math.PI/180)}));
     group.append(n('polygon',{points:points.map(v=>`${v.x},${v.y}`).join(' '),fill,stroke:'#fff5de','stroke-width':3}));const drawing=n('g',{transform:`translate(${c.x} ${c.y+11})`});drawing.innerHTML=tileArt(art);group.append(drawing);
@@ -26,6 +26,10 @@ export function draw(root,view,choices,selected,disabled,onSelect,{zoom=1,pan={x
   }
   const players=view.state.players.players;
   for(const port of view.state.board.ports){const[a,b]=edgePoints(port.edge),pos=p({x:(a.x+b.x)*.65,y:(a.y+b.y)*.65});root.append(n('text',{x:pos.x,y:pos.y,'text-anchor':'middle','font-size':11,fill:'#42645b'},port.type==='generic'?'3:1':`2:1 ${port.type==='lumber'?'wood':port.type}`));}
+  // Fit static board art and complete port labels. Buildings and selection markers
+  // fit inside this padding, so choosing a move never changes the framing.
+  const bounds=root.getBBox(),padding=16;
+  root.setAttribute('viewBox',`${bounds.x-padding} ${bounds.y-padding} ${bounds.width+padding*2} ${bounds.height+padding*2}`);
   for(const road of view.state.board.roads){const[a,b]=edgePoints(road.edge).map(p),color=paint[players.find(player=>player.id===road.playerId)?.color]||paint.red;for(const[stroke,width]of[['#fff8e9',10],[color,6]])root.append(n('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke,'stroke-width':width,'stroke-linecap':'round'}));}
   function piece(position,color,city,preview=false){const c=p(position);root.append(n('path',{d:city?`M${c.x-12} ${c.y+9}v-13h8v-8h11v10h7v11Z`:`M${c.x-9} ${c.y+8}v-13l9-7 9 7v13Z`,fill:color,stroke:preview?'#164b3e':'#fff8e9','stroke-width':preview?3:2,opacity:preview?0.65:1,'stroke-dasharray':preview?'4 3':'none','pointer-events':'none'}));}
   for(const b of view.state.board.buildings)piece(vertexPoint(b.vertex),paint[players.find(player=>player.id===b.playerId)?.color]||paint.red,b.type==='city');

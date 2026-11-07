@@ -24,7 +24,7 @@ const googleAuth=createGoogleAuth();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null,renderedMenu=null;
-let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={room:null,level:'standard',gameMode:'friends',playerCount:3};
+let tradeDraft=null,opener=null,formDraft={room:null,level:'standard',gameMode:'friends',playerCount:3};
 function announce(s){$('announcement').textContent=s;}
 const view=()=>packet?.view;
 const solo=()=>client.isLocal()||(packet?.status!=='waiting'&&packet?.members?.filter(s=>s.kind==='human').length===1&&packet?.members?.filter(s=>s.kind==='bot').length>=2);
@@ -82,7 +82,7 @@ function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.off
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
  const v=view(),[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
- return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):'',zoom});
+ return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
 }
 function render(){
   const focused=document.activeElement?.id;
@@ -106,9 +106,9 @@ function render(){
   if(notice&&!(screen==='table'&&view()))html=`<div class="notice-bar ${error?'error':''}" role="${tradeFeedback.some(e=>e.message===notice)?'note':'status'}">${esc(notice)}</div>`+html;
   const replaced=html!==renderedHTML;
   if(replaced){$('app').innerHTML=html;renderedHTML=html;renderedBoard=null;}
-  const boardKey=$('board')?JSON.stringify([view().state.board,view().state.players.players.map(p=>[p.id,p.color]),view().you,spatial,selection,blocked(),zoom,pan]):null;
-  if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}},{zoom,pan});renderedBoard=boardKey;}
-  if(replaced)for(const[action,label]of Object.entries({'zoom-in':'Zoom in on board','zoom-out':'Zoom out on board','zoom-reset':'Reset board view','pan-left':'Move board view left','pan-right':'Move board view right','pan-up':'Move board view up','pan-down':'Move board view down'}))document.querySelector(`[data-action="${action}"]`)?.setAttribute('aria-label',label);
+  const boardKey=$('board')?JSON.stringify([view().state.board,view().state.players.players.map(p=>[p.id,p.color]),view().you,spatial,selection,blocked()]):null;
+  if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}});renderedBoard=boardKey;}
+
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
   if($('sidebar').open)renderMenu();
   if(notice&&screen==='table'&&view())announce(notice);
@@ -254,7 +254,13 @@ async function submitTrade(){
  await sendAction({type:'TRADE_OFFER',to:tradeDraft.to,give:{...tradeDraft.give},receive:{...tradeDraft.receive},...(v.offer?{replaces:v.offer.id}:{})});
 }
 
-function discardPanel(){const v=view(),me=ownPlayer(v);openSheet(`Return ${v.state.game.discardAmounts[v.you]} cards`,`<p class="muted">Choose the required number of cards. Their types stay private.</p><form id="discard-form"><div class="discard-grid">${RESOURCES.map(r=>`<div class="discard-row"><label for="discard-${r}">${art(r)}${RESOURCE_NAMES[r]}</label><input id="discard-${r}" name="${r}" type="number" inputmode="numeric" min="0" max="${me.resources[r]}" value="0" aria-label="${RESOURCE_NAMES[r]} to return"><span>${me.resources[r]} in hand</span></div>`).join('')}</div><p id="discard-total" class="muted">0 selected</p><p id="form-error" class="error-text" role="alert"></p><div class="sheet-actions"><button class="primary" type="submit">Confirm discard</button></div></form>`);itemPages($('discard-form'),'.discard-row',{label:'Resource page',perPage:()=>Math.min(innerHeight,window.visualViewport?.height||innerHeight)<400?1:innerHeight<500?2:5});}
+function updateDiscard(){
+ const form=$('discard-form');if(!form||!view())return;const hand=ownPlayer(view()).resources,required=view().state.game.discardAmounts[view().you],values=Object.fromEntries(RESOURCES.map(r=>[r,Number($(`discard-${r}`).value)])),total=handCount(values);
+ $('discard-total').textContent=`${total} / ${required} selected`;
+ for(const r of RESOURCES){const row=form.querySelector(`[data-discard-resource="${r}"]`);row.querySelector('output').textContent=values[r];row.querySelector('[data-action^="discard-remove:"]').disabled=blocked()||values[r]===0;row.querySelector('[data-action^="discard-add:"]').disabled=blocked()||values[r]>=hand[r]||total>=required;}
+ form.querySelector('[type="submit"]').disabled=blocked()||total!==required;
+}
+function discardPanel(){const v=view(),me=ownPlayer(v);openSheet(`Return ${v.state.game.discardAmounts[v.you]} cards`,`<p class="muted">Choose the required number of cards. Their types stay private.</p><form id="discard-form"><div class="discard-grid">${RESOURCES.map(r=>`<div class="discard-row" data-discard-resource="${r}"><span class="discard-resource">${art(r)}${RESOURCE_NAMES[r]}</span><div class="trade-stepper discard-stepper">${button('−',`discard-remove:${r}`,'icon-button').replace('data-action',`aria-label="Remove ${RESOURCE_NAMES[r]} from return" data-action`)}<output aria-label="${RESOURCE_NAMES[r]} to return">0</output>${button('+',`discard-add:${r}`,'icon-button').replace('data-action',`aria-label="Add ${RESOURCE_NAMES[r]} to return" data-action`)}<input type="hidden" id="discard-${r}" name="${r}" value="0"></div><span>${me.resources[r]} in hand</span></div>`).join('')}</div><p id="discard-total" class="muted">0 selected</p><p id="form-error" class="error-text" role="alert"></p><div class="sheet-actions"><button class="primary" type="submit">Confirm discard</button></div></form>`);itemPages($('discard-form'),'.discard-row',{label:'Resource page',perPage:()=>innerHeight<500?2:5});updateDiscard();}
 function cardPanel(index){
  const v=view(),card=ownPlayer(v).developmentCards.filter(c=>!c.isPlayed)[index];if(!card)return;
  const rules=CARD_RULES[card.type],choices=v.choices.filter(c=>c.type===CARD_ACTION[card.type]);
@@ -341,6 +347,7 @@ async function dispatch(action,el){
     }else if(kind==='trade-remove')tradeDraft[side][r]=Math.max(0,tradeDraft[side][r]-1);
     renderTradeComposer(action);return;
   }
+  if(action.startsWith('discard-add:')||action.startsWith('discard-remove:')){if(blocked()||staleModal())return;const [operation,r]=action.split(':'),input=$(`discard-${r}`);if(!RESOURCES.includes(r)||!input)return;const total=handCount(Object.fromEntries(RESOURCES.map(key=>[key,Number($(`discard-${key}`).value)]))),amount=Number(input.value),limit=view().state.game.discardAmounts[view().you];if(operation==='discard-add'&&amount<ownPlayer(view()).resources[r]&&total<limit)input.value=amount+1;else if(operation==='discard-remove'&&amount>0)input.value=amount-1;updateDiscard();return;}
   if(action==='close'){closeSheet();return;}
   if(action==='start-game'){if(blocked())return;await sync('start',{roomId:packet.roomId});return;}
   if(action==='refresh'){closeSheet();botSince=0;botRevision=-1;await sync();return;}
@@ -354,8 +361,6 @@ async function dispatch(action,el){
   if(action==='share'){showInvitation();return;}
   if(action==='copy'){try{await navigator.clipboard.writeText($('invite-link').value);$('copy-result').textContent='Invitation copied.';}catch{$('invite-link').select();$('copy-result').textContent='Select and copy the invitation manually.';}return;}
   if(action==='results'){resultPanel();return;}
-  if(action==='zoom-in'){zoom=1.4;render();return;}if(action==='zoom-out'||action==='zoom-reset'){zoom=1;render();return;}
-  if(action.startsWith('pan-')){const d=action.slice(4);pan.x=Math.max(0,Math.min(200,pan.x+(d==='left'?-40:d==='right'?40:0)));pan.y=Math.max(0,Math.min(160,pan.y+(d==='up'?-40:d==='down'?40:0)));render();return;}
   if(action.startsWith('card:')){cardPanel(Number(action.split(':')[1]));return;}
   if(action==='skip-offer'){if(!blocked()&&unavailableIncomingOffer(view()))await sync();return;}
   if(action==='offer'){offerPanel();return;}

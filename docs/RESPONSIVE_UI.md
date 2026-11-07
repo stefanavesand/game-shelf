@@ -1,6 +1,6 @@
 # Responsive game UI
 
-Owner-approved direction (2026-11-07): one fixed game viewport on phones and iPads, compact player chips, board plus an action dock, left overlay navigation, and dialogs that fit the available screen. Landscape uses a right action panel; portrait uses the bottom dock. The page does not scroll during play. Board zoom/pan is independent of page navigation. Home and the saved-game library remain ordinary document views.
+Owner-approved direction (2026-11-07): one fixed game viewport on phones and iPads, compact player chips, board plus an action dock, left overlay navigation, and dialogs that fit the available screen. Landscape uses a right action panel; portrait uses the bottom dock. The page does not scroll during play. The entire board, including port labels, scales uniformly to the largest size that fits the board area. There are no zoom/pan controls. Static board bounds keep the framing stable during placement previews and moves. Home and the saved-game library remain ordinary document views.
 
 ## Boundaries
 
@@ -20,7 +20,7 @@ The same components are used at every breakpoint. Rotation changes placement wit
 
 Native dialogs provide the inert background, focus trap and Escape handling. Closing a sidebar restores the menu trigger. A counteroffer may overlay an existing trade editor; its draft remains owned by the controller. Other primary navigation closes the sidebar before opening content.
 
-The trading editor uses all five rows when height permits. On shorter screens it pages resources, preserving all quantities. A compact Trade settings step exposes player/bank mode and recipient on landscape phones. Help uses topic selection and text pages; score details select a player; card lists and activity use pages. Content is reachable through explicit controls rather than merely clipped with `overflow: hidden`.
+The trading editor uses all five rows when height permits. On shorter screens it pages resources, preserving all quantities. A compact Trade settings step exposes player/bank mode and recipient on landscape phones. Help uses topic selection and text pages; score details select a player; card lists and activity use pages. Discard selection uses the same minus/count/plus controls as trading, bounded by holdings and the required total; no numeric keyboard is needed. Content is reachable through explicit controls rather than merely clipped with `overflow: hidden`.
 
 ## Verification
 

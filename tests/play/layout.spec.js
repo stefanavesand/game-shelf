@@ -6,6 +6,13 @@ for(const [width,height] of [[390,664],[360,640],[844,390],[1024,768],[768,1024]
  const {context,page}=await start(browser,{width,height});try{
   for(const s of ['.players','#board','.action-panel','.action-buttons'])expect(await fits(page,s),s).toEqual({visible:true,inside:true});
   expect(await page.evaluate(()=>({height:document.documentElement.scrollHeight,width:document.documentElement.scrollWidth}))).toEqual({height,width});
+  await expect(page.locator('.board-tools')).toHaveCount(0);
+  const framing=await page.locator('#board').evaluate(svg=>{
+   const box=svg.getBoundingClientRect(),m=svg.getScreenCTM();
+   const bounds=[...svg.children].filter(el=>el.tagName.toLowerCase()==='g'&&el.getAttribute('aria-hidden')==='true'||el.tagName.toLowerCase()==='text').map(el=>{const b=el.getBBox();return {left:b.x,right:b.x+b.width,top:b.y,bottom:b.y+b.height};});
+   const left=Math.min(...bounds.map(b=>b.left)),right=Math.max(...bounds.map(b=>b.right)),top=Math.min(...bounds.map(b=>b.top)),bottom=Math.max(...bounds.map(b=>b.bottom));
+   return {inside:left*m.a+m.e>=box.left-1&&right*m.a+m.e<=box.right+1&&top*m.d+m.f>=box.top-1&&bottom*m.d+m.f<=box.bottom+1,fill:Math.max((right-left)*m.a/box.width,(bottom-top)*m.d/box.height)};
+  });expect(framing.inside).toBe(true);expect(framing.fill).toBeGreaterThan(.9);
   await page.screenshot({path:`test-results/game-${width}x${height}.png`});
   const before=await page.locator('#board').boundingBox();await page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(page.getByRole('dialog',{name:'Game Shelf',exact:true})).toBeVisible();expect(await fits(page,'#sidebar')).toEqual({visible:true,inside:true});expect(await page.locator('#board').boundingBox()).toEqual(before);
   await page.getByRole('button',{name:'Close menu',exact:true}).click();await page.getByRole('button',{name:'Trade',exact:true}).click();expect(await fits(page,'#sheet')).toEqual({visible:true,inside:true});await expect(page.locator('#trade-form button[type=submit]')).toBeVisible();
@@ -45,8 +52,8 @@ test('help, score details and cards remain reachable in landscape',async({browse
 test('discard pages retain quantities and keep confirmation visible after rotation',async({browser})=>{
  const {context,page,backend}=await start(browser,{width:844,height:390});try{
   for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;Object.assign(p.view.state.game,{phase:'discard',pendingDiscard:['p1'],discardAmounts:{p1:5}});p.view.choices=p.you==='p1'?[{type:'DISCARD_RESOURCES'}]:[];}
-  await page.locator('#refresh').click();await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await page.getByLabel('Brick to return',{exact:true}).fill('1');expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
-  await page.setViewportSize({width:390,height:664});await expect(page.getByLabel('Brick to return',{exact:true})).toHaveValue('1');expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
+  await page.locator('#refresh').click();await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await page.getByRole('button',{name:'Add Brick to return',exact:true}).click();expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
+  await page.setViewportSize({width:390,height:664});await expect(page.getByLabel('Brick to return',{exact:true})).toHaveText('1');expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
  }finally{await context.close();}
 });
 
@@ -59,4 +66,16 @@ test('an open sidebar updates when a pending new game finishes creating',async({
   await page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(page.locator('#sidebar')).toBeVisible();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);
   release();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toBeVisible();await page.getByRole('button',{name:'Invitation details',exact:true}).click();await expect(page.getByLabel('Invitation link',{exact:true})).toBeVisible();await expect(page.locator('#sidebar')).not.toBeVisible();
  }finally{release();await context.close();}
+});
+
+
+test('discard steppers enforce holdings and the required total without a keyboard',async({browser})=>{
+ const {context,page,backend}=await start(browser,{width:390,height:664});try{
+  for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;Object.assign(p.view.state.game,{phase:'discard',pendingDiscard:['p1'],discardAmounts:{p1:5}});p.view.choices=p.you==='p1'?[{type:'DISCARD_RESOURCES'}]:[];}
+  await page.locator('#refresh').click();await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await expect(page.locator('#discard-form input:not([type=hidden])')).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeDisabled();
+  for(let i=0;i<3;i++)await page.getByRole('button',{name:'Add Brick to return',exact:true}).click();await expect(page.getByRole('button',{name:'Add Brick to return',exact:true})).toBeDisabled();
+  for(let i=0;i<2;i++)await page.getByRole('button',{name:'Add Wood to return',exact:true}).click();await expect(page.getByRole('button',{name:'Add Grain to return',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'Remove Brick from return',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeDisabled();await page.getByRole('button',{name:'Add Grain to return',exact:true}).click();await expect(page.locator('#discard-total')).toHaveText('5 / 5 selected');
+  await page.getByRole('button',{name:'Confirm discard',exact:true}).click();await expect.poll(()=>backend.commands.length).toBe(1);expect(backend.commands[0].action).toEqual({type:'DISCARD_RESOURCES',resources:{brick:2,lumber:2,grain:1,wool:0,ore:0}});
+ }finally{await context.close();}
 });

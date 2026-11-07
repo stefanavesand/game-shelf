@@ -15,7 +15,6 @@ body.table-screen{height:var(--viewport-height,100dvh);min-height:0;overflow:hid
 .game-screen .table-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:8px;flex:1;min-height:0;align-items:stretch}
 .game-screen .board-column{min-width:0;min-height:0;display:flex}.game-screen .board-wrap{flex:1;min-height:0;border:0;border-radius:14px;box-shadow:none;display:flex}
 .game-screen .board-wrap svg{width:100%;height:100%;min-height:0;max-height:none;display:block;flex:1}
-.game-screen .board-tools{left:6px;bottom:6px;padding:0;gap:0;flex-wrap:wrap;max-width:calc(100% - 12px)}.game-screen .board-tools button{min-width:44px;min-height:44px;padding:0}
 .game-screen .action-panel{min-width:0;padding:8px 10px;border-radius:12px;box-shadow:none;display:flex;flex-direction:column;gap:6px}
 .game-screen .turn-line{margin:0;display:flex;align-items:center;gap:8px;justify-content:space-between}.game-screen .turn-line h1{font-size:18px;line-height:1.2;letter-spacing:-.4px;margin:0}.game-screen .turn-line p{font-size:12px;line-height:1.3;margin:3px 0 0}.game-screen .turn-line>div:first-child{min-width:0}
 .game-screen .dice{margin:0;gap:3px;flex-shrink:0}.game-screen .die{width:23px;height:23px;font-size:13px}.game-screen .roll-total{font-size:12px}
@@ -53,3 +52,5 @@ dialog[open]{display:flex;flex-direction:column;overflow:hidden}#sheet-body{min-
  .trade-settings-toggle{grid-column:1;grid-row:1;margin:0}.trade-scroll{grid-column:2;grid-row:1 / span 2;min-height:0}
  dialog[data-trade="composer"] .trade-footer{grid-column:1;grid-row:2;margin:0!important;align-self:end}.trade-row{grid-template-columns:minmax(28px,1fr) 30px 108px 108px;gap:4px}.trade-row-resource>span{position:absolute;width:1px;height:1px;clip-path:inset(50%);overflow:hidden}.trade-row-resource{justify-content:center}.trade-row-head{font-size:11px}.trade-responses li{flex-wrap:wrap;gap:2px}.trade-tabs button{font-size:13px}.trade-recipient{flex-direction:column;gap:2px;align-items:stretch}.trade-recipient select{width:100%}
 }
+
+.discard-row{grid-template-columns:minmax(80px,1fr) 112px 68px}.discard-resource{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:650}.discard-resource svg{width:23px;height:23px;flex-shrink:0}.discard-stepper{display:grid;grid-template-columns:44px 24px 44px;align-items:center;gap:0}.discard-stepper button{min-width:44px;min-height:44px;padding:0;border:0;background:transparent}.discard-stepper output{text-align:center;font-weight:700;font-size:16px}
