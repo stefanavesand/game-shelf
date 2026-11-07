@@ -19,7 +19,7 @@ import {RESOURCES,RESOURCE_NAMES,CARD_NAMES,CARD_ACTION,ownPlayer,handCount,bund
 const $=id=>document.getElementById(id),sheet=$('sheet'),reply=$('trade-reply');
 const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
-let knownGames=[],tradeFeedback=[],accountBusy=false;
+let knownGames=[],tradeFeedback=[],accountBusy=false,updateReloadPending=false;
 const googleAuth=createGoogleAuth();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
@@ -31,7 +31,7 @@ const solo=()=>client.isLocal()||(packet?.status!=='waiting'&&packet?.members?.f
 const player=id=>view()?.state.players.players.find(p=>p.id===id);
 const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Player';
 const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
-const blocked=()=>busy||accountBusy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
+const blocked=()=>updateReloadPending||busy||accountBusy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
@@ -54,7 +54,7 @@ function recovery(){
   const oldLocal=error?.code==='UNSUPPORTED_VERSION'&&knownGames.some(g=>g.local&&g.compatible===false);
   const title=oldLocal?'An older saved game needs attention':!navigator.onLine?'You’re offline':error?.code==='AUTH_REQUIRED'?'Your player identity needs attention':error?.code==='SESSION_EXPIRED'?'This room has expired':error?.code==='UNSUPPORTED_VERSION'?'A compatible app is needed':pending?'Let’s check your original move':busy?'Reconnecting…':'The game needs a moment';
   const text=oldLocal?'This saved game uses an older engine. It is still stored on this device. Abandon it below to start a new game.':!navigator.onLine?'Internet play is paused. Reconnect to check the game before making a move.':error?.message||(pending?'Your move is waiting for confirmation. We’ll resolve it before sending another.':'Check the connection to continue.');
-  return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${oldLocal?'<p class="error-help">Reloading cannot change a saved game’s engine. Abandonment keeps the saved snapshot and leaves your player identity intact.</p>':permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${oldLocal?button('Review saved games','home','primary',busy):error?.code==='UPDATE_PENDING'?button('Apply update','apply-update','primary',busy):error?.code==='UNSUPPORTED_VERSION'?(button('Reload app','reload-app','primary',busy)+(pending?button('Resolve move','refresh','',true):'')):button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
+  return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${oldLocal?'<p class="error-help">Reloading cannot change a saved game’s engine. Abandonment keeps the saved snapshot and leaves your player identity intact.</p>':permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${oldLocal?button('Review saved games','home','primary',busy):error?.code==='UPDATE_PENDING'?button('Return home','apply-update','primary',busy):error?.code==='UNSUPPORTED_VERSION'?(button('Reload app','reload-app','primary',busy)+(pending?button('Resolve move','refresh','',true):'')):button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
 }
 function title(){return turnTitle({view:view(),pending:saved?.pending,mode,unavailable:unavailableIncomingOffer(view()),incoming:incoming(),name});}
 function resourcesPanel(){return resourceHand(view());}
@@ -87,8 +87,8 @@ function drawTable(){
 function render(){
   const focused=document.activeElement?.id;
   document.body.classList.toggle('table-screen',screen==='table'&&!!view()&&!!googleAuth.profile());
-  const hasAccount=!!googleAuth.profile();$('room').hidden=false;document.querySelector('.header-turn').textContent=screen==='table'&&view()?title()[0]:'';
-  const refreshDisabled=busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now(),connection=client.isLocal()?(busy?'Saving…':'Local · saved'):!navigator.onLine?'Offline':busy?'Checking game…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
+  const hasAccount=!!googleAuth.profile();$('room').hidden=false;$('room').disabled=updateReloadPending;$('help').disabled=updateReloadPending;document.querySelector('.header-turn').textContent=screen==='table'&&view()?title()[0]:'';
+  const refreshDisabled=updateReloadPending||busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now(),connection=client.isLocal()?(busy?'Saving…':'Local · saved'):!navigator.onLine?'Offline':busy?'Checking game…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
   if($('refresh').disabled!==refreshDisabled)$('refresh').disabled=refreshDisabled;
   $('refresh').classList.toggle('paused',(!navigator.onLine&&!client.isLocal())||!!error);
   if($('connection').textContent!==connection)$('connection').textContent=connection;
@@ -130,7 +130,7 @@ function apply(next){
 }
 function schedule(){clearTimeout(timer);if(['home','create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(packet?.botWorkPending&&!saved?.pending&&!error?100:client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
 function sync(op,args={},options={}){
-  if(!googleAuth.profile())return Promise.resolve();
+  if(updateReloadPending||!googleAuth.profile())return Promise.resolve();
   if(activeSync){
     if(!op)return activeSync;
     // Keep the exact selected command while a read finishes; never drop a click.
@@ -276,7 +276,7 @@ function scorePanel(){showScores(view(),openSheet);}
 
 function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<div class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP</span></div>`).join('')}<div class="sheet-actions">${button('View the board','close','quiet')}${button('New game','create','primary')}</div></div>`);}
 function invitedRoom(){return new URLSearchParams(location.hash.split('?')[1]||'').get('room');}
-const accountBlocked=()=>accountBusy||busy||!!saved?.pending||!navigator.onLine||!!(error&&error.code!=='AUTH_REQUIRED');
+const accountBlocked=()=>updateReloadPending||accountBusy||busy||!!saved?.pending||!navigator.onLine||!!(error&&error.code!=='AUTH_REQUIRED');
 function accountPanel(){
  try{const p=googleAuth.profile();return `<section class="account-section" aria-label="Account"><div><h2>${p?'Google account':'Welcome to Game Shelf'}</h2><p class="muted">${p?esc(p.email||p.name):'Sign in to start a game or join friends. After signing in, Solo also works offline.'}</p></div><div class="account-actions">${p?button('Sign in again','google-sign-in','quiet',accountBlocked())+button('Sign out','google-sign-out','quiet',blocked()||!navigator.onLine):button('Sign in with Google','google-sign-in','',accountBlocked())}</div></section>`;}catch{return '<section class="account-section"><p>Saved account details could not be read. Your data has been kept.</p></section>';}
 }
@@ -288,7 +288,7 @@ async function changeAccount(work){
  if(result===null)throw new PlayError('ACCOUNT_BUSY','Another window is saving a move. Wait for it to finish before signing in or out.');
 }
 async function accountAction(signOut=false){
- if(accountBusy||busy||saved?.pending||!navigator.onLine)return;
+ if(updateReloadPending||accountBusy||busy||saved?.pending||!navigator.onLine)return;
  accountBusy=true;let navigating=false;notice=signOut?'Signing out…':'Opening Google sign-in…';render();
  try{await changeAccount(async()=>{if(signOut){await googleAuth.signOut();history.replaceState(null,'',location.pathname+'#home');location.reload();}else location.assign(await googleAuth.start(location.href));navigating=true;});}
  catch(e){notice=e.message||'Sign-in could not be started. Please try again.';}
@@ -299,9 +299,7 @@ function renderMenu(){
  if(renderedMenu!==html){body.innerHTML=html;renderedMenu=html;if(focused)[...body.querySelectorAll('[data-action]')].find(el=>el.dataset.action===focused)?.focus({preventScroll:true});}
 }
 function showMenu(){renderMenu();overlays.showDrawer();}
-const updateStatus=()=>{$('sidebar-offline').textContent=$('offline-status').textContent;$('sidebar-connection').textContent=$('connection').textContent;$('sidebar-connection').classList.toggle('paused',$('refresh').classList.contains('paused'));};
-new MutationObserver(updateStatus).observe(document.querySelector('.header-actions'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
-$('sidebar-offline').onclick=()=>{if(screen==='home')overlays.closeDrawer();$('offline-status').click();};$('sidebar-connection').onclick=()=>$('refresh').click();updateStatus();
+$('app-version').textContent='Version '+self.OFFLINE_RELEASE;
 function renderLobby(){
  const l=packet.lobby;
  if(l.full)return `<section class="form-card"><h1>Game full</h1><p class="muted">${l.started?'This game has already started. Its seats are fixed.':'All human seats are taken.'} Ask your friends to create another game.</p>${button('Return to start','home','primary')}</section>`;
@@ -324,7 +322,7 @@ async function dispatch(action,el){
   if(action==='google-sign-out'){if(blocked())return;openSheet('Sign out?',`<p>Sign in again to access your games. Solo saves stay on this device.</p><div class="sheet-actions">${button('Cancel','close','quiet')}${button('Sign out','google-sign-out-confirm','primary')}</div>`);return;}
   if(!googleAuth.profile()&&!['help','google-sign-out-confirm'].includes(action))return;
   if(action==='google-sign-out-confirm'){closeSheet();await accountAction(true);return;}
-  if(action==='apply-update'){error=null;ready=true;closeSheet();setScreen('home');$('offline-status').click();return;}
+  if(action==='apply-update'){error=null;ready=true;closeSheet();setScreen('home');return;}
   if(action==='reload-app'){location.reload();return;}
   if(action==='help'){helpPanel();return;}
   if(action==='scores'&&view()){scorePanel();return;}
@@ -400,4 +398,4 @@ async function boot(){
 }
 trackViewport();boot();
 
-setupPwa({isIdle:()=>ready&&!error&&!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open,canUpdate:async artifact=>!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open&&await client.canUpdate(artifact)});
+setupPwa({onReloadPending:()=>{updateReloadPending=true;render();},isIdle:()=>(ready&&!error||['UPDATE_PENDING','UNSUPPORTED_VERSION'].includes(error?.code))&&!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open,canUpdate:async artifact=>!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open&&await client.canUpdate(artifact)});

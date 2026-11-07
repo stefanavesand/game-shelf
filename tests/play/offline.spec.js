@@ -13,8 +13,8 @@ test('previously signed-in solo starts with an expired token, plays, and fully r
 test('a missing cached resource never reports offline readiness',async({browser})=>{
  const context=await browser.newContext();try{const page=await context.newPage();await page.goto(root+'#home');await expect(page.locator('#offline-status')).toHaveText('Ready for offline',{timeout:30000});
  await page.evaluate(async()=>{const names=await caches.keys();for(const name of names)if(name.startsWith('game-shelf-offline-'))await (await caches.open(name)).delete(new URL('./catan/module.js',location.href).href);});
- await context.setOffline(true);await page.locator('#offline-status').click();await expect(page.locator('#offline-status')).not.toHaveText('Ready for offline');
- await context.setOffline(false);await page.locator('#offline-status').click();await expect(page.locator('#offline-status')).toHaveText('Ready for offline');
+ await context.setOffline(true);await page.evaluate(async()=>{const {updates}=await import('./pwa.js');void updates.check();});await expect(page.locator('#offline-status')).not.toHaveText('Ready for offline');
+ await context.setOffline(false);await page.evaluate(async()=>{const {updates}=await import('./pwa.js');void updates.check();});await expect(page.locator('#offline-status')).toHaveText('Ready for offline');
  }finally{await context.close();}
 });
 test('a purchased development card is shown, saved and usable as a card offline',async({browser})=>{

@@ -14,7 +14,7 @@ Owner-approved direction (2026-11-07): one fixed game viewport on phones and iPa
 - `play/presentation/viewport.js` and `layout.css`: available viewport height (including Safari chrome/keyboard), responsive placement and safe areas.
 - `play/app.js`: entrypoint/controller. It owns previews, draft trades, pending-operation guards and event routing. Remaining controller extraction is incremental; this is not a second game engine or framework rewrite.
 
-The same components are used at every breakpoint. Rotation changes placement without rebuilding the session or clearing a draft. Unchanged polling continues to preserve board DOM, selection and focus. Sidebar DOM lives outside the game render target. Its contents update when an in-flight game creation finishes, while unchanged updates retain menu nodes and focus. The sidebar carries connection/update status, game details, scores, activity, help and account access. Blocking game errors remain in the action panel; informational notices use the live announcement region rather than shifting the board.
+The same components are used at every breakpoint. Rotation changes placement without rebuilding the session or clearing a draft. Unchanged polling continues to preserve board DOM, selection and focus. Sidebar DOM lives outside the game render target. Its contents update when an in-flight game creation finishes, while unchanged updates retain menu nodes and focus. The header exposes no update arrow or connection dot. The sidebar carries readable game status, read-only automatic-update status and app version, game details, scores, activity, help and account access. Blocking game errors remain in the action panel; informational notices use the live announcement region rather than shifting the board.
 
 ## Overlays and overflow
 
@@ -25,3 +25,7 @@ The trading editor uses all five rows when height permits. On shorter screens it
 ## Verification
 
 `tests/play/layout.spec.js` checks phone and tablet portrait/landscape geometry, no page overflow, sidebar overlay geometry, resource reachability, rotation/polling draft persistence, preview persistence and setup confirmation. Existing trading, offline, Google identity and safe-update regressions remain part of the CI release gate. Chromium emulation is automated evidence; physical Safari/iPad keyboard, safe-area and touch acceptance still need device verification.
+
+## Automatic updates — 2026-11-07
+
+Downloads, repairs and compatible activation run automatically while the app is in the foreground. Home with no open overlay is the activation point. Other open app windows must acknowledge being idle before activation; suspended/older clients make it wait. Saved games and pending commands retain all existing compatibility/lifecycle guards. An incompatible engine waits for its games to finish or be explicitly abandoned; updates never delete games. There is no app-update button or confirmation prompt.

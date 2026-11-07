@@ -37,11 +37,24 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
 })()));
 // Updated workers wait for an explicit safe activation request.
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const name of await caches.keys())if(name.startsWith('game-shelf-offline-')&&name!==NAME)await caches.delete(name);})()));
+// The requesting window has already fenced its own work. Other open windows
+// must confirm that they are idle; suspended/older clients make us wait safely.
+async function otherWindowsIdle(sender){
+ const scope=new URL('./',self.location.href).href;
+ const windows=(await self.clients.matchAll({type:'window',includeUncontrolled:true})).filter(c=>c.id!==sender?.id&&c.url.startsWith(scope));
+ const results=await Promise.all(windows.map(client=>new Promise(resolve=>{
+  const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();resolve(false);},1500);
+  channel.port1.onmessage=event=>{clearTimeout(timer);channel.port1.close();resolve(event.data?.idle===true);};
+  try{client.postMessage({type:'UPDATE_IDLE_QUERY'},[channel.port2]);}catch{clearTimeout(timer);channel.port1.close();resolve(false);}
+ })));
+ return results.every(Boolean);
+}
 self.addEventListener('message',event=>{
  event.waitUntil((async()=>{
   const type=event.data?.type;
   if(type==='REPAIR'){try{await download();}catch{/* Keep the current app; report verification failure below. */}}
-  const ready=['CHECK','REPAIR','ACTIVATE'].includes(type)?await verified():false;
+  let ready=['CHECK','REPAIR','ACTIVATE'].includes(type)?await verified():false;
+  if(type==='ACTIVATE'&&ready)ready=await otherWindowsIdle(event.source);
   event.ports[0]?.postMessage({version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE,breaking:self.OFFLINE_BREAKING===true,releaseVersion:self.OFFLINE_RELEASE||null,ready});
   if(type==='ACTIVATE'&&ready)await self.skipWaiting();
  })());

@@ -8,9 +8,9 @@ test('normal game UI runs online Catan using only relay messages and local rules
  try{const x=await setup(a,'alice'),y=await setup(b,'bob');
  await x.getByRole('button',{name:'New game',exact:true}).click();await x.getByRole('button',{name:'Create game',exact:true}).click();await expect(x.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();
  await x.locator('#room').click();await x.getByRole('button',{name:'Invitation details',exact:true}).click();const invite=await x.getByLabel('Invitation link').inputValue();await x.getByRole('button',{name:'Close panel'}).click();
- await y.goto(invite);await y.getByRole('button',{name:'Join game',exact:true}).click();await expect(y.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await x.getByRole('button',{name:'Start game',exact:true}).click();await y.locator('#refresh').click();await expect(y.locator('.players .bot-tag')).toHaveCount(1);
+ await y.goto(invite);await y.getByRole('button',{name:'Join game',exact:true}).click();await expect(y.getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await x.getByRole('button',{name:'Start game',exact:true}).click();await y.locator('#refresh').evaluate(button=>button.click());await expect(y.locator('.players .bot-tag')).toHaveCount(1);
  await expect.poll(()=>x.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.view.state.game.currentPlayerId;})).toMatch(/^(alice|bob)$/);
- const packet=await x.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});const p=packet.view.state.game.currentPlayerId==='alice'?x:y;if(p===y)await y.locator('#refresh').click();
+ const packet=await x.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});const p=packet.view.state.game.currentPlayerId==='alice'?x:y;if(p===y)await y.locator('#refresh').evaluate(button=>button.click());
  await p.evaluate(async()=>{const {client}=await import('./session.js'),refresh=client.refresh;window.extraRefreshes=0;client.refresh=(...args)=>{window.extraRefreshes++;return refresh(...args);};});
  await p.locator('#board [role="button"]').first().click();await p.getByRole('button',{name:'Confirm',exact:true}).click();await expect(p.locator('#connection')).toHaveText('Up to date');expect(await p.evaluate(()=>window.extraRefreshes)).toBe(0);
  const packets=await Promise.all([x,y].map(page=>page.evaluate(async()=>{const {client}=await import('./session.js');return client.refresh();})));expect(packets[0].revision).toBe(packets[1].revision);expect(packets[0].view.state.board.buildings).toEqual(packets[1].view.state.board.buildings);expect(oldCalls).toBe(0);
@@ -93,7 +93,7 @@ test('four human browsers join the configured lobby and start without bots',asyn
   await host.getByRole('button',{name:'Share invitation',exact:true}).click();const invite=await host.getByLabel('Invitation link').inputValue();await host.getByRole('button',{name:'Close panel'}).click();
   for(let i=1;i<4;i++){await pages[i].goto(invite);await pages[i].getByRole('button',{name:'Join game',exact:true}).click();await expect(pages[i].getByRole('heading',{name:'Game lobby',exact:true})).toBeVisible();await expect(pages[i].getByRole('button',{name:'Start game',exact:true})).toHaveCount(0);}
   await host.getByRole('button',{name:'Start game',exact:true}).click();await expect(host.locator('.players .player')).toHaveCount(4);
-  for(const page of pages.slice(1)){await page.locator('#refresh').click();await expect(page.locator('#board')).toBeVisible();await expect(page.locator('.players .bot-tag')).toHaveCount(0);}
+  for(const page of pages.slice(1)){await page.locator('#refresh').evaluate(button=>button.click());await expect(page.locator('#board')).toBeVisible();await expect(page.locator('.players .bot-tag')).toHaveCount(0);}
   const states=await Promise.all(pages.map(page=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.members;})));for(const seats of states)expect(seats).toEqual(states[0]);
  }finally{for(const c of contexts)await c.close();}
 });
@@ -107,5 +107,5 @@ test('four-player solo shows three named bots and reloads offline on a phone',as
 
 test('signed-in home survives refresh and foreground events without network calls',async({browser})=>{
  const context=await browser.newContext();let calls=0;
- try{await context.route(/^https:\/\//,route=>{calls++;return route.abort();});const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.locator('#refresh').click();await page.evaluate(()=>{window.dispatchEvent(new Event('pageshow'));document.dispatchEvent(new Event('visibilitychange'));});await expect(page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();expect(calls).toBe(0);}finally{await context.close();}
+ try{await context.route(/^https:\/\//,route=>{calls++;return route.abort();});const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.locator('#refresh').evaluate(button=>button.click());await page.evaluate(()=>{window.dispatchEvent(new Event('pageshow'));document.dispatchEvent(new Event('visibilitychange'));});await expect(page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();expect(calls).toBe(0);}finally{await context.close();}
 });

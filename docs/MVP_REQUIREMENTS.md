@@ -130,3 +130,7 @@ Full offline Catan, LAN/Bluetooth/WebRTC/native packaging; configurable four-sea
 | Requirements/design agreement | Owner approved the working prototype layout and authorized real-game integration on 2026-11-02; operational/device/second-person acceptance remains | Owner UI baseline agreed; release gates open |
 
 The next step is UI concepts against the agreed product baseline, including phone adaptation. Resolve remaining release/operational decisions alongside design; do not reopen agreed scope without a reason. Tasks, dependencies and release gates: [migration/MVP todo](MIGRATION_MVP_TODO.md). Design deliverables: [UI design brief](MVP_UI_DESIGN.md).
+
+## Automatic app maintenance — owner decision 2026-11-07
+
+Remove the header update arrow and connection dot. Updates require no manual check, installation button or confirmation. Retry foreground downloads/repairs automatically and activate at a safe Home state without interrupting other open games or unresolved moves. Read-only status remains in the sidebar. Compatibility guards take precedence over activation; never discard a saved game automatically.

@@ -55,3 +55,7 @@ Original PWA session, identity and UI changes remove anonymous signup, derive pl
 ## Responsive presentation — 2026-11-07
 
 The presentation modules, responsive CSS, native-dialog host and pagination are original repository code. Existing UI fragments were extracted from the original Game Shelf controller. No external UI library, upstream game code, new runtime dependency or generated concept artwork was imported.
+
+## Automatic maintenance (2026-11-07)
+
+The automatic foreground repair/retry flow, idle-window activation handshake and read-only status presentation are original repository code. They add no runtime dependencies and do not change the rule engine, relay service, identity or saved-game formats.

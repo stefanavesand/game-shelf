@@ -1,5 +1,9 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
+## Automatic updates — owner decision 2026-11-07
+
+App maintenance requires no manual check, update button or confirmation. Remove the header update arrow and connection dot; show readable, read-only update status in the sidebar. Download, repair and retry in the foreground automatically, then activate on idle Home after saved-game/pending-command checks and idle acknowledgements from other open app windows. This supersedes earlier manual/breaking-update approval descriptions; incompatible saved games must never be discarded automatically.
+
 ## Fixed responsive game viewport — 2026-11-07
 
 The owner approved the same no-page-scroll game design for phone and iPad: compact player row, a board with bottom actions in portrait/right actions in landscape, left overlay sidebar, fitted dialogs and explicit paging for longer content. Rule/session behavior remains unchanged. See [UI architecture and verification](docs/RESPONSIVE_UI.md). This supersedes the earlier long-page game layout.

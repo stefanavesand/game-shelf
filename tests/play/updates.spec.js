@@ -35,6 +35,7 @@ async function open(browser,options){
 async function solo(page){await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');await expect.poll(()=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.botWorkPending;})).toBe(false);return page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});}
 async function status(page){return page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();return new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=e=>resolve(e.data);r.active.postMessage({type:'CHECK'},[c.port2]);});});}
 async function update(page){await page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();await r.update();});}
+async function apply(page){await page.evaluate(async()=>{const {updates}=await import('./pwa.js');void updates.check();});}
 async function cleanup(f){await f.context.close();await f.server.close();}
 
 for(const workerOnly of [false,true])test(`a failed ${workerOnly?'worker-only':'UI'} update removes its partial cache and keeps the previous offline game`,async({browser})=>{
@@ -45,33 +46,33 @@ for(const workerOnly of [false,true])test(`a failed ${workerOnly?'worker-only':'
  }finally{await cleanup(f);}
 });
 test('a complete compatible update waits until home and preserves the unfinished game after activation',async({browser})=>{
- const f=await open(browser);try{const before=await solo(f.page);f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toContainText('Finish the game or return home');expect((await status(f.page)).version).toBe(f.server.version);
-  await f.page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+ const f=await open(browser);try{const before=await solo(f.page);f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');await apply(f.page);await expect(f.page.locator('#offline-status')).toContainText('Update waiting · finish the game or return home');expect((await status(f.page)).version).toBe(f.server.version);
+  await f.page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
   await f.context.setOffline(true);await f.page.getByRole('button',{name:'Resume game',exact:true}).click();await expect(f.page.locator('#connection')).toHaveText('Local · saved');const after=await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});expect(after).toEqual(before);
  }finally{await cleanup(f);}
 });
 test('an incompatible engine cannot install over a pinned game, including after the last window closes',async({browser})=>{
  const f=await open(browser,{differentEngine:true});try{const before=await solo(f.page);await f.page.getByRole('link',{name:'Game Shelf home',exact:true}).click();f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toContainText('Update blocked');expect((await status(f.page)).version).toBe(f.server.version);expect(await f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(false);
   await f.page.close();f.page=await f.context.newPage();await f.page.goto(f.server.url+'#home');expect((await status(f.page)).version).toBe(f.server.version);expect(await f.page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.roomId;})).toBe(before.room);
-  await f.page.getByRole('button',{name:'Abandon game',exact:true}).click();await f.page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+  await f.page.getByRole('button',{name:'Abandon game',exact:true}).click();await f.page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
  }finally{await cleanup(f);}
 });
 
 test('a damaged waiting cache cannot activate, and can be repaired without another release',async({browser})=>{
- const f=await open(browser);try{f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');
+ const f=await open(browser);try{f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');
   await f.page.evaluate(async version=>{await (await caches.open('game-shelf-offline-'+version)).delete(new URL('./help.js',location.href).href);},f.server.nextVersion);
   // The worker itself must reject activation, even if a client bypasses its UI check.
   const allowed=await f.page.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();return new Promise(resolve=>{const c=new MessageChannel();c.port1.onmessage=e=>resolve(e.data.ready);r.waiting.postMessage({type:'ACTIVATE'},[c.port2]);});});expect(allowed).toBe(false);expect((await status(f.page)).version).toBe(f.server.version);
-  f.server.upgrade(true);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Update incomplete · current app kept · retry');expect((await status(f.page)).ready).toBe(true);
-  f.server.upgrade(false);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+  f.server.upgrade(true);await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update incomplete · current app kept · retrying automatically');expect((await status(f.page)).ready).toBe(true);
+  f.server.upgrade(false);await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
  }finally{await cleanup(f);}
 });
 
 test('repairing an active cache preserves remaining files on failure and restores offline game access',async({browser})=>{
  const f=await open(browser);try{const before=await solo(f.page);await f.page.evaluate(async version=>{await (await caches.open('game-shelf-offline-'+version)).delete(new URL('./help.js',location.href).href);},f.server.version);
-  f.server.setFailure(true);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Offline package incomplete · current files kept · retry');
+  f.server.setFailure(true);await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Offline package incomplete · current files kept · retrying automatically');
   expect(await f.page.evaluate(async version=>!!await (await caches.open('game-shelf-offline-'+version)).match(new URL('./app.js',location.href).href),f.server.version)).toBe(true);expect((await status(f.page)).ready).toBe(false);
-  f.server.setFailure(false);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');await f.context.setOffline(true);await f.page.reload();await expect(f.page.locator('#connection')).toHaveText('Local · saved');
+  f.server.setFailure(false);await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');await f.context.setOffline(true);await f.page.reload();await expect(f.page.locator('#connection')).toHaveText('Local · saved');
   const after=await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});expect(after).toEqual(before);
  }finally{await cleanup(f);}
 });
@@ -87,7 +88,7 @@ test('a cache miss rejects newer module bytes, shows recovery, and resumes after
 });
 
 async function actorPage(f){const page=await f.context.newPage();await page.goto(f.server.url+'#home');await expect(page.locator('#connection')).toHaveText('Up to date');return page;}
-async function pendingUpdate(f){f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');}
+async function pendingUpdate(f){f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');}
 const lifecycleKey='game-shelf-app-lifecycle';
 
 test('another window cannot update while a real session creation waits to save',async({browser})=>{
@@ -95,9 +96,9 @@ test('another window cannot update while a real session creation waits to save',
   await actor.evaluate(()=>new Promise(resolve=>{window.heldLocal=navigator.locks.request('game-shelf-local-solo',()=>new Promise(done=>{window.releaseLocal=done;resolve();}));}));
   await actor.evaluate(()=>{window.createTask=import('./session.js').then(({client})=>client.execute('create',{name:'Concurrent',mode:'solo'})).catch(e=>({error:e.code}));});
   await expect.poll(()=>f.page.evaluate(async key=>(await navigator.locks.query()).held.some(l=>l.name===key&&l.mode==='shared'),lifecycleKey)).toBe(true);
-  await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toContainText('Another window is saving or sending');expect((await status(f.page)).version).toBe(f.server.version);
+  await apply(f.page);await expect(f.page.locator('#offline-status')).toContainText('Update waiting · another window is saving or sending');expect((await status(f.page)).version).toBe(f.server.version);
   await actor.evaluate(()=>window.releaseLocal());const before=await actor.evaluate(async()=>{const p=await window.createTask;return {room:p.roomId,revision:p.revision};});expect(!!before.room).toBe(true);
-  await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+  await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
   const after=await f.page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {room:p.roomId,revision:p.revision};});expect(after).toEqual(before);
  }finally{await cleanup(f);}
 });
@@ -105,7 +106,7 @@ test('another window cannot update while a real session creation waits to save',
 test('session work queued after compatibility approval cannot create a game during activation',async({browser})=>{
  const f=await open(browser,{differentEngine:true});try{const actor=await actorPage(f);await pendingUpdate(f);
   await f.page.evaluate(()=>{const post=ServiceWorker.prototype.postMessage;ServiceWorker.prototype.postMessage=function(data,ports){if(data?.type==='ACTIVATE'){window.releaseActivation=()=>post.call(this,data,ports);return;}return post.call(this,data,ports);};});
-  await f.page.locator('#offline-status').click();await expect.poll(()=>f.page.evaluate(()=>typeof window.releaseActivation==='function')).toBe(true);
+  await apply(f.page);await expect.poll(()=>f.page.evaluate(()=>typeof window.releaseActivation==='function')).toBe(true);
   await actor.evaluate(()=>{window.createTask=import('./session.js').then(({client})=>client.execute('create',{name:'Too late',mode:'solo'})).catch(e=>({error:e.code}));});
   await expect.poll(()=>f.page.evaluate(async key=>(await navigator.locks.query()).pending.some(l=>l.name===key&&l.mode==='shared'),lifecycleKey)).toBe(true);
   await f.page.evaluate(()=>window.releaseActivation());await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
@@ -114,7 +115,7 @@ test('session work queued after compatibility approval cannot create a game duri
 });
 
 test('a stale window that missed reload is fenced before it can persist another move',async({browser})=>{
- const f=await open(browser);try{const stale=await f.context.newPage();await stale.addInitScript(()=>{const add=navigator.serviceWorker.addEventListener.bind(navigator.serviceWorker);navigator.serviceWorker.addEventListener=(type,...args)=>type==='controllerchange'?undefined:add(type,...args);});await stale.goto(f.server.url+'#home');await expect(stale.locator('#connection')).toHaveText('Up to date');await pendingUpdate(f);await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');
+ const f=await open(browser);try{const stale=await f.context.newPage();await stale.addInitScript(()=>{const add=navigator.serviceWorker.addEventListener.bind(navigator.serviceWorker);navigator.serviceWorker.addEventListener=(type,...args)=>type==='controllerchange'?undefined:add(type,...args);});await stale.goto(f.server.url+'#home');await expect(stale.locator('#connection')).toHaveText('Up to date');await pendingUpdate(f);await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');
   expect(await stale.evaluate(()=>self.OFFLINE_VERSION)).toBe(f.server.version);
   const error=await stale.evaluate(async()=>{try{const {client}=await import('./session.js');await client.execute('create',{name:'Stale',mode:'solo'});return null;}catch(e){return e.code;}});expect(error).toBe('UNSUPPORTED_VERSION');
   expect(await f.page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.games()).length;})).toBe(0);
@@ -134,10 +135,10 @@ test('a lost online acknowledgment blocks another window update until the origin
   await actor.evaluate(async()=>{const {client}=await import('./session.js');await client.refresh();});await pendingUpdate(f);server.loseResponse();
   const error=await actor.evaluate(async()=>{const {client}=await import('./session.js'),p=(await client.inspect()).packet;try{await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:p.view.choices[0]});return null;}catch(e){return e.code;}});expect(error).toBe('NETWORK_UNAVAILABLE');
   await actor.evaluate(async channel=>{const {createRelayStore}=await import('./relay/store.js');const r=await createRelayStore({name:'game-shelf-online-catan-v1'}).load('alice',channel);window.originalIntent=r.outbox[0].request.mutationId;},server.channelId);
-  await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toContainText('Finish the game or return home');expect((await status(f.page)).version).toBe(f.server.version);
+  await apply(f.page);await expect(f.page.locator('#offline-status')).toContainText('Update waiting · finish the game or return home');expect((await status(f.page)).version).toBe(f.server.version);
   expect(await actor.evaluate(async channel=>{const {createRelayStore}=await import('./relay/store.js'),r=await createRelayStore({name:'game-shelf-online-catan-v1'}).load('alice',channel);return r.outbox.length===1&&r.outbox[0].request.mutationId===window.originalIntent;},server.channelId)).toBe(true);
   const original=await actor.evaluate(()=>window.originalIntent);await actor.evaluate(async()=>{const {client}=await import('./session.js');await client.refresh();});expect(server.messages.filter(m=>m.messageId===original).length).toBe(1);
-  await f.page.locator('#offline-status').click();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+  await apply(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
  }finally{await cleanup(f);}
 });
 
@@ -171,7 +172,7 @@ test('same-engine UI repair can install despite an already-incompatible local sa
   const before=await solo(f.page);
   await f.page.evaluate(async()=>navigator.locks.request('game-shelf-local-solo',async()=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});await new Promise(resolve=>{const tx=db.transaction('records','readwrite'),store=tx.objectStore('records'),r=store.get('account:alice');r.onsuccess=()=>{const lib=r.result;lib.games[lib.current].artifact='previous-engine-fixture';store.put(lib,'account:alice');};tx.oncomplete=resolve;});db.close();}));
   await f.page.goto(f.server.url+'#home');await f.page.reload();await expect(f.page.getByRole('heading',{name:'An older saved game needs attention'})).toBeVisible();await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);
-  f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');
+  f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');
   await f.page.close();f.page=await f.context.newPage();await f.page.goto(f.server.url+'#home');await expect.poll(async()=>(await status(f.page)).version).toBe(f.server.nextVersion);
   await expect(f.page.getByRole('button',{name:'Abandon game',exact:true})).toHaveCount(1);await f.page.getByRole('button',{name:'Abandon game',exact:true}).click();await f.page.getByRole('dialog').getByRole('button',{name:'Abandon game',exact:true}).click();await expect(f.page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();
   expect(await f.page.evaluate(async room=>{const db=await new Promise(resolve=>{const r=indexedDB.open('game-shelf-solo-v1',1);r.onsuccess=()=>resolve(r.result);});const lib=await new Promise(resolve=>{const r=db.transaction('records').objectStore('records').get('account:alice');r.onsuccess=()=>resolve(r.result);});db.close();return {abandoned:lib.games[room].abandoned,artifact:lib.games[room].artifact,revision:lib.games[room].state.snapshot.revision};},before.room)).toEqual({abandoned:true,artifact:'previous-engine-fixture',revision:before.revision});
@@ -183,22 +184,45 @@ test('a declared non-breaking update activates automatically on idle home and ke
 });
 
 test('automatic updates wait while a dialog is open, then activate after it closes',async({browser})=>{
- const f=await open(browser,{automatic:true});try{await f.page.getByRole('button',{name:'Help and rules',exact:true}).click();f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');expect((await status(f.page)).version).toBe(f.server.version);await expect(f.page.getByRole('dialog')).toBeVisible();await f.page.getByRole('button',{name:'Close panel'}).click();await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});}finally{await cleanup(f);}
+ const f=await open(browser,{automatic:true});try{await f.page.getByRole('button',{name:'Help and rules',exact:true}).click();f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');expect((await status(f.page)).version).toBe(f.server.version);await expect(f.page.getByRole('dialog')).toBeVisible();await f.page.getByRole('button',{name:'Close panel'}).click();await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});}finally{await cleanup(f);}
 });
 
-test('an explicitly breaking update never auto-activates even on idle home',async({browser})=>{
- const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.getByRole('button',{name:'Help and rules',exact:true}).click();await f.page.getByRole('button',{name:'Close panel'}).click();expect((await status(f.page)).version).toBe(f.server.version);expect(await f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting)).toBe(true);}finally{await cleanup(f);}
+test('a compatible breaking release also installs automatically without confirmation',async({browser})=>{
+ const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});}finally{await cleanup(f);}
 });
 
 test('foreground checks discover a release without pressing the update button',async({browser})=>{
  const f=await open(browser);try{
   await f.page.clock.install();f.server.upgrade(false);await f.page.clock.fastForward(31000);await f.page.evaluate(()=>window.dispatchEvent(new Event('focus')));
-  await expect(f.page.locator('#offline-status')).toHaveText('Update available');expect((await status(f.page)).version).toBe(f.server.version);
+  await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');expect((await status(f.page)).version).toBe(f.server.version);
  }finally{await cleanup(f);}
 });
 
-test('an explicit update from the Home sidebar closes it before safe activation',async({browser})=>{
+test('the header has no update or connection controls and sidebar status is read-only',async({browser})=>{
  const f=await open(browser);try{
-  f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(f.page.locator('#sidebar-offline')).toHaveText('Update available');await f.page.locator('#sidebar-offline').click();await expect(f.page.locator('#sidebar')).not.toBeVisible();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+  await expect(f.page.locator('.app-header #offline-status')).toHaveCount(0);await expect(f.page.locator('.app-header #refresh')).toHaveCount(0);await f.page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(f.page.locator('#sidebar #offline-status')).toHaveText('Ready for offline');await expect(f.page.getByRole('button',{name:/update/i})).toHaveCount(0);
+ }finally{await cleanup(f);}
+});
+
+test('automatic activation waits while another window is playing and resumes after Home',async({browser})=>{
+ const f=await open(browser,{automatic:true});try{
+  const before=await solo(f.page),home=await f.context.newPage();await home.goto(f.server.url+'#home');await expect(home.locator('#offline-status')).toHaveText('Ready for offline');f.server.upgrade(false);await update(home);
+  await expect(home.locator('#offline-status')).toContainText('Update');await home.waitForTimeout(2000);expect((await status(home)).version).toBe(f.server.version);expect(await f.page.evaluate(()=>self.OFFLINE_VERSION)).toBe(f.server.version);await expect(f.page.locator('#board')).toBeVisible();
+  await f.page.getByRole('link',{name:'Game Shelf home',exact:true}).click();await expect(async()=>{expect((await status(home)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});await expect(home.getByRole('button',{name:'Resume game',exact:true})).toBeVisible();await home.getByRole('button',{name:'Resume game',exact:true}).click();await expect(home.locator('#board')).toBeVisible();expect(await home.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet.roomId;})).toBe(before.room);
+ }finally{await cleanup(f);}
+});
+
+test('a failed download is retried and installed automatically after connectivity recovers',async({browser})=>{
+ const f=await open(browser,{automatic:true});try{
+  f.server.upgrade(true);await update(f.page);await expect.poll(f.server.failures).toBeGreaterThan(0);expect((await status(f.page)).version).toBe(f.server.version);
+  await f.page.clock.install();f.server.setFailure(false);await f.page.clock.fastForward(61000);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));
+  await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');
+ }finally{await cleanup(f);}
+});
+
+test('a damaged active offline package repairs automatically without an update action',async({browser})=>{
+ const f=await open(browser);try{
+  await f.page.evaluate(async version=>{await (await caches.open('game-shelf-offline-'+version)).delete(new URL('./help.js',location.href).href);},f.server.version);expect((await status(f.page)).ready).toBe(false);
+  await f.page.clock.install();await f.page.clock.fastForward(61000);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect(async()=>expect((await status(f.page)).ready).toBe(true)).toPass({timeout:15000});expect((await status(f.page)).version).toBe(f.server.version);
  }finally{await cleanup(f);}
 });

@@ -1,7 +1,7 @@
 /* Offline app shell only: never cache identities or API responses. */
 importScripts('./offline-assets.js','./update-state.js');
 const ROOT=new URL('../',self.registration.scope),NAME='game-shelf-offline-'+self.OFFLINE_VERSION;
-const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'1757646497ef9a5145ecf750c0addb7bcc810151a5635270446988708d2de0f1'}];
+const FILES=[...self.OFFLINE_ASSETS,{path:'play/offline-assets.js',sha256:'b044d240367a46d017bbb43707ae2d745e62ac080d6c5004062716d88a89dd66'}];
 const url=path=>new URL(path,ROOT).href;
 async function valid(response,hash){if(!response?.ok)return false;const value=await crypto.subtle.digest('SHA-256',await response.arrayBuffer());return Array.from(new Uint8Array(value),b=>b.toString(16).padStart(2,'0')).join('')===hash;}
 async function verified(){const cache=await caches.open(NAME);for(const f of FILES)if(!await valid(await cache.match(url(f.path)),f.sha256))return false;return FILES.length>1;}
@@ -37,11 +37,24 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
 })()));
 // Updated workers wait for an explicit safe activation request.
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const name of await caches.keys())if(name.startsWith('game-shelf-offline-')&&name!==NAME)await caches.delete(name);})()));
+// The requesting window has already fenced its own work. Other open windows
+// must confirm that they are idle; suspended/older clients make us wait safely.
+async function otherWindowsIdle(sender){
+ const scope=new URL('./',self.location.href).href;
+ const windows=(await self.clients.matchAll({type:'window',includeUncontrolled:true})).filter(c=>c.id!==sender?.id&&c.url.startsWith(scope));
+ const results=await Promise.all(windows.map(client=>new Promise(resolve=>{
+  const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();resolve(false);},1500);
+  channel.port1.onmessage=event=>{clearTimeout(timer);channel.port1.close();resolve(event.data?.idle===true);};
+  try{client.postMessage({type:'UPDATE_IDLE_QUERY'},[channel.port2]);}catch{clearTimeout(timer);channel.port1.close();resolve(false);}
+ })));
+ return results.every(Boolean);
+}
 self.addEventListener('message',event=>{
  event.waitUntil((async()=>{
   const type=event.data?.type;
   if(type==='REPAIR'){try{await download();}catch{/* Keep the current app; report verification failure below. */}}
-  const ready=['CHECK','REPAIR','ACTIVATE'].includes(type)?await verified():false;
+  let ready=['CHECK','REPAIR','ACTIVATE'].includes(type)?await verified():false;
+  if(type==='ACTIVATE'&&ready)ready=await otherWindowsIdle(event.source);
   event.ports[0]?.postMessage({version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE,breaking:self.OFFLINE_BREAKING===true,releaseVersion:self.OFFLINE_RELEASE||null,ready});
   if(type==='ACTIVATE'&&ready)await self.skipWaiting();
  })());

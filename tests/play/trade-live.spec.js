@@ -68,7 +68,7 @@ test('two consecutive unaffordable offers resolve without leaving the human stuc
    await offerFrom('bot:1');const execute=client.execute;window.skippedOffers=0;
    client.execute=async(op,args,...rest)=>{const p=await execute(op,args,...rest);if(args?.action?.type==='TRADE_DECLINE'&&p.ok){window.skippedOffers++;if(window.skippedOffers===1)return offerFrom('bot:2');}return p;};
   });
-  await page.locator('#refresh').click();await expect.poll(()=>page.evaluate(()=>window.skippedOffers)).toBe(2);await expect(page.locator('#connection')).toHaveText('Local · saved');
+  await page.locator('#refresh').evaluate(button=>button.click());await expect.poll(()=>page.evaluate(()=>window.skippedOffers)).toBe(2);await expect(page.locator('#connection')).toHaveText('Local · saved');
   await expect(page.locator('#trade-reply')).not.toBeVisible();await expect(page.getByRole('button',{name:'Roll dice',exact:true})).toBeEnabled();
   const p=await page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet;});expect(p.view.offer).toBeNull();expect(p.view.trades.filter(t=>t.status==='declined')).toHaveLength(2);
  }finally{await context.close();}

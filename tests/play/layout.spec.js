@@ -52,7 +52,7 @@ test('help, score details and cards remain reachable in landscape',async({browse
 test('discard pages retain quantities and keep confirmation visible after rotation',async({browser})=>{
  const {context,page,backend}=await start(browser,{width:844,height:390});try{
   for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;Object.assign(p.view.state.game,{phase:'discard',pendingDiscard:['p1'],discardAmounts:{p1:5}});p.view.choices=p.you==='p1'?[{type:'DISCARD_RESOURCES'}]:[];}
-  await page.locator('#refresh').click();await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await page.getByRole('button',{name:'Add Brick to return',exact:true}).click();expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
+  await page.locator('#refresh').evaluate(button=>button.click());await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await page.getByRole('button',{name:'Add Brick to return',exact:true}).click();expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
   await page.setViewportSize({width:390,height:664});await expect(page.getByLabel('Brick to return',{exact:true})).toHaveText('1');expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
  }finally{await context.close();}
 });
@@ -72,10 +72,17 @@ test('an open sidebar updates when a pending new game finishes creating',async({
 test('discard steppers enforce holdings and the required total without a keyboard',async({browser})=>{
  const {context,page,backend}=await start(browser,{width:390,height:664});try{
   for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;Object.assign(p.view.state.game,{phase:'discard',pendingDiscard:['p1'],discardAmounts:{p1:5}});p.view.choices=p.you==='p1'?[{type:'DISCARD_RESOURCES'}]:[];}
-  await page.locator('#refresh').click();await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await expect(page.locator('#discard-form input:not([type=hidden])')).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeDisabled();
+  await page.locator('#refresh').evaluate(button=>button.click());await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await expect(page.locator('#discard-form input:not([type=hidden])')).toHaveCount(0);await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeDisabled();
   for(let i=0;i<3;i++)await page.getByRole('button',{name:'Add Brick to return',exact:true}).click();await expect(page.getByRole('button',{name:'Add Brick to return',exact:true})).toBeDisabled();
   for(let i=0;i<2;i++)await page.getByRole('button',{name:'Add Wood to return',exact:true}).click();await expect(page.getByRole('button',{name:'Add Grain to return',exact:true})).toBeDisabled();await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'Remove Brick from return',exact:true}).click();await expect(page.getByRole('button',{name:'Confirm discard',exact:true})).toBeDisabled();await page.getByRole('button',{name:'Add Grain to return',exact:true}).click();await expect(page.locator('#discard-total')).toHaveText('5 / 5 selected');
   await page.getByRole('button',{name:'Confirm discard',exact:true}).click();await expect.poll(()=>backend.commands.length).toBe(1);expect(backend.commands[0].action).toEqual({type:'DISCARD_RESOURCES',resources:{brick:2,lumber:2,grain:1,wool:0,ore:0}});
+ }finally{await context.close();}
+});
+
+test('readable sidebar status and all navigation fit a compact phone',async({browser})=>{
+ const {context,page}=await start(browser,{width:360,height:568});try{
+  await page.getByRole('button',{name:'Open menu',exact:true}).click();expect(await fits(page,'#app-version')).toEqual({visible:true,inside:true});
+  const clear=await page.locator('#sidebar-body').evaluate(body=>body.scrollHeight<=body.clientHeight+1);expect(clear).toBe(true);await expect(page.locator('#sidebar #offline-status')).toHaveAttribute('role','status');
  }finally{await context.close();}
 });

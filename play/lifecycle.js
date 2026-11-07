@@ -14,7 +14,7 @@ async function currentVersion(){
  let fence;try{fence=await self.GameShelfUpdateState.fence();}catch{throw new PlayError('STORAGE_FAILURE','Update state could not be read. No new move was sent.');}
  if(fence&&fence.engine!==globalThis.OFFLINE_ENGINE){
   const registration=await navigator.serviceWorker.getRegistration();
-  if(registration?.installing||registration?.waiting)throw new PlayError('UPDATE_PENDING',registration.waiting?'An engine update is ready. Apply it before starting another game.':'An engine update is downloading. Wait for Update available before starting another game.');
+  if(registration?.installing||registration?.waiting)throw new PlayError('UPDATE_PENDING',registration.waiting?'An engine update is ready. Return home and it will install automatically before another game.':'An engine update is downloading. It will install automatically on Home before another game.');
   await self.GameShelfUpdateState.clearFence(fence.version);
  }
 }

@@ -36,7 +36,7 @@ test('a pending delivery in another saved room blocks changing account',async({b
 
 test('an expired rejected session can be repaired with Google without clearing app data',async({browser})=>{
  const f=await setup(browser,{initial:google});try{
-  await f.page.evaluate(key=>{const s=JSON.parse(localStorage.getItem(key));s.expires_at=1;localStorage.setItem(key,JSON.stringify(s));},key);await f.page.locator('#refresh').click();await expect(f.page.getByRole('heading',{name:'Your player identity needs attention',exact:true})).toBeVisible();
+  await f.page.evaluate(key=>{const s=JSON.parse(localStorage.getItem(key));s.expires_at=1;localStorage.setItem(key,JSON.stringify(s));},key);await f.page.locator('#refresh').evaluate(button=>button.click());await expect(f.page.getByRole('heading',{name:'Your player identity needs attention',exact:true})).toBeVisible();
   await expect(f.page.getByRole('button',{name:'Sign in again',exact:true})).toBeEnabled();await f.page.getByRole('button',{name:'Sign in again',exact:true}).click();await expect(f.page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();await expect(f.page.getByRole('heading',{name:'Your player identity needs attention',exact:true})).toHaveCount(0);expect(f.calls.token).toHaveLength(1);expect(await f.page.evaluate(key=>JSON.parse(localStorage.getItem(key)).user.id,key)).toBe('google-player');
  }finally{await f.context.close();}
 });
