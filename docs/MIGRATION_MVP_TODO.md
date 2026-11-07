@@ -178,3 +178,7 @@ TRADE-EDITOR-01 and CATAN-RELAY-03 (All only): [rules 2.1.0 and UI contract](TRA
 ## Google account slice — 2026-11-06
 
 AUTH-01 now has an owner-approved narrower first slice: required Google sign-in/out in the PWA with no anonymous-account migration, following the owner's permission to discard old data. Provider configuration is enabled; the PWA implements PKCE and guarded account changes. See [configuration, tests and remaining device acceptance](GOOGLE_SIGN_IN.md). Microsoft sign-in, account merging, cross-device game discovery and physical iPad OAuth acceptance remain separate follow-ups; do not mark the entire historical AUTH-01 item complete on the strength of simulated callback tests.
+
+## Responsive UI delivery — 2026-11-07
+
+UX-02/UX-09: fixed phone/iPad game viewport, left overlay navigation, compact hand/actions and paged dialogs implemented in the shared presentation layer. See [architecture and verification](RESPONSIVE_UI.md). Physical Safari/keyboard/touch acceptance remains QA-02; do not infer it from emulated viewport checks.

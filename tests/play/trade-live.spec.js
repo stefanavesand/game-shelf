@@ -26,7 +26,7 @@ for(const accept of [true,false])test(`real local All offer stays open after bot
   // Original terms remain editable in the same open dialog after completion.
   if(accept){await dialog.getByRole('button',{name:'Close',exact:true}).click();await expect(dialog).not.toBeVisible();}else{await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('2');await page.getByRole('button',{name:'Remove Ore from offer',exact:true}).click();await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('1');}
   if(!accept)await page.getByRole('button',{name:'Close panel'}).click();await page.getByRole('button',{name:'Trade',exact:true}).click();await expect(page.locator('#sheet .trade-responses')).toHaveCount(0);await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('0');await expect(page.getByLabel('Brick requested',{exact:true})).toHaveText('0');await expect(page.locator('#trade-target')).toHaveValue('all');await page.getByRole('button',{name:'Close panel'}).click();
-  await page.reload();await page.getByText('Trade activity',{exact:true}).click();await expect(page.locator('.trade-log')).toContainText(accept?'accepted':'declined');
+  await page.reload();await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.getByRole('button',{name:'Activity',exact:true}).click();await expect(page.locator('#sheet-body')).toContainText(accept?'accepted':'declined');
  }finally{await context.close();}
 });
 

@@ -67,8 +67,8 @@ test('a newly bought card stays unavailable even when an older card of the same 
   try{
     for(const seat of ['p1','p2']){const p=backend.current[seat].view.state.players.players.find(p=>p.id==='p1');p.devCardCount++;if(seat==='p1')p.developmentCards.push({id:'new-synthetic-knight',type:'knight',isPlayed:false,turnBought:backend.current[seat].view.state.game.turn});}
     await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
-    await page.getByRole('button',{name:'Knight Next turn →',exact:true}).click();await expect(page.getByText('This card was bought this turn. It becomes playable on a later turn.')).toBeVisible();await expect(page.getByRole('button',{name:'Play Knight',exact:true})).toHaveCount(0);await page.getByRole('button',{name:'Close panel'}).click();
-    await page.getByRole('button',{name:'Knight →',exact:true}).click();await expect(page.getByRole('button',{name:'Play Knight',exact:true})).toBeEnabled();expect(backend.commands).toHaveLength(0);
+    await page.getByRole('button',{name:/Cards ·/}).click();await page.getByRole('button',{name:'Knight Next turn →',exact:true}).click();await expect(page.getByText('This card was bought this turn. It becomes playable on a later turn.')).toBeVisible();await expect(page.getByRole('button',{name:'Play Knight',exact:true})).toHaveCount(0);await page.getByRole('button',{name:'Close panel'}).click();
+    await page.getByRole('button',{name:/Cards ·/}).click();await page.getByRole('button',{name:'Knight →',exact:true}).click();await expect(page.getByRole('button',{name:'Play Knight',exact:true})).toBeEnabled();expect(backend.commands).toHaveLength(0);
   }finally{await context.close();}
 });
 
@@ -81,7 +81,7 @@ test('solo starts immediately with two bots, retains level and room after reload
     await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await expect(page.getByLabel('Play mode',{exact:true})).toHaveValue('solo');await page.getByLabel('Bot level',{exact:true}).selectOption('easy');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await ready(page);
     expect(backend.creates[0]).toMatchObject({mode:'solo',name:'Alice',botLevel:'easy'});expect(backend.current.p1.view.seats.filter(s=>s.kind==='bot')).toHaveLength(2);await expect(page.locator('.players .bot-tag')).toHaveCount(2);await expect(page.getByRole('heading',{name:'One seat for a friend.'})).toHaveCount(0);
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.reload();await ready(page);await expect(page.locator('.players .bot-tag')).toHaveCount(2);expect((await state(page)).roomId).toBe(roomId);expect(backend.creates).toHaveLength(1);
-    await page.locator('#room').click();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);await expect(page.getByText('Solo · you and 2 bots. No invitation is needed.')).toBeVisible();
+    await page.locator('#room').click();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);await page.getByRole('button',{name:'Game details',exact:true}).click();await expect(page.getByText('Solo · you and 2 bots. No invitation is needed.')).toBeVisible();
   }finally{await context.close();}
 });
 test('a lost solo creation reply retries the same mode and UUID rather than creating a friends lobby',async({browser})=>{
@@ -92,16 +92,16 @@ test('a lost solo creation reply retries the same mode and UUID rather than crea
   }finally{await context.close();}
 });
 
-test('unchanged automatic polls preserve board nodes, preview, focus and expanded history',async({browser})=>{
+test('unchanged automatic polls preserve board nodes, preview and focus',async({browser})=>{
   const backend=service({phase:'main'}),context=await browser.newContext();
   try{
     await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.clock.install();await page.goto('http://127.0.0.1:4176'+url);await ready(page);
     await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');
-    await page.locator('.public-log summary').click();await page.getByRole('button',{name:'Confirm',exact:true}).focus();
+    await page.getByRole('button',{name:'Confirm',exact:true}).focus();
     await page.evaluate(()=>{window.oldBoard=document.querySelector('#board');window.oldTile=oldBoard.firstChild;window.oldFocus=document.activeElement;window.changes=0;window.watch=new MutationObserver(records=>window.changes+=records.length);watch.observe(document.querySelector('#app'),{subtree:true,childList:true,attributes:true,characterData:true});});
     let reads=0;await context.route('https://stefan-game-shelf.lovable.app/api/public/catan',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().op==='view')reads++;await route.fallback();});
     for(let i=0;i<3;i++){await page.clock.runFor(5000);await expect.poll(()=>reads).toBe(i+1);await ready(page);}
-    expect(await page.evaluate(()=>({board:oldBoard===document.querySelector('#board'),tile:oldTile===oldBoard.firstChild,focus:oldFocus===document.activeElement,history:document.querySelector('.public-log').open,changes}))).toEqual({board:true,tile:true,focus:true,history:true,changes:0});
+    expect(await page.evaluate(()=>({board:oldBoard===document.querySelector('#board'),tile:oldTile===oldBoard.firstChild,focus:oldFocus===document.activeElement,changes}))).toEqual({board:true,tile:true,focus:true,changes:0});
     await expect(page.locator('#board [role=button]').first()).toHaveAttribute('aria-pressed','true');expect(backend.commands).toHaveLength(0);
   }finally{await context.close();}
 });

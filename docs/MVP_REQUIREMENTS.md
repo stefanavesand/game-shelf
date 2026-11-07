@@ -1,5 +1,9 @@
 # Private MVP requirements — agreed product baseline
 
+## Fixed responsive game viewport — 2026-11-07
+
+The owner approved the same no-page-scroll game design for phone and iPad: compact player row, a board with bottom actions in portrait/right actions in landscape, left overlay sidebar, fitted dialogs and explicit paging for longer content. Rule/session behavior remains unchanged. See [UI architecture and verification](RESPONSIVE_UI.md). This supersedes the earlier long-page game layout.
+
 ## Google accounts — owner decision 2026-11-06
 
 Google sign-in is required by the PWA for all gameplay, including Solo. Home shows sign-in and Help when signed out. Game dialogs use the Google profile name automatically and never ask for a player name. After a successful sign-in, Solo can create/resume games offline even with an expired internet access token. Solo saves are scoped to the account on this device; signing out hides all games, and signing back into the same account restores access. Invitation room/token survive the OAuth round trip. Anonymous signup and guest-play branches are removed from the PWA. The existing backend and its anonymous-token policy remain unchanged for now; this is a product/code simplification, not a new server authorization boundary. Historical anonymous accounts/unowned saves are not migrated. No server data is deleted. Account changes remain fenced against pending moves. Cross-device game discovery, Solo synchronization, other OAuth providers and device handoff verification remain separate work.

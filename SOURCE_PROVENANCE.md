@@ -51,3 +51,7 @@ The owner selected the original card/die/board concept B and approved its refine
 ## Account simplification (2026-11-06)
 
 Original PWA session, identity and UI changes remove anonymous signup, derive player names from Google profile metadata and scope Solo storage to the account. No external runtime code, assets or dependencies were added. The backend is unchanged.
+
+## Responsive presentation — 2026-11-07
+
+The presentation modules, responsive CSS, native-dialog host and pagination are original repository code. Existing UI fragments were extracted from the original Game Shelf controller. No external UI library, upstream game code, new runtime dependency or generated concept artwork was imported.
