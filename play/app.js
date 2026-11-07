@@ -295,7 +295,7 @@ function renderMenu(){
 function showMenu(){renderMenu();overlays.showDrawer();}
 const updateStatus=()=>{$('sidebar-offline').textContent=$('offline-status').textContent;$('sidebar-connection').textContent=$('connection').textContent;$('sidebar-connection').classList.toggle('paused',$('refresh').classList.contains('paused'));};
 new MutationObserver(updateStatus).observe(document.querySelector('.header-actions'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
-$('sidebar-offline').onclick=()=>$('offline-status').click();$('sidebar-connection').onclick=()=>$('refresh').click();updateStatus();
+$('sidebar-offline').onclick=()=>{if(screen==='home')overlays.closeDrawer();$('offline-status').click();};$('sidebar-connection').onclick=()=>$('refresh').click();updateStatus();
 function renderLobby(){
  const l=packet.lobby;
  if(l.full)return `<section class="form-card"><h1>Game full</h1><p class="muted">${l.started?'This game has already started. Its seats are fixed.':'All human seats are taken.'} Ask your friends to create another game.</p>${button('Return to start','home','primary')}</section>`;

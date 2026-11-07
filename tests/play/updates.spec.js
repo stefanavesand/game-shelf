@@ -196,3 +196,9 @@ test('foreground checks discover a release without pressing the update button',a
   await expect(f.page.locator('#offline-status')).toHaveText('Update available');expect((await status(f.page)).version).toBe(f.server.version);
  }finally{await cleanup(f);}
 });
+
+test('an explicit update from the Home sidebar closes it before safe activation',async({browser})=>{
+ const f=await open(browser);try{
+  f.server.upgrade(false);await update(f.page);await expect(f.page.locator('#offline-status')).toHaveText('Update available');await f.page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(f.page.locator('#sidebar-offline')).toHaveText('Update available');await f.page.locator('#sidebar-offline').click();await expect(f.page.locator('#sidebar')).not.toBeVisible();await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');expect((await status(f.page)).version).toBe(f.server.nextVersion);
+ }finally{await cleanup(f);}
+});
