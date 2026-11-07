@@ -22,7 +22,7 @@ test('trade draft and board preview survive rotation, polling and sidebar naviga
   await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect(page.getByRole('heading',{name:'Trade',exact:true})).toBeVisible();await expect(page.getByLabel('Brick offered',{exact:true})).toHaveText('1');
   await page.setViewportSize({width:390,height:664});await expect(page.getByLabel('Ore requested',{exact:true})).toHaveText('1');await page.getByRole('button',{name:'Close panel',exact:true}).click();
   await page.getByRole('button',{name:'Build',exact:true}).click();await page.getByRole('button',{name:/^Road/}).click();await page.locator('#board [role=button]').first().press('Enter');
-  const selected=await page.locator('#board [aria-pressed=true]').getAttribute('aria-label');await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.setViewportSize({width:1024,height:768});await page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect(page.locator('#sidebar')).toBeVisible();await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'Open menu',exact:true})).toBeFocused();await expect(page.locator('#board [aria-pressed=true]')).toHaveAttribute('aria-label',selected);
+  const selected=await page.locator('#board [aria-pressed=true]').getAttribute('aria-label');await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.setViewportSize({width:1024,height:768});await page.evaluate(()=>{window.menuHome=document.querySelector('#sidebar [data-action=home]');window.dispatchEvent(new Event('online'));});await expect(page.locator('#sidebar')).toBeVisible();expect(await page.evaluate(()=>window.menuHome===document.querySelector('#sidebar [data-action=home]'))).toBe(true);await page.keyboard.press('Escape');await expect(page.getByRole('button',{name:'Open menu',exact:true})).toBeFocused();await expect(page.locator('#board [aria-pressed=true]')).toHaveAttribute('aria-label',selected);
  }finally{await context.close();}
 });
 
@@ -48,4 +48,15 @@ test('discard pages retain quantities and keep confirmation visible after rotati
   await page.locator('#refresh').click();await page.getByRole('button',{name:'Choose cards to discard',exact:true}).click();await page.getByLabel('Brick to return',{exact:true}).fill('1');expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
   await page.setViewportSize({width:390,height:664});await expect(page.getByLabel('Brick to return',{exact:true})).toHaveValue('1');expect(await fits(page,'#discard-form button[type=submit]')).toEqual({visible:true,inside:true});
  }finally{await context.close();}
+});
+
+test('an open sidebar updates when a pending new game finishes creating',async({browser})=>{
+ const context=await browser.newContext(),backend=service();let release;
+ const gate=new Promise(resolve=>{release=resolve;});let entered=false;
+ try{
+  await backend.attach(context,'alice');await context.route('**/api/public/catan',async route=>{if(route.request().method()==='POST'&&route.request().postDataJSON().op==='create'){entered=true;await gate;}await route.fallback();});
+  const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByRole('button',{name:'Create game',exact:true}).click();await expect.poll(()=>entered).toBe(true);
+  await page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(page.locator('#sidebar')).toBeVisible();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toHaveCount(0);
+  release();await expect(page.getByRole('button',{name:'Invitation details',exact:true})).toBeVisible();await page.getByRole('button',{name:'Invitation details',exact:true}).click();await expect(page.getByLabel('Invitation link',{exact:true})).toBeVisible();await expect(page.locator('#sidebar')).not.toBeVisible();
+ }finally{release();await context.close();}
 });

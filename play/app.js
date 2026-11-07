@@ -23,7 +23,7 @@ let knownGames=[],tradeFeedback=[],accountBusy=false;
 const googleAuth=createGoogleAuth();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
-let activeSync=null,renderedHTML=null,renderedBoard=null;
+let activeSync=null,renderedHTML=null,renderedBoard=null,renderedMenu=null;
 let zoom=1,pan={x:100,y:82},tradeDraft=null,opener=null,formDraft={room:null,level:'standard',gameMode:'friends',playerCount:3};
 function announce(s){$('announcement').textContent=s;}
 const view=()=>packet?.view;
@@ -110,6 +110,7 @@ function render(){
   if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}},{zoom,pan});renderedBoard=boardKey;}
   if(replaced)for(const[action,label]of Object.entries({'zoom-in':'Zoom in on board','zoom-out':'Zoom out on board','zoom-reset':'Reset board view','pan-left':'Move board view left','pan-right':'Move board view right','pan-up':'Move board view up','pan-down':'Move board view down'}))document.querySelector(`[data-action="${action}"]`)?.setAttribute('aria-label',label);
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
+  if($('sidebar').open)renderMenu();
   if(notice&&screen==='table'&&view())announce(notice);
   if(sheet.open&&sheet.dataset.trade==='live')refreshTradeDialog();
   if(sheet.open&&sheet.dataset.trade)updateTradeStatus();
@@ -287,10 +288,11 @@ async function accountAction(signOut=false){
  catch(e){notice=e.message||'Sign-in could not be started. Please try again.';}
  finally{if(!navigating)accountBusy=false;render();}
 }
-function showMenu(){
- const playing=!!view();$('sidebar-body').innerHTML=`<nav aria-label="Main navigation">${button('Home','home')}${packet?button('Game details','room'):''}${playing?button('Score breakdown','scores')+button('Activity','activity'):''}${packet&&!solo()?button('Invitation details','share'):''}${button('Help & rules','help')}${button('Account','account')}</nav>`;
- overlays.showDrawer();
+function renderMenu(){
+ const playing=!!view(),body=$('sidebar-body'),focused=body.contains(document.activeElement)?document.activeElement.dataset.action:null;const html=`<nav aria-label="Main navigation">${button('Home','home')}${packet?button('Game details','room'):''}${playing?button('Score breakdown','scores')+button('Activity','activity'):''}${packet&&!solo()?button('Invitation details','share'):''}${button('Help & rules','help')}${button('Account','account')}</nav>`;
+ if(renderedMenu!==html){body.innerHTML=html;renderedMenu=html;if(focused)[...body.querySelectorAll('[data-action]')].find(el=>el.dataset.action===focused)?.focus({preventScroll:true});}
 }
+function showMenu(){renderMenu();overlays.showDrawer();}
 const updateStatus=()=>{$('sidebar-offline').textContent=$('offline-status').textContent;$('sidebar-connection').textContent=$('connection').textContent;$('sidebar-connection').classList.toggle('paused',$('refresh').classList.contains('paused'));};
 new MutationObserver(updateStatus).observe(document.querySelector('.header-actions'),{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class']});
 $('sidebar-offline').onclick=()=>$('offline-status').click();$('sidebar-connection').onclick=()=>$('refresh').click();updateStatus();
