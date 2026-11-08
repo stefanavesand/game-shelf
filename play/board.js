@@ -1,3 +1,4 @@
+import {edgeDisplayKey,vertexDisplayKey,hexDisplayKey} from './presentation/move-events.js';
 import {tileArt} from '../ui/art.js';
 // Independently implemented pointy-hex rendering for the deployed v1 wire format.
 // N/S name top/bottom vertices. NE/E/SE name outward-facing edge normals.
@@ -17,12 +18,12 @@ const p=pos=>({x:pos.x+320,y:pos.y+275});
 export function choicePoint(choice){if(choice.vertex)return p(vertexPoint(choice.vertex));if(choice.edge){const[a,b]=edgePoints(choice.edge);return p({x:(a.x+b.x)/2,y:(a.y+b.y)/2});}if(choice.hex)return p(center(choice.hex));return null;}
 export function draw(root,view,choices,selected,disabled,onSelect){
   root.replaceChildren();root.setAttribute('viewBox','0 0 640 550');root.setAttribute('preserveAspectRatio','xMidYMid meet');
-  for(const tile of view.state.board.tiles){const c=p(center(tile.coord)),[fill,art,name]=tiles[tile.terrain]||tiles.desert,group=n('g',{'aria-hidden':true});
+  for(const tile of view.state.board.tiles){const c=p(center(tile.coord)),[fill,art,name]=tiles[tile.terrain]||tiles.desert,group=n('g',{'aria-hidden':true,'data-motion-tile':hexDisplayKey(tile.coord),'data-motion-key':hexDisplayKey(tile.coord)});
     const points=Array.from({length:6},(_,i)=>({x:c.x+SIZE*Math.cos((i*60-30)*Math.PI/180),y:c.y+SIZE*Math.sin((i*60-30)*Math.PI/180)}));
     group.append(n('polygon',{points:points.map(v=>`${v.x},${v.y}`).join(' '),fill,stroke:'#fff5de','stroke-width':3}));const drawing=n('g',{transform:`translate(${c.x} ${c.y+11})`});drawing.innerHTML=tileArt(art);group.append(drawing);
     if(tile.number){group.append(n('circle',{cx:c.x,cy:c.y-13,r:18,fill:'#fff8e9'}));group.append(n('text',{x:c.x,y:c.y-13,'text-anchor':'middle','dominant-baseline':'central','font-size':24,'font-weight':700,fill:[6,8].includes(tile.number)?'#9b3c2b':'#263d30'},tile.number));}
     group.append(n('text',{x:c.x,y:c.y+36,'text-anchor':'middle','font-size':10,fill:'#263d30',class:'terrain-label'},name));
-    const robber=view.state.board.robberLocation;if(robber.q===tile.coord.q&&robber.r===tile.coord.r)group.append(n('path',{d:`M${c.x+20} ${c.y-18}a6 6 0 1 1 12 0l4 18h-20Z`,fill:'#37453c',stroke:'#fff8e9','stroke-width':1.5}));root.append(group);
+    const robber=view.state.board.robberLocation;if(robber.q===tile.coord.q&&robber.r===tile.coord.r)group.append(n('path',{d:`M${c.x+20} ${c.y-18}a6 6 0 1 1 12 0l4 18h-20Z`,'data-motion-robber':'',fill:'#37453c',stroke:'#fff8e9','stroke-width':1.5}));root.append(group);
   }
   const players=view.state.players.players;
   for(const port of view.state.board.ports){const[a,b]=edgePoints(port.edge),pos=p({x:(a.x+b.x)*.65,y:(a.y+b.y)*.65});root.append(n('text',{x:pos.x,y:pos.y,'text-anchor':'middle','font-size':11,fill:'#42645b'},port.type==='generic'?'3:1':`2:1 ${port.type==='lumber'?'wood':port.type}`));}
@@ -30,9 +31,9 @@ export function draw(root,view,choices,selected,disabled,onSelect){
   // fit inside this padding, so choosing a move never changes the framing.
   const bounds=root.getBBox(),padding=16;
   root.setAttribute('viewBox',`${bounds.x-padding} ${bounds.y-padding} ${bounds.width+padding*2} ${bounds.height+padding*2}`);
-  for(const road of view.state.board.roads){const[a,b]=edgePoints(road.edge).map(p),color=paint[players.find(player=>player.id===road.playerId)?.color]||paint.red;for(const[stroke,width]of[['#fff8e9',10],[color,6]])root.append(n('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke,'stroke-width':width,'stroke-linecap':'round'}));}
-  function piece(position,color,city,preview=false){const c=p(position);root.append(n('path',{d:city?`M${c.x-12} ${c.y+9}v-13h8v-8h11v10h7v11Z`:`M${c.x-9} ${c.y+8}v-13l9-7 9 7v13Z`,fill:color,stroke:preview?'#164b3e':'#fff8e9','stroke-width':preview?3:2,opacity:preview?0.65:1,'stroke-dasharray':preview?'4 3':'none','pointer-events':'none'}));}
-  for(const b of view.state.board.buildings)piece(vertexPoint(b.vertex),paint[players.find(player=>player.id===b.playerId)?.color]||paint.red,b.type==='city');
+  for(const road of view.state.board.roads){const[a,b]=edgePoints(road.edge).map(p),color=paint[players.find(player=>player.id===road.playerId)?.color]||paint.red;for(const[stroke,width]of[['#fff8e9',10],[color,6]])root.append(n('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke,'stroke-width':width,'stroke-linecap':'round',...(width===6?{'data-motion-piece':'road','data-motion-key':edgeDisplayKey(road.edge)}:{})}));}
+  function piece(position,color,city,preview=false,key=null){const c=p(position);root.append(n('path',{d:city?`M${c.x-12} ${c.y+9}v-13h8v-8h11v10h7v11Z`:`M${c.x-9} ${c.y+8}v-13l9-7 9 7v13Z`,fill:color,stroke:preview?'#164b3e':'#fff8e9','stroke-width':preview?3:2,opacity:preview?0.65:1,'stroke-dasharray':preview?'4 3':'none','pointer-events':'none',...(!preview&&key?{'data-motion-piece':'building','data-motion-key':key}:{})}));}
+  for(const b of view.state.board.buildings)piece(vertexPoint(b.vertex),paint[players.find(player=>player.id===b.playerId)?.color]||paint.red,b.type==='city',false,vertexDisplayKey(b.vertex));
   const hitRadius=Math.max(22,22/(root.getScreenCTM()?.a||.5));
   choices.forEach((choice,index)=>{
     const c=choicePoint(choice);if(!c)return;const group=n('g',{role:'button',tabindex:disabled?-1:0,'aria-disabled':disabled,'aria-label':`Board location ${index+1}`,'aria-pressed':selected===index});

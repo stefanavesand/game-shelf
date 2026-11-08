@@ -59,3 +59,7 @@ The presentation modules, responsive CSS, native-dialog host and pagination are 
 ## Automatic maintenance (2026-11-07)
 
 The automatic foreground repair/retry flow, idle-window activation handshake and read-only status presentation are original repository code. They add no runtime dependencies and do not change the rule engine, relay service, identity or saved-game formats.
+
+## Tangible move feedback (2026-11-08)
+
+The event derivation, transient Web Animations presentation, foreground bot pacing, styles and tests are original Game Shelf code. They use existing repository geometry, resource artwork and shared cost constants. No external animation library, new runtime dependency, concept artwork or upstream code was imported. Rules and save schemas are unchanged.

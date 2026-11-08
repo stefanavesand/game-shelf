@@ -134,3 +134,5 @@ The next step is UI concepts against the agreed product baseline, including phon
 ## Automatic app maintenance — owner decision 2026-11-07
 
 Remove the header update arrow and connection dot. Updates require no manual check, installation button or confirmation. Retry foreground downloads/repairs automatically and activate at a safe Home state without interrupting other open games or unresolved moves. Read-only status remains in the sidebar. Compatibility guards take precedence over activation; never discard a saved game automatically.
+
+Owner-approved UX-09 trial (2026-11-08): tangible board/actor/resource feedback and approximately 1.5 seconds between foreground bot commands. Saving and human input stay responsive; reduced motion retains named text feedback. Details and limitations: [implementation](MVP_UX_IMPLEMENTATION.md).

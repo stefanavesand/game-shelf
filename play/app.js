@@ -3,6 +3,8 @@ import {trackViewport} from './presentation/viewport.js';
 import {createTradePages,itemPages} from './presentation/dialog-pages.js';
 import {esc,button} from './presentation/html.js';
 import {turnTitle} from './presentation/game-view.js';
+import {createGameMotion} from './presentation/motion.js';
+import {createMovePacer} from './presentation/move-pacer.js';
 import {gameScreen} from './presentation/game-screen.js';
 import {createOverlays} from './presentation/overlays.js';
 import {createGoogleAuth,isGoogleReturn} from './core/google-auth.js';
@@ -20,7 +22,7 @@ const $=id=>document.getElementById(id),sheet=$('sheet'),reply=$('trade-reply');
 const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[],accountBusy=false,updateReloadPending=false;
-const googleAuth=createGoogleAuth();
+const googleAuth=createGoogleAuth(),motion=createGameMotion(),movePacer=createMovePacer();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null,renderedMenu=null;
@@ -109,6 +111,7 @@ function render(){
   const boardKey=$('board')?JSON.stringify([view().state.board,view().state.players.players.map(p=>[p.id,p.color]),view().you,spatial,selection,blocked()]):null;
   if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}});renderedBoard=boardKey;}
 
+  motion.present(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
   if($('sidebar').open)renderMenu();
   if(notice&&screen==='table'&&view())announce(notice);
@@ -123,12 +126,23 @@ function apply(next){
   if(packet?.roomId===next.roomId&&packet.revision>next.revision)return;
   const key=`${next.roomId}:${next.revision}:${next.status}`;
   if(key!==lastRenderKey){selection=null;mode='';lastRenderKey=key;}
-  packet=next;
+  packet=next;movePacer.observe(next);
   if(screen!=='home'&&!['create','join'].includes(screen))screen='table';
   const bot=next.view?.seats.find(s=>s.id===next.view.state.game.currentPlayerId)?.kind==='bot';
   if(bot&&next.view.state.game.phase!=='discard'&&!next.view.offer){if(botRevision!==next.revision){botSince=Date.now();botRevision=next.revision;}if(Date.now()-botSince>20000)notice='The bot is taking longer than usual. Check the game to retry its next decision.';}else botSince=0;
 }
-function schedule(){clearTimeout(timer);if(['home','create','join'].includes(screen)&&!saved?.pending)return;if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;if(error&&!error.retryable)return;if(botSince&&Date.now()-botSince>60000)return;if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){const delay=Math.max(packet?.botWorkPending&&!saved?.pending&&!error?100:client.capabilities.pollIntervalMs,(saved?.retryAt||0)-Date.now());timer=setTimeout(()=>sync(),Math.min(2147483647,delay));}}
+function schedule(){
+ clearTimeout(timer);
+ if(['home','create','join'].includes(screen)&&!saved?.pending)return;
+ if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;
+ if(error&&!error.retryable)return;
+ if(botSince&&Date.now()-botSince>60000)return;
+ if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){
+  const watchingBot=packet?.view&&actingPlayers(packet.view).some(id=>packet.view.seats.find(s=>s.id===id)?.kind==='bot');
+  const interval=packet?.botWorkPending&&!saved?.pending&&!error?Math.max(50,movePacer.remaining(packet)):watchingBot&&movePacer.recentlyChanged()?1500:client.capabilities.pollIntervalMs;
+  timer=setTimeout(()=>sync(),Math.min(2147483647,Math.max(interval,(saved?.retryAt||0)-Date.now())));
+ }
+}
 function sync(op,args={},options={}){
   if(updateReloadPending||!googleAuth.profile())return Promise.resolve();
   if(activeSync){
@@ -155,11 +169,11 @@ async function runSync(op,args={},options={}){
     let operationResult;
     if(op){const result=operationResult=op==='resume'?await client.resume(args.roomId,{botBudget:0}):await client.execute(op,args,{...options,botBudget:0});if(op==='resume'&&!result.ok){notice=result.error.message;ready=true;error=null;return;}apply(result);if(result?.ok){screen='table';history.replaceState(null,'',location.pathname+'#game');}}
     const recoveringEntry=['create','join'].includes(saved?.pending?.body.op);
-    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh({botBudget:1});apply(latest);await observeTrades(view(),outgoing);
+    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh({botBudget:movePacer.takeBudget(packet)});apply(latest);await observeTrades(view(),outgoing);
     if(saved?.pending&&latest?.ok)saved=(await client.inspect()).state;
     if(!saved?.pending)await resolveUnavailableOffers(view,async offerId=>{
      const declined=await client.execute('command',{roomId:packet.roomId,expectedRevision:packet.revision,action:{type:'TRADE_DECLINE',offerId}},{botBudget:0});apply(declined);
-     if(!declined?.ok||!client.capabilities.commandReturnsCurrentState)apply(await client.refresh({botBudget:1}));
+     if(!declined?.ok||!client.capabilities.commandReturnsCurrentState)apply(await client.refresh({botBudget:movePacer.takeBudget(packet)}));
      await observeTrades(view());return !!declined?.ok;
     });
     if(latest?.ok&&recoveringEntry){screen='table';history.replaceState(null,'',location.pathname+'#game');}ready=true;error=null;
@@ -390,7 +404,7 @@ document.addEventListener('input',e=>{if(e.target.id==='room-id')formDraft.room=
 $('help').onclick=()=>helpPanel();$('refresh').onclick=()=>{if(googleAuth.profile())sync();};$('room').onclick=()=>showMenu();
 window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;formDraft.room=invitedRoom();if(saved?.pending){notice='Resolve your current move before joining another game.';render();}else setScreen('join');}else if(location.hash==='#home')dispatch('home');});
 window.addEventListener('offline',()=>{clearTimeout(timer);if(offlineAllowed()){error=null;render();schedule();return;}ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
-window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden)clearTimeout(timer);else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
+window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);motion.reset();movePacer.reset();}else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
 async function boot(){
   if(isGoogleReturn(location.href)){const href=location.href;history.replaceState(null,'',location.pathname+'#home');accountBusy=true;notice='Completing Google sign-in…';render();try{await changeAccount(()=>googleAuth.finish(href,path=>history.replaceState(null,'',path)));notice='Signed in with Google.';}catch(e){notice=e.message||'Google sign-in could not be completed. Please try again.';}finally{accountBusy=false;}}
   invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;

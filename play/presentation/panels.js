@@ -5,7 +5,7 @@ import {CARD_RULES,ACTION_CARD_TIMING,HELP_SECTIONS} from '../help.js';
 import {symbol} from '../../ui/art.js';
 const $=id=>document.getElementById(id),art=r=>symbol(r==='lumber'?'wood':r);
 // Secondary presentation components receive an authorized view and an overlay opener.
-export function resourceHand(v){const me=ownPlayer(v);return `<section class="panel-section"><p class="panel-label">Your resources <span class="hand-total">${handCount(me.resources)} cards</span></p><div class="resource-row">${RESOURCES.map(r=>`<div class="resource-tile ${r}">${art(r)}<span>${RESOURCE_NAMES[r]}</span><strong>${me.resources[r]}</strong></div>`).join('')}</div></section>`;}
+export function resourceHand(v){const me=ownPlayer(v);return `<section class="panel-section"><p class="panel-label">Your resources <span class="hand-total">${handCount(me.resources)} cards</span></p><div class="resource-row">${RESOURCES.map(r=>`<div class="resource-tile ${r}" data-motion-resource="${r}">${art(r)}<span>${RESOURCE_NAMES[r]}</span><strong>${me.resources[r]}</strong></div>`).join('')}</div></section>`;}
 export function developmentCards(v,{disabled=false}={}){
   const me=ownPlayer(v),cards=me.developmentCards.filter(c=>!c.isPlayed);if(!cards.length)return '';
   return `<section class="panel-section development-section"><p class="panel-label">Your development cards</p>${cards.map((c,index)=>`<button class="card-button" data-action="card:${index}" ${disabled?'disabled':''}><span class="card-icon" aria-hidden="true">♞</span><span class="card-title">${CARD_NAMES[c.type]}${c.type==='victoryPoint'?' <span class="card-note">Private point</span>':c.turnBought===v.state.game.turn?' <span class="card-note">Next turn</span>':''}</span><span>→</span></button>`).join('')}</section>`;

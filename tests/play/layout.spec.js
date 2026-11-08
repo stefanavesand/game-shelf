@@ -35,7 +35,7 @@ test('trade draft and board preview survive rotation, polling and sidebar naviga
 
 test('setup confirmation fits a short phone viewport',async({browser})=>{
  const context=await browser.newContext({viewport:{width:360,height:640}});try{
-  const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode').selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board [role=button]').first()).toBeVisible();await page.locator('#board [role=button]').first().press('Enter');
+  const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode').selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board [role=button]').first()).toBeVisible({timeout:15000});await page.locator('#board [role=button]').first().press('Enter');
   await expect(page.locator('.hand-strip')).toHaveCount(0);expect(await fits(page,'[data-action=confirm]')).toEqual({visible:true,inside:true});expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
  }finally{await context.close();}
 });

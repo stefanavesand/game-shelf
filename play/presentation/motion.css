@@ -1,0 +1,7 @@
+/* Transient feedback occupies no layout space and never intercepts input. */
+.game-screen .board-wrap{position:relative}
+.motion-caption{position:absolute;left:8px;right:8px;bottom:8px;margin:auto;max-width:420px;padding:8px 12px;background:#fffaf0f5;border:1px solid #e1dbc9;border-left:4px solid var(--event-color);border-radius:10px;box-shadow:0 3px 12px #193e321a;pointer-events:none;line-height:1.25}
+.motion-message{display:block;font-size:13px;font-weight:700}.motion-detail{display:block;font-size:11px;color:#526658}.motion-detail:empty{display:none}.motion-bank{position:absolute;right:8px;top:-22px;border-radius:6px;padding:3px 7px;background:#fffaf0;font-size:10px;color:#526658}
+[data-motion-piece],[data-motion-robber]{transform-box:fill-box;transform-origin:center}
+.motion-resource-flight{position:fixed;z-index:20;width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#fffaf0;box-shadow:0 2px 6px #193e3226;pointer-events:none;opacity:0}.motion-resource-flight svg{width:26px;height:26px}.motion-resource-flight span{position:absolute;right:-6px;bottom:-3px;background:#fffaf0;border-radius:5px;padding:1px 3px;font-size:11px;font-weight:700}
+@media(max-height:500px){.motion-caption{padding:5px 8px;bottom:5px}.motion-message{font-size:11px}.motion-detail{font-size:10px}}
