@@ -6,12 +6,11 @@ for(const [width,height] of [[390,664],[360,640],[844,390],[1024,768],[768,1024]
  const {context,page}=await start(browser,{width,height});try{
   for(const s of ['.players','#board','.action-panel','.action-buttons'])expect(await fits(page,s),s).toEqual({visible:true,inside:true});
   expect(await page.evaluate(()=>({height:document.documentElement.scrollHeight,width:document.documentElement.scrollWidth}))).toEqual({height,width});
-  await expect(page.locator('.board-tools')).toHaveCount(0);
+  await expect(page.locator('.board-tools')).toHaveCount(0);const square=await page.locator('.board-wrap').boundingBox();expect(Math.abs(square.width-square.height)).toBeLessThan(1);
   const framing=await page.locator('#board').evaluate(svg=>{
-   const box=svg.getBoundingClientRect(),m=svg.getScreenCTM();
-   const bounds=[...svg.children].filter(el=>el.tagName.toLowerCase()==='g'&&el.getAttribute('aria-hidden')==='true'||el.tagName.toLowerCase()==='text').map(el=>{const b=el.getBBox();return {left:b.x,right:b.x+b.width,top:b.y,bottom:b.y+b.height};});
+   const box=svg.getBoundingClientRect(),bounds=[...svg.querySelectorAll('[data-motion-tile],[data-port]')].map(el=>el.getBoundingClientRect());
    const left=Math.min(...bounds.map(b=>b.left)),right=Math.max(...bounds.map(b=>b.right)),top=Math.min(...bounds.map(b=>b.top)),bottom=Math.max(...bounds.map(b=>b.bottom));
-   return {inside:left*m.a+m.e>=box.left-1&&right*m.a+m.e<=box.right+1&&top*m.d+m.f>=box.top-1&&bottom*m.d+m.f<=box.bottom+1,fill:Math.max((right-left)*m.a/box.width,(bottom-top)*m.d/box.height)};
+   return {inside:left>=box.left-1&&right<=box.right+1&&top>=box.top-1&&bottom<=box.bottom+1,fill:Math.max((right-left)/box.width,(bottom-top)/box.height)};
   });expect(framing.inside).toBe(true);expect(framing.fill).toBeGreaterThan(.9);
   await page.screenshot({path:`test-results/game-${width}x${height}.png`});
   const before=await page.locator('#board').boundingBox();await page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(page.getByRole('dialog',{name:'Game Shelf',exact:true})).toBeVisible();expect(await fits(page,'#sidebar')).toEqual({visible:true,inside:true});expect(await page.locator('#board').boundingBox()).toEqual(before);
@@ -36,7 +35,7 @@ test('trade draft and board preview survive rotation, polling and sidebar naviga
 test('setup confirmation fits a short phone viewport',async({browser})=>{
  const context=await browser.newContext({viewport:{width:360,height:640}});try{
   const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode').selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board [role=button]').first()).toBeVisible({timeout:15000});await page.locator('#board [role=button]').first().press('Enter');
-  await expect(page.locator('.hand-strip')).toHaveCount(0);expect(await fits(page,'[data-action=confirm]')).toEqual({visible:true,inside:true});expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
+  await expect(page.locator('.hand-strip')).toHaveCount(1);expect(await fits(page,'[data-action=confirm]')).toEqual({visible:true,inside:true});expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);
  }finally{await context.close();}
 });
 
@@ -84,5 +83,20 @@ test('readable sidebar status and all navigation fit a compact phone',async({bro
  const {context,page}=await start(browser,{width:360,height:568});try{
   await page.getByRole('button',{name:'Open menu',exact:true}).click();expect(await fits(page,'#app-version')).toEqual({visible:true,inside:true});
   const clear=await page.locator('#sidebar-body').evaluate(body=>body.scrollHeight<=body.clientHeight+1);expect(clear).toBe(true);await expect(page.locator('#sidebar #offline-status')).toHaveAttribute('role','status');
+ }finally{await context.close();}
+});
+
+test('game phases keep the square board, event strip, hand and controls in fixed positions',async({browser})=>{
+ const {context,page,backend}=await start(browser,{width:390,height:844});
+ try{
+  const geometry=()=>page.evaluate(()=>Object.fromEntries(['.players','.board-wrap','.event-strip','.hand-strip','.turn-line','.control-slot'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return [s,[r.x,r.y,r.width,r.height]];})));
+  const before=await geometry(),tradePosition=await page.getByRole('button',{name:'Trade',exact:true}).boundingBox();
+  for(const phase of ['roll','setup-settlement-1','main']){
+   for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;p.view.state.game.phase=phase;if(phase==='roll')p.view.choices=[{type:'ROLL_DICE'}];else p.view.choices=[{type:'BUILD_ROAD',edge:{hex:{q:0,r:0},direction:'E'}}];}
+   await page.locator('#refresh').evaluate(b=>b.click());if(phase==='roll')await expect(page.getByRole('button',{name:'Roll dice',exact:true})).toBeVisible();else if(phase==='setup-settlement-1')await expect(page.getByRole('heading',{name:'Your first settlement',exact:true})).toBeVisible();else await expect(page.getByRole('button',{name:'Build',exact:true})).toBeEnabled();await expect.poll(geometry).toEqual(before);
+  }
+  for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;p.view.state.game.currentPlayerId='p2';}
+  await page.locator('#refresh').evaluate(b=>b.click());await expect(page.getByRole('heading',{name:'Bob’s turn',exact:true})).toBeVisible();expect(await geometry()).toEqual(before);expect(await page.getByRole('button',{name:'Trade',exact:true}).boundingBox()).toEqual(tradePosition);
+  const images=await page.locator('#board image').evaluateAll(els=>els.map(el=>el.getAttribute('href')));expect(images).toHaveLength(19);expect(images.every(src=>src.startsWith('./art/terrain-'))).toBe(true);
  }finally{await context.close();}
 });

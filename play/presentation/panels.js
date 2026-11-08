@@ -2,7 +2,7 @@ import {esc,button} from './html.js';
 import {itemPages} from './dialog-pages.js';
 import {RESOURCES,RESOURCE_NAMES,CARD_NAMES,ownPlayer,handCount} from '../core/protocol.js';
 import {CARD_RULES,ACTION_CARD_TIMING,HELP_SECTIONS} from '../help.js';
-import {symbol} from '../../ui/art.js';
+import {symbol} from './art.js';
 const $=id=>document.getElementById(id),art=r=>symbol(r==='lumber'?'wood':r);
 // Secondary presentation components receive an authorized view and an overlay opener.
 export function resourceHand(v){const me=ownPlayer(v);return `<section class="panel-section"><p class="panel-label">Your resources <span class="hand-total">${handCount(me.resources)} cards</span></p><div class="resource-row">${RESOURCES.map(r=>`<div class="resource-tile ${r}" data-motion-resource="${r}">${art(r)}<span>${RESOURCE_NAMES[r]}</span><strong>${me.resources[r]}</strong></div>`).join('')}</div></section>`;}

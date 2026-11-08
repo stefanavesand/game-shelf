@@ -29,3 +29,11 @@ The trading editor uses all five rows when height permits. On shorter screens it
 ## Automatic updates — 2026-11-07
 
 Downloads, repairs and compatible activation run automatically while the app is in the foreground. Home with no open overlay is the activation point. Other open app windows must acknowledge being idle before activation; suspended/older clients make it wait. Saved games and pending commands retain all existing compatibility/lifecycle guards. An incompatible engine waits for its games to finish or be explicitly abandoned; updates never delete games. There is no app-update button or confirmation prompt.
+
+## Illustrated fixed shell — owner approval 2026-11-08
+
+The generated PNG is the visual reference, including illustrated terrain/resources, cream/green colors, serif typography, port pennants and shaded player pieces. The active game uses an exact square board surface. Portrait keeps players above the square, followed by a permanent event/dice strip, own hand, instruction and three-slot control row. Landscape places players and those same components to the right of the square, with two recent public moves in the remaining space; short landscape hides that secondary history. Short portrait uses tighter spacing. Geometry depends on the viewport rather than the current phase; setup retains the hand and uses the same bottom control slots. The board may be narrower than the viewport on short screens to preserve square geometry and accessible controls without page scrolling.
+
+`game-screen.js` owns one component tree, `game-layout.css` its placement, and `viewport.js` computes a square-size constraint from available space. Event captions are outside the board and never cover ports. Real state supplies all tokens/pieces; the design image is not used as a flattened playable board. Terrain and resource artwork is prepared as local WebP assets, included in the verified offline package; see [asset provenance](../play/art/README.md).
+
+Dice movement lasts 1.2 seconds. The foreground bot pacer reserves 2.6 seconds after a roll so the settled result and resource feedback can be read; other commands retain the 1.5-second interval. Resource delivery effects follow the dice movement. Reduced-motion retains the same readable pacing and text. Saving and human interactions do not wait for animation.

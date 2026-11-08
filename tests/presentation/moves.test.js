@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createMovePacer,BOT_ACTION_MS} from '../../play/presentation/move-pacer.js';
+import {createMovePacer,BOT_ACTION_MS,DICE_ACTION_MS} from '../../play/presentation/move-pacer.js';
 import {describeMove} from '../../play/presentation/move-events.js';
 import {createCatanModule,catanConfig} from '../../play/catan/module.js';
 import {CATAN_ARTIFACT} from '../../play/catan/artifact.js';
@@ -26,4 +26,8 @@ test('feedback uses own resource deltas and public build costs, never private op
  v.history[0].message='buy development card';assert.equal(describeMove(before,after).card,true);assert.deepEqual(describeMove(before,after).cost,[]);
  v.history[0].message='build road';before.view.state.game.phase='road-building';assert.deepEqual(describeMove(before,after).cost,[]);
  v.history[0].message='unknown future action';assert.equal(describeMove(before,after),null);
+});
+
+test('a roll reserves time for the full dice animation and a settled result',()=>{
+ let time=0;const pacer=createMovePacer({now:()=>time}),p={ok:true,roomId:'dice',revision:9,view:{history:[{message:'roll dice'}]},botWorkPending:true};pacer.observe(p);assert.equal(pacer.remaining(p),DICE_ACTION_MS);time=1500;assert.equal(pacer.takeBudget(p),0);time=DICE_ACTION_MS;assert.equal(pacer.takeBudget(p),1);
 });

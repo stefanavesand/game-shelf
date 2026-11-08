@@ -63,3 +63,7 @@ The automatic foreground repair/retry flow, idle-window activation handshake and
 ## Tangible move feedback (2026-11-08)
 
 The event derivation, transient Web Animations presentation, foreground bot pacing, styles and tests are original Game Shelf code. They use existing repository geometry, resource artwork and shared cost constants. No external animation library, new runtime dependency, concept artwork or upstream code was imported. Rules and save schemas are unchanged.
+
+## Illustrated fixed layout (2026-11-08)
+
+The owner explicitly requested the approved generated reference's graphics as well as its layout. Original generated terrain/resource sheets were prepared into offline WebP assets. Source identifiers and preparation details are recorded in [the art inventory](play/art/README.md). Brand/piece/port vectors and dice CSS are original repository drawings. System Georgia supplies the serif typography without distributing a font. No external game assets or runtime libraries were added. Generated artwork is not a claim of exclusive rights or publisher endorsement.

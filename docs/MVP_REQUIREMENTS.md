@@ -136,3 +136,5 @@ The next step is UI concepts against the agreed product baseline, including phon
 Remove the header update arrow and connection dot. Updates require no manual check, installation button or confirmation. Retry foreground downloads/repairs automatically and activate at a safe Home state without interrupting other open games or unresolved moves. Read-only status remains in the sidebar. Compatibility guards take precedence over activation; never discard a saved game automatically.
 
 Owner-approved UX-09 trial (2026-11-08): tangible board/actor/resource feedback and approximately 1.5 seconds between foreground bot commands. Saving and human input stay responsive; reduced motion retains named text feedback. Details and limitations: [implementation](MVP_UX_IMPLEMENTATION.md).
+
+Owner-approved illustrated layout (2026-11-08): reproduce the generated reference’s graphics and typography with a square board, permanent event/dice strip, always-present own hand and fixed control slots. Reserve time for slower dice and a readable result. See [responsive implementation](RESPONSIVE_UI.md).

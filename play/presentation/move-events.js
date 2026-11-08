@@ -28,3 +28,5 @@ export function describeMove(before,after){
  return {key:`${after.roomId}:${after.revision}`,actorId:actor.id,color:actor.color,action:h.message,message:`${actor.name} ${rolled?`rolled ${rolled.total}`:labels[h.message]}.`,pieces,resources,scores,awards,cost,rolled,producing,robber,card:h.message==='buy development card'};
 }
 export const costLabel=cost=>cost.map(d=>`−${d.amount} ${RESOURCE_NAMES[d.resource]}`).join(' · ');
+
+export function moveSummary(v,h){if(!h)return "Ready to play";const actor=v.state.players.players.find(p=>p.id===h.playerId)?.name||"Player";return `${actor} ${h.message==='roll dice'&&v.state.game.lastRoll?`rolled ${v.state.game.lastRoll.total}`:labels[h.message]||h.message}.`;}

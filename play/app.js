@@ -15,7 +15,7 @@ import {setupPwa} from './pwa.js';
 import {offerDraft,offerIssue,tradeLimit,tradeLabel,bankChoices,bankBundles} from './trade.js';
 import {client} from './session.js';
 import {draw} from './board.js';
-import {symbol} from '../ui/art.js';
+import {symbol} from './presentation/art.js';
 import {PlayError} from './core/errors.js';
 import {RESOURCES,RESOURCE_NAMES,CARD_NAMES,CARD_ACTION,ownPlayer,handCount,bundleLabel,uuid} from './core/protocol.js';
 const $=id=>document.getElementById(id),sheet=$('sheet'),reply=$('trade-reply');
@@ -75,10 +75,10 @@ function actions(){
   if(v.state.game.phase==='ended')return button('See the results','results','primary');
   if(types.has('DISCARD_RESOURCES'))return button('Choose cards to discard','discard','primary',blocked());
   if(types.has('STEAL_RESOURCE'))return button('Choose a player','victim','primary',blocked());
-  if(types.has('ROLL_DICE'))return button('Roll dice','quick:ROLL_DICE','primary',blocked());
+  if(types.has('ROLL_DICE'))return button('Build','build','',true)+button('Trade','trade','',true)+button('Roll dice','quick:ROLL_DICE','primary',blocked());
   if(v.state.game.phase==='main'&&v.state.game.currentPlayerId===v.you&&!mode)return `${button('Build','build','primary',blocked()||offered)}${button('Trade','trade','',blocked()||offered)}${button('End turn','quick:END_TURN','turn-end',blocked()||offered||!types.has('END_TURN'))}`;
-  if(v.state.game.phase==='main'&&!offered)return button('Trade','trade','',blocked());
-  return '';
+  if(v.state.game.phase==='main'&&!offered)return button('Build','build','',true)+button('Trade','trade','',blocked())+button('End turn','quick:END_TURN','turn-end',true);
+  return button('Build','build','',true)+button('Trade','trade','',true)+button('End turn','quick:END_TURN','turn-end',true);
 }
 function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.offer?pendingRecipients(v.offer):g.phase==='discard'?g.pendingDiscard:[g.currentPlayerId];}
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
