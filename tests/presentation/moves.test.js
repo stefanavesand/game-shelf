@@ -31,3 +31,9 @@ test('feedback uses own resource deltas and public build costs, never private op
 test('a roll reserves time for the full dice animation and a settled result',()=>{
  let time=0;const pacer=createMovePacer({now:()=>time}),p={ok:true,roomId:'dice',revision:9,view:{history:[{message:'roll dice'}]},botWorkPending:true};pacer.observe(p);assert.equal(pacer.remaining(p),DICE_ACTION_MS);time=1500;assert.equal(pacer.takeBudget(p),0);time=DICE_ACTION_MS;assert.equal(pacer.takeBudget(p),1);
 });
+
+test('motion lab clips use ordinary engine commands and valid consecutive private views',async()=>{
+ const {scenario}=await import('../../prototype/motion-lab/scenarios.js');const {motionSettings,MOTION_DEFAULTS}=await import('../../play/presentation/motion-settings.js');
+ for(const clip of ['roll','road','settlement','city','robber']){const {before,after}=scenario(clip);assert.equal(after.revision,before.revision+1);assert.ok(describeMove(before,after));}
+ assert.deepEqual(motionSettings(),MOTION_DEFAULTS);assert.equal(motionSettings({diceMs:Infinity}).diceMs,1200);assert.equal(motionSettings({diceMs:-20}).diceMs,200);assert.equal(motionSettings({diceRotation:5000}).diceRotation,1080);
+});

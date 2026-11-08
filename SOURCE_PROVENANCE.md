@@ -67,3 +67,7 @@ The event derivation, transient Web Animations presentation, foreground bot paci
 ## Illustrated fixed layout (2026-11-08)
 
 The owner explicitly requested the approved generated reference's graphics as well as its layout. Original generated terrain/resource sheets were prepared into offline WebP assets. Source identifiers and preparation details are recorded in [the art inventory](play/art/README.md). Brand/piece/port vectors and dice CSS are original repository drawings. System Georgia supplies the serif typography without distributing a font. No external game assets or runtime libraries were added. Generated artwork is not a claim of exclusive rights or publisher endorsement.
+
+## Motion lab (2026-11-08)
+
+The standalone tuning page, bounded motion settings and demo scenarios are original repository code. They reuse the current production presentation and rule engine with prepared demo states. No runtime libraries, external artwork or third-party code were added. Existing game saves and authentication are not used by the lab.
