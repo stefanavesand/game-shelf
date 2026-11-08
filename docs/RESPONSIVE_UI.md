@@ -37,3 +37,9 @@ The generated PNG is the visual reference, including illustrated terrain/resourc
 `game-screen.js` owns one component tree, `game-layout.css` its placement, and `viewport.js` computes a square-size constraint from available space. Event captions are outside the board and never cover ports. Real state supplies all tokens/pieces; the design image is not used as a flattened playable board. Terrain and resource artwork is prepared as local WebP assets, included in the verified offline package; see [asset provenance](../play/art/README.md).
 
 Dice movement lasts 1.2 seconds. The foreground bot pacer reserves 2.6 seconds after a roll so the settled result and resource feedback can be read; other commands retain the 1.5-second interval. Resource delivery effects follow the dice movement. Reduced-motion retains the same readable pacing and text. Saving and human interactions do not wait for animation.
+
+## Installed iOS top-edge blur — 2026-11-08
+
+The owner reports a gradient blur over the header in the installed iPhone app. The header had an opaque background but normal-flow positioning; no app blur/filter was applied to it. A [matching iOS 27 report](https://github.com/yetone/magpie/issues/3515) describes WebKit's native top-edge sampling of opaque sticky/fixed views. The header now uses `position: sticky; top: 0`, an explicit solid background and a stacking level below native dialogs. The status-bar style is explicitly `default`; safe-area padding, app identity and game geometry are unchanged.
+
+The browser regression verifies computed styling, width/height, and stationary placement during actual Home scrolling and in the game. It does not emulate the installed iOS compositor or prove the native blur has disappeared. Physical iPhone confirmation is still required. No header transforms, artificial safe-area spacers, forced scrolling or game/session changes were added.

@@ -100,3 +100,15 @@ test('game phases keep the square board, event strip, hand and controls in fixed
   const images=await page.locator('#board image').evaluateAll(els=>els.map(el=>el.getAttribute('href')));expect(images).toHaveLength(19);expect(images.every(src=>src.startsWith('./art/terrain-'))).toBe(true);
  }finally{await context.close();}
 });
+
+test('the iOS edge-sampling header stays sticky, full-width and opaque on Home and in a game',async({browser})=>{
+ const {context,page}=await start(browser,{width:390,height:844});
+ try{
+  const sample=()=>page.locator('.app-header').evaluate(el=>{const s=getComputedStyle(el),r=el.getBoundingClientRect();return {position:s.position,top:s.top,background:s.backgroundColor,opacity:s.opacity,filter:s.filter,backdrop:s.backdropFilter,width:r.width,height:r.height,y:r.y};});
+  for(const screen of ['game','home']){
+   if(screen==='home'){await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.getByRole('button',{name:'Home',exact:true}).click();await page.locator('#app').evaluate(el=>{const spacer=document.createElement('div');spacer.style.height='1400px';el.append(spacer);});await page.evaluate(()=>scrollTo(0,200));await expect.poll(()=>page.evaluate(()=>scrollY)).toBeGreaterThan(0);}
+   const header=await sample();expect(header.position).toBe('sticky');expect(header.top).toBe('0px');expect(header.background).toBe('rgb(247, 243, 233)');expect(header.opacity).toBe('1');expect(header.filter).toBe('none');expect(header.backdrop).toBe('none');expect(header.width).toBeGreaterThanOrEqual(390*.9);expect(header.height).toBeGreaterThan(10);expect(header.y).toBe(0);
+  }
+  await expect(page.locator('meta[name="apple-mobile-web-app-status-bar-style"]')).toHaveAttribute('content','default');
+ }finally{await context.close();}
+});

@@ -1,7 +1,7 @@
 /* Fixed illustrated game shell. Geometry depends on viewport, never game phase. */
 [hidden]{display:none!important}
 body{background:#faf7ee;color:#183e25}
-.app-header{height:56px;min-height:56px;padding:4px 12px;gap:10px;flex-wrap:nowrap;max-width:none;width:100%;margin:0;border-bottom:1px solid #dcd4bf;flex-shrink:0}
+.app-header{position:sticky;top:0;z-index:2;background-color:#f7f3e9;filter:none;backdrop-filter:none;-webkit-backdrop-filter:none;height:56px;min-height:56px;padding:4px 12px;gap:10px;flex-wrap:nowrap;max-width:none;width:100%;margin:0;border-bottom:1px solid #dcd4bf;flex-shrink:0}
 .app-header .brand{font-family:Georgia,serif;font-size:22px;letter-spacing:-.6px;gap:8px;white-space:nowrap;color:#124b27}.app-header .brand-mark{width:28px;height:28px;border-radius:7px}.header-turn{display:none}.app-header .header-actions{margin-left:auto}.app-header .icon-button{min-width:44px;min-height:44px;height:44px;padding:4px;border:0;background:none;color:#154e2a;font-size:25px}
 body.table-screen{height:var(--viewport-height,100dvh);min-height:0;overflow:hidden;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
 .table-screen #app{width:100%;max-width:none;flex:1;min-height:0;padding:10px;overflow:hidden;display:flex;flex-direction:column}
