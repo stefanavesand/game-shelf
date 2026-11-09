@@ -47,3 +47,9 @@ The browser regression verifies computed styling, width/height, and stationary p
 ## Fast animation experiments — 2026-11-08
 
 The owner requested side-by-side iteration because a release takes roughly ten minutes. The separate [motion lab](../prototype/motion-lab/README.md) reuses production presentation code with bounded runtime overrides. Presets, sliders, replay, reduced-motion diagnostics and shareable settings run entirely in the browser after one initial publication. It is outside the PWA worker scope and uses no accounts, saves or service calls. Production animation defaults and bot timing remain unchanged until the owner approves a setting set. A successful lab clip does not prove that multiplayer events arrive consecutively in the real app.
+
+## Approved motion profile — 2026-11-09
+
+The owner supplied the lab profile: dice 3100 ms, rotation 140°, lift 0 px; piece movement 1450 ms, lift 9 px; resource flight 2200 ms; result hold 0 ms; minimum interval 300 ms. Reduced motion remains respected. The last selected lab clip (`robber`) is not a production preference. Robber movement now uses the shared piece duration, so that control applies to the displayed clip too.
+
+Production pacing and the lab sequencer now share per-action interval bounds. The 300 ms value is a floor: a roll reserves 5550 ms for dice/resource delivery, a paid build up to 2950 ms for staggered resource costs, and a robber move 1700 ms. Saving and human controls do not wait on these effects. Rule execution, save formats and headless bot execution remain unchanged.

@@ -184,3 +184,5 @@ AUTH-01 now has an owner-approved narrower first slice: required Google sign-in/
 UX-02/UX-09: fixed phone/iPad game viewport, left overlay navigation, compact hand/actions and paged dialogs implemented in the shared presentation layer. See [architecture and verification](RESPONSIVE_UI.md). Physical Safari/keyboard/touch acceptance remains QA-02; do not infer it from emulated viewport checks.
 
 UX-02/UX-09 extension (2026-11-08): owner approved the illustrated PNG, including graphics. Square-board and phase-stable shell, local illustrated assets and 1.2-second dice feedback replace the initial flat-board layout. Physical Safari acceptance and owner visual review remain open; see [responsive implementation](RESPONSIVE_UI.md).
+
+UX-09 motion tuning (2026-11-09): owner-provided lab profile adopted, with shared action-aware presentation intervals to prevent a 300 ms minimum from cutting longer effects short. Physical game acceptance remains open; see [profile and timing semantics](RESPONSIVE_UI.md#approved-motion-profile--2026-11-09).

@@ -35,5 +35,11 @@ test('a roll reserves time for the full dice animation and a settled result',()=
 test('motion lab clips use ordinary engine commands and valid consecutive private views',async()=>{
  const {scenario}=await import('../../prototype/motion-lab/scenarios.js');const {motionSettings,MOTION_DEFAULTS}=await import('../../play/presentation/motion-settings.js');
  for(const clip of ['roll','road','settlement','city','robber']){const {before,after}=scenario(clip);assert.equal(after.revision,before.revision+1);assert.ok(describeMove(before,after));}
- assert.deepEqual(motionSettings(),MOTION_DEFAULTS);assert.equal(motionSettings({diceMs:Infinity}).diceMs,1200);assert.equal(motionSettings({diceMs:-20}).diceMs,200);assert.equal(motionSettings({diceRotation:5000}).diceRotation,1080);
+ assert.deepEqual(motionSettings(),MOTION_DEFAULTS);assert.equal(motionSettings({diceMs:Infinity}).diceMs,3100);assert.equal(motionSettings({diceMs:-20}).diceMs,200);assert.equal(motionSettings({diceRotation:5000}).diceRotation,1080);
+});
+
+test('the approved short gap cannot truncate long rolls, flights or piece moves',async()=>{
+ const {motionInterval}=await import('../../play/presentation/motion-settings.js');
+ assert.equal(motionInterval('ROLL_DICE'),5550);assert.equal(motionInterval('BUILD_SETTLEMENT'),2950);assert.equal(motionInterval('MOVE_ROBBER'),1700);assert.equal(motionInterval('END_TURN'),300);
+ let time=0;const pacer=createMovePacer({now:()=>time}),p={ok:true,roomId:'long',revision:1,view:{history:[{message:'build settlement'}]},botWorkPending:true};pacer.observe(p);time=300;assert.equal(pacer.takeBudget(p),0);time=2949;assert.equal(pacer.takeBudget(p),0);time=2950;assert.equal(pacer.takeBudget(p),1);
 });

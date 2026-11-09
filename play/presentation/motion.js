@@ -36,7 +36,7 @@ export function createGameMotion({reduced=()=>matchMedia('(prefers-reduced-motio
    }
    if(event.cost.length){const bank=caption.querySelector('.motion-bank');bank.hidden=false;event.cost.forEach((d,i)=>fly(d.resource,d.amount,player(event.actorId),bank,{negative:true,delay:500+i*70}));}else caption.querySelector('.motion-bank').hidden=true;
    for(const score of event.scores)animate(player(score.playerId)?.querySelector('.player-points'),[{transform:'scale(1)'},{transform:'scale(1.5)',color:'#b57d27',offset:.5},{transform:'scale(1)'}],{delay:650,duration:700});
-   if(event.robber){const a=center(event.robber.from),b=center(event.robber.to);animate(document.querySelector('[data-motion-robber]'),[{transform:`translate(${a.x-b.x}px,${a.y-b.y}px)`,opacity:.45},{transform:'translate(0,0)',opacity:1}],{delay:200,duration:650});}
+   if(event.robber){const a=center(event.robber.from),b=center(event.robber.to);animate(document.querySelector('[data-motion-robber]'),[{transform:`translate(${a.x-b.x}px,${a.y-b.y}px)`,opacity:.45},{transform:'translate(0,0)',opacity:1}],{delay:200,duration:timing.pieceMs});}
    if(event.card)animate(player(event.actorId),[{filter:'brightness(1)'},{filter:'brightness(1.3)',offset:.5},{filter:'brightness(1)'}],{delay:300,duration:600});
    later(()=>{if(!caption.isConnected)return;detail.textContent=event.awards.length?event.awards.map(a=>`${player(a.playerId)?.querySelector('strong')?.textContent||'Player'} · ${a.name}`).join(' · '):costLabel(event.cost);},850);
 
