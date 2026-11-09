@@ -6,7 +6,7 @@ export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onRelo
  const show=text=>{if(status.textContent!==text)status.textContent=text;};
  if(!('serviceWorker'in navigator)){show('Offline installation unavailable');return;}
  let registration,blockedInstall=false,automaticReady=false,automaticBusy=false,discoveryBusy=false,lastDiscovery=0,pendingReload=null;
- let retryAt=0;
+ let retryAt=0,discoveryAgain=false;
  const ask=(worker,type)=>new Promise((resolve,reject)=>{if(!worker){reject(Error());return;}const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error());},15000);channel.port1.onmessage=e=>{clearTimeout(timer);channel.port1.close();resolve(e.data);};worker.postMessage({type},[channel.port2]);});
  async function automaticUpdate(){
   if(!automaticReady||automaticBusy||document.hidden||!navigator.onLine||!isIdle())return;
@@ -23,11 +23,13 @@ export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onRelo
   }catch{show('Offline package unavailable · retrying automatically');}
  }
  async function discover(){
-  if(discoveryBusy||document.hidden||!navigator.onLine||Date.now()-lastDiscovery<30000)return;
+  if(document.hidden||!navigator.onLine)return;
+  if(discoveryBusy){discoveryAgain=true;return;}
+  if(Date.now()-lastDiscovery<30000)return;
   discoveryBusy=true;lastDiscovery=Date.now();
   try{await registration.update();if(!registration.waiting&&!(await ask(registration.active,'CHECK')).ready){show('Repairing offline package…');const repaired=await ask(registration.active,'REPAIR');if(!repaired.ready){show('Offline package incomplete · retrying automatically');return;}}await check();}
   catch{/* Keep offline readiness and retry discovery on the next foreground check. */}
-  finally{discoveryBusy=false;}
+  finally{discoveryBusy=false;if(discoveryAgain){discoveryAgain=false;queueMicrotask(discover);}}
  }
  function watch(worker){worker?.addEventListener('statechange',()=>{if(worker.state==='installed'||worker.state==='activated')check();if(worker.state==='redundant'&&!blockedInstall)show('Offline download failed · retrying automatically when online');});}
  try{

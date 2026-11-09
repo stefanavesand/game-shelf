@@ -191,11 +191,16 @@ test('a compatible breaking release also installs automatically without confirma
  const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});}finally{await cleanup(f);}
 });
 
-test('foreground checks discover a release without pressing the update button',async({browser})=>{
+test('foreground discovery retries a focus request received during an in-flight check',async({browser})=>{
  const f=await open(browser);try{
-  await f.page.clock.install();f.server.upgrade(false);await f.page.clock.fastForward(31000);await f.page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+  await f.page.clock.install();
+  // Hold the completed native update promise, not its response bytes: a mixed
+  // old worker/new manifest would correctly fail the integrity check instead.
+  await f.page.evaluate(()=>{const original=ServiceWorkerRegistration.prototype.update;let first=true;const gate=new Promise(resolve=>window.releaseDiscovery=resolve);window.discoveryHeld=false;ServiceWorkerRegistration.prototype.update=async function(...args){const result=await original.apply(this,args);if(first){first=false;window.discoveryHeld=true;await gate;}return result;};});
+  await f.page.clock.fastForward(31000);await f.page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect.poll(()=>f.page.evaluate(()=>window.discoveryHeld)).toBe(true);
+  f.server.upgrade(false);await f.page.clock.fastForward(31000);await f.page.evaluate(()=>{window.dispatchEvent(new Event('focus'));window.releaseDiscovery();});
   await expect(f.page.locator('#offline-status')).toHaveText('Update ready · installs automatically on Home');expect((await status(f.page)).version).toBe(f.server.version);
- }finally{await cleanup(f);}
+ }finally{await f.page.evaluate(()=>window.releaseDiscovery?.()).catch(()=>{});await cleanup(f);}
 });
 
 test('the header has no update or connection controls and sidebar status is read-only',async({browser})=>{
