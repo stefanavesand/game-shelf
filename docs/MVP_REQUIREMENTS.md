@@ -138,3 +138,7 @@ Remove the header update arrow and connection dot. Updates require no manual che
 Owner-approved UX-09 trial (2026-11-08): tangible board/actor/resource feedback and approximately 1.5 seconds between foreground bot commands. Saving and human input stay responsive; reduced motion retains named text feedback. Details and limitations: [implementation](MVP_UX_IMPLEMENTATION.md).
 
 Owner-approved illustrated layout (2026-11-08): reproduce the generated reference’s graphics and typography with a square board, permanent event/dice strip, always-present own hand and fixed control slots. Reserve time for slower dice and a readable result. See [responsive implementation](RESPONSIVE_UI.md).
+
+## Unified game flow — 2026-11-09
+
+Owner-approved: horizontal clickable player scores, chronological scrollable activity with the current action last, and a fixed six-tile hand including development Cards with main buttons beneath. Preserve a square board, no outer game-page scrolling, reader position and private card information. Final detailed scores remain reachable after completion. See [UI requirements and implementation](RESPONSIVE_UI.md). This supersedes older separate history/action-strip descriptions.

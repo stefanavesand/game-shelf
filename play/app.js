@@ -1,10 +1,12 @@
-import {resourceHand,developmentCards,showHelp,showScores} from './presentation/panels.js';
+import {resourceHand,developmentCards,showHelp,showScores,refreshScores} from './presentation/panels.js';
 import {trackViewport} from './presentation/viewport.js';
 import {createTradePages,itemPages} from './presentation/dialog-pages.js';
 import {esc,button} from './presentation/html.js';
 import {turnTitle} from './presentation/game-view.js';
 import {createGameMotion} from './presentation/motion.js';
 import {createMovePacer} from './presentation/move-pacer.js';
+import {createActivity} from './presentation/activity.js';
+import {createActivityScroll} from './presentation/activity-scroll.js';
 import {gameScreen} from './presentation/game-screen.js';
 import {createOverlays} from './presentation/overlays.js';
 import {createGoogleAuth,isGoogleReturn} from './core/google-auth.js';
@@ -23,6 +25,7 @@ const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[],accountBusy=false,updateReloadPending=false;
 const googleAuth=createGoogleAuth(),motion=createGameMotion(),movePacer=createMovePacer();
+const activity=createActivity({principal:()=>googleAuth.profile()?.id||''}),activityScroll=createActivityScroll();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
 let activeSync=null,renderedHTML=null,renderedBoard=null,renderedMenu=null;
@@ -40,7 +43,7 @@ const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
 const incoming=()=>pendingRecipients(view()?.offer).includes(view()?.you);
 const recipientName=id=>id==='all'?'All':name(id);
 function currentTradeResult(v=view()){return tradeStartRevision===null||!v?null:[...(v.trades||[])].reverse().find(t=>t.from===v.you&&t.revision>=tradeStartRevision);}
-function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&currentTradeResult()?.status==='accepted')tradeDraft=null;tradeStartRevision=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus();}
+function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&currentTradeResult()?.status==='accepted')tradeDraft=null;tradeStartRevision=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus({preventScroll:true});else if(opener?.id)$(opener.id)?.focus({preventScroll:true});}
 function openSheet(title,body){overlays.closeDrawer();reply.close();sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)overlays.show(sheet);(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
 const tradePages=createTradePages(sheet);
 const overlays=createOverlays({sheet,reply,drawer:$('sidebar'),closeSheet});
@@ -71,23 +74,24 @@ function placements(){
   return `<section class="selection-summary"><p class="spatial-hint">${selection===null?'Tap a highlighted location on the board.':'Preview selected. Confirm your move or choose another location.'}</p><div class="confirm-row">${button('Confirm','confirm','primary',selection===null||blocked())}${button('Cancel','cancel-preview','',blocked())}</div></section>`;
 }
 function actions(){
-  const v=view(),types=new Set(v.choices.map(c=>c.type)),offered=!!v.offer;
-  if(v.state.game.phase==='ended')return button('See the results','results','primary');
-  if(types.has('DISCARD_RESOURCES'))return button('Choose cards to discard','discard','primary',blocked());
-  if(types.has('STEAL_RESOURCE'))return button('Choose a player','victim','primary',blocked());
-  if(types.has('ROLL_DICE'))return button('Build','build','',true)+button('Trade','trade','',true)+button('Roll dice','quick:ROLL_DICE','primary',blocked());
-  if(v.state.game.phase==='main'&&v.state.game.currentPlayerId===v.you&&!mode)return `${button('Build','build','primary',blocked()||offered)}${button('Trade','trade','',blocked()||offered)}${button('End turn','quick:END_TURN','turn-end',blocked()||offered||!types.has('END_TURN'))}`;
-  if(v.state.game.phase==='main'&&!offered)return button('Build','build','',true)+button('Trade','trade','',blocked())+button('End turn','quick:END_TURN','turn-end',true);
-  return button('Build','build','',true)+button('Trade','trade','',true)+button('End turn','quick:END_TURN','turn-end',true);
+ const v=view(),g=v.state.game,types=new Set(v.choices.map(c=>c.type)),main=g.phase==='main'&&!v.offer&&!mode;
+ return button('Build','build','primary',blocked()||!main||g.currentPlayerId!==v.you)+button('Trade','trade','',blocked()||!main)+button('End turn','quick:END_TURN','turn-end',blocked()||!main||!types.has('END_TURN'));
+}
+function flowActions(){const v=view(),types=new Set(v.choices.map(c=>c.type));
+ if(v.state.game.phase==='ended')return button('View results','results','primary');
+ if(types.has('ROLL_DICE'))return button('Roll dice','quick:ROLL_DICE','primary',blocked());
+ if(types.has('DISCARD_RESOURCES'))return button('Choose cards to discard','discard','primary',blocked());
+ if(types.has('STEAL_RESOURCE'))return button('Choose a player','victim','primary',blocked());
+ return '';
 }
 function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.offer?pendingRecipients(v.offer):g.phase==='discard'?g.pendingDiscard:[g.currentPlayerId];}
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
  const v=view(),[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
- return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
+ return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:busy||!!saved?.pending,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
 }
 function render(){
-  const focused=document.activeElement?.id;
+  const focused=document.activeElement?.id,feedPosition=activityScroll.capture();
   document.body.classList.toggle('table-screen',screen==='table'&&!!view()&&!!googleAuth.profile());
   const hasAccount=!!googleAuth.profile();$('room').hidden=false;$('room').disabled=updateReloadPending;$('help').disabled=updateReloadPending;document.querySelector('.header-turn').textContent=screen==='table'&&view()?title()[0]:'';
   const refreshDisabled=updateReloadPending||busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now(),connection=client.isLocal()?(busy?'Saving…':'Local · saved'):!navigator.onLine?'Offline':busy?'Checking game…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
@@ -111,6 +115,8 @@ function render(){
   const boardKey=$('board')?JSON.stringify([view().state.board,view().state.players.players.map(p=>[p.id,p.color]),view().you,spatial,selection,blocked()]):null;
   if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}});renderedBoard=boardKey;}
 
+  activityScroll.restore(feedPosition);
+  if(sheet.open&&view()&&$('sheet-body').querySelector('.score-detail'))refreshScores(view());
   motion.present(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
   if($('sidebar').open)renderMenu();
@@ -286,9 +292,9 @@ function cardPanel(index){
  openSheet(CARD_NAMES[card.type],text+`<div class="sheet-actions">${button('Not now','close','quiet')}${button(`Play ${CARD_NAMES[card.type]}`,'modal-confirm','primary',blocked())}</div>`);modalAction=choices[0];
 }
 function helpPanel(){showHelp(openSheet);}
-function scorePanel(){showScores(view(),openSheet);}
+function scorePanel(playerId){showScores(view(),openSheet,playerId);}
 
-function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<div class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP</span></div>`).join('')}<div class="sheet-actions">${button('View the board','close','quiet')}${button('New game','create','primary')}</div></div>`);}
+function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<button type="button" data-action="player:${esc(p.id)}" class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP →</span></button>`).join('')}<div class="sheet-actions">${button('Detailed scores','scores','primary')}${button('View the board','close','quiet')}${button('New game','create','primary')}</div></div>`);}
 function invitedRoom(){return new URLSearchParams(location.hash.split('?')[1]||'').get('room');}
 const accountBlocked=()=>updateReloadPending||accountBusy||busy||!!saved?.pending||!navigator.onLine||!!(error&&error.code!=='AUTH_REQUIRED');
 function accountPanel(){
@@ -340,6 +346,8 @@ async function dispatch(action,el){
   if(action==='reload-app'){location.reload();return;}
   if(action==='help'){helpPanel();return;}
   if(action==='scores'&&view()){scorePanel();return;}
+  if(action.startsWith('player:')&&view()){scorePanel(action.slice(7));return;}
+  if(action==='activity-latest'){activityScroll.jump();return;}
   if(action==='trade-edit'){if(blocked())return;tradeEditing=true;tradeViewKey=null;refreshTradeDialog();return;}
   if(action==='trade-cancel'){if(blocked()||staleModal())return;await sendAction({type:'TRADE_CANCEL',offerId:view().offer.id});return;}
   if(action.startsWith('reply:')){if(blocked()||reply.dataset.offerId!==view()?.offer?.id||!incoming())return;const choice=view().choices.find(c=>c.type===action.slice(6)&&c.offerId===reply.dataset.offerId);if(choice)await sendAction(choice);return;}
@@ -363,7 +371,7 @@ async function dispatch(action,el){
   if(action==='close'){closeSheet();return;}
   if(action==='start-game'){if(blocked())return;await sync('start',{roomId:packet.roomId});return;}
   if(action==='refresh'){closeSheet();botSince=0;botRevision=-1;await sync();return;}
-  if(action.startsWith('resume-game:')){closeSheet();await sync('resume',{roomId:action.slice(12)});return;}
+  if(action.startsWith('resume-game:')){closeSheet();await sync('resume',{roomId:action.slice(12)});if(view()?.state.game.phase==='ended')resultPanel();return;}
   if(action.startsWith('abandon-game:')){const roomId=action.slice(13);if(busy||saved?.pending)return;openSheet('Abandon this game?',`<p>This removes the game from this device’s list and allows future engine updates. You cannot resume it here.</p><p>For online games, this does not notify your friend or delete the server’s history. Bots may pause if you created the game.</p><div class="sheet-actions">${button('Keep game','close','quiet')}${button('Abandon game',`confirm-abandon:${roomId}`,'primary')}</div>`);return;}
   if(action.startsWith('confirm-abandon:')){if(busy||saved?.pending)return;busy=true;render();try{await client.abandon(action.slice(16));closeSheet();const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();error=null;ready=true;notice='Game abandoned on this device.';setScreen('home');}catch(e){error=e;ready=false;}finally{busy=false;render();}return;}
   if(action==='home'){overlays.closeDrawer();if(saved?.pending){notice='Your original move still needs to be resolved.';render();return;}closeSheet();knownGames=await client.games();setScreen('home');return;}

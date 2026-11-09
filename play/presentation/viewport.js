@@ -10,7 +10,7 @@ export function trackViewport(){
   const height=app.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
   const landscape=innerWidth>=600&&innerWidth>=innerHeight;
   // Reserve the fixed controls specified in game-layout.css, then fit a square.
-  const size=landscape?Math.min(height,width-(innerHeight<=500?280:324)-16):Math.min(width,height-40-(innerHeight<=700?204:244)-16);
+  const size=landscape?Math.min(height,width-(innerHeight<=500?280:324)-16):Math.min(width,height-44-248-16);
   root.style.setProperty('--board-size',`${Math.max(120,Math.floor(size))}px`);
  }
  function update(){cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);}

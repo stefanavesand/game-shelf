@@ -89,7 +89,7 @@ test('readable sidebar status and all navigation fit a compact phone',async({bro
 test('game phases keep the square board, event strip, hand and controls in fixed positions',async({browser})=>{
  const {context,page,backend}=await start(browser,{width:390,height:844});
  try{
-  const geometry=()=>page.evaluate(()=>Object.fromEntries(['.players','.board-wrap','.event-strip','.hand-strip','.turn-line','.control-slot'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return [s,[r.x,r.y,r.width,r.height]];})));
+  const geometry=()=>page.evaluate(()=>Object.fromEntries(['.players','.board-wrap','.activity-panel','.hand-panel','.control-slot'].map(s=>{const r=document.querySelector(s).getBoundingClientRect();return [s,[r.x,r.y,r.width,r.height]];})));
   const before=await geometry(),tradePosition=await page.getByRole('button',{name:'Trade',exact:true}).boundingBox();
   for(const phase of ['roll','setup-settlement-1','main']){
    for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;p.view.state.game.phase=phase;if(phase==='roll')p.view.choices=[{type:'ROLL_DICE'}];else p.view.choices=[{type:'BUILD_ROAD',edge:{hex:{q:0,r:0},direction:'E'}}];}

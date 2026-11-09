@@ -71,3 +71,7 @@ The owner explicitly requested the approved generated reference's graphics as we
 ## Motion lab (2026-11-08)
 
 The standalone tuning page, bounded motion settings and demo scenarios are original repository code. They reuse the current production presentation and rule engine with prepared demo states. No runtime libraries, external artwork or third-party code were added. Existing game saves and authentication are not used by the lab.
+
+## Unified activity and scores (2026-11-09)
+
+The bounded presentation journal, reader-position controller, score derivation, unified layout and six-tile hand are original Game Shelf code. The development-card tile uses an original inline vector drawing. No external runtime, artwork, fonts or dependencies were added; rule engine, relay and save formats are unchanged.
