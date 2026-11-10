@@ -75,3 +75,5 @@ The standalone tuning page, bounded motion settings and demo scenarios are origi
 ## Unified activity and scores (2026-11-09)
 
 The bounded presentation journal, reader-position controller, score derivation, unified layout and six-tile hand are original Game Shelf code. The development-card tile uses an original inline vector drawing. No external runtime, artwork, fonts or dependencies were added; rule engine, relay and save formats are unchanged.
+
+The 0.8.1 compact-hand and typography refinement uses platform system fonts and original CSS only; no font files or dependencies were added.

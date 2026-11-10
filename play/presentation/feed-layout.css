@@ -28,3 +28,13 @@
 @media(max-height:500px) and (min-aspect-ratio:1/1){
  .game-screen{grid-template-rows:44px minmax(0,1fr)}.game-screen .action-panel{grid-template-rows:minmax(0,1fr) 108px;gap:6px}.game-screen .hand-panel{padding:4px;gap:4px}.game-screen .panel-label{position:absolute;width:1px;height:1px;clip-path:inset(50%)}.game-screen .resource-tile svg{height:22px;width:28px}.game-screen .resource-tile>span{font-size:10px}.game-screen .resource-tile strong{font-size:15px}.game-screen .activity-panel{grid-template-rows:22px minmax(0,1fr)}.game-screen .activity-panel>h2{font-size:14px;padding-top:4px}.activity-feed{padding:3px 6px 5px}.game-screen .action-entry{padding:5px;margin-top:5px}.game-screen .turn-line h1{font-size:16px}.game-screen .turn-line p{font-size:11px}.game-screen .activity-entry .motion-message{font-size:13px}.game-screen .activity-entry{padding:7px 0}.game-screen .flow-controls button{font-size:13px}
 }
+/* Compact, readable controls; retain the illustrated board's serif lettering. */
+.game-screen{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.game-screen #board{font-family:Georgia,"Times New Roman",serif}
+.game-screen button{font-family:inherit}
+.game-screen .flow-controls button{font-family:inherit}
+.game-screen .activity-message,.game-screen .activity-entry .motion-message{font-weight:600}
+.game-screen .resource-tile>span{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.game-screen .resource-tile strong{font-variant-numeric:tabular-nums;font-size:20px;line-height:1.15}
+.activity-feed:focus{outline:none}
+.activity-feed:focus-visible{outline:2px solid #41674f;outline-offset:-3px}
