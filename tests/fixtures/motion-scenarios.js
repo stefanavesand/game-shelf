@@ -1,7 +1,7 @@
 import {createCatanModule,catanConfig} from '../../play/catan/module.js';
 import {CATAN_ARTIFACT} from '../../play/catan/artifact.js';
 import {botDecision} from '../../play/catan/rules/index.js';
-const module=createCatanModule(CATAN_ARTIFACT.compatibilityId),you='demo-you',roomId='demo-motion-lab';
+const module=createCatanModule(CATAN_ARTIFACT.compatibilityId),you='demo-you',roomId='motion-fixture';
 function act(state,actor,action){return module.apply(state,you,{actor,action},{},{coordinatorId:you});}
 function packet(state){return {ok:true,roomId,you,revision:state.snapshot.revision,view:module.view(state,you)};}
 function base(){

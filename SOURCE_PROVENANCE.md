@@ -81,3 +81,5 @@ The 0.8.1 compact-hand and typography refinement uses platform system fonts and 
 ## Compact phone framing and harbor tokens (2026-11-10)
 
 Original CSS/SVG presentation changes reuse the existing resource illustrations. The anchor vector, coastal highlight and midpoint connector are original drawings; no mockup image, third-party assets or runtime dependencies were imported. Rules and saves are unchanged.
+
+The temporary motion lab was removed on 2026-11-10 at the owner’s request. Original reusable scenario fixtures moved into tests; production motion code and approved settings remain.

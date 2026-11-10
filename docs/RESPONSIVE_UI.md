@@ -44,9 +44,9 @@ The owner reports a gradient blur over the header in the installed iPhone app. T
 
 The browser regression verifies computed styling, width/height, and stationary placement during actual Home scrolling and in the game. It does not emulate the installed iOS compositor or prove the native blur has disappeared. Physical iPhone confirmation is still required. No header transforms, artificial safe-area spacers, forced scrolling or game/session changes were added.
 
-## Fast animation experiments — 2026-11-08
+## Retired animation experiments — 2026-11-10
 
-The owner requested side-by-side iteration because a release takes roughly ten minutes. The separate [motion lab](../prototype/motion-lab/README.md) reuses production presentation code with bounded runtime overrides. Presets, sliders, replay, reduced-motion diagnostics and shareable settings run entirely in the browser after one initial publication. It is outside the PWA worker scope and uses no accounts, saves or service calls. Production animation defaults and bot timing remain unchanged until the owner approves a setting set. A successful lab clip does not prove that multiplayer events arrive consecutively in the real app.
+The temporary animation lab has been removed at the owner’s request. Approved motion settings and production animation tests remain. Reusable synthetic scenarios now live only in `tests/fixtures/motion-scenarios.js` and are not published.
 
 ## Approved motion profile — 2026-11-09
 

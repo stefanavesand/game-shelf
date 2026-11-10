@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createActivity,mergeActivity,ACTIVITY_LIMIT,activityMarkup} from '../../play/presentation/activity.js';
 import {scoreBreakdowns} from '../../play/presentation/scores.js';
-import {scenario} from '../../prototype/motion-lab/scenarios.js';
+import {scenario} from '../fixtures/motion-scenarios.js';
 const storage=()=>{const map=new Map();return {getItem:k=>map.get(k),setItem:(k,v)=>map.set(k,v)};};
 test('confirmed roll details survive end turn/reload and stay isolated by account',()=>{
  const db=storage(),{before,after}=scenario('roll'),journal=createActivity({principal:()=> 'alice',storage:db});journal.observe(before);const records=journal.observe(after),roll=records.at(-1);assert.equal(roll.roll.total,after.view.state.game.lastRoll.total);assert.ok(Object.keys(roll.gains).length);
