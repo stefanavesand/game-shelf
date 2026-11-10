@@ -28,15 +28,24 @@ export function draw(root,view,choices,selected,disabled,onSelect){
     const robber=view.state.board.robberLocation;if(robber.q===tile.coord.q&&robber.r===tile.coord.r)group.append(n('path',{d:`M${c.x+20} ${c.y-18}a6 6 0 1 1 12 0l4 18h-20Z`,'data-motion-robber':'',fill:'#37453c',stroke:'#fff8e9','stroke-width':1.5}));root.append(group);
   }
   const players=view.state.players.players;
-  for(const port of view.state.board.ports){const[a,b]=edgePoints(port.edge),pos=p({x:(a.x+b.x)*.56,y:(a.y+b.y)*.56}),g=n('g',{'data-port':'',transform:`translate(${pos.x} ${pos.y})`});
-   g.append(n('path',{d:'M-19-12Q0-15 19-12L16-3 19 12Q0 9-19 12L-16 3Z',fill:'#fff5cf',stroke:'#8b815a','stroke-width':1}));
-   const text=n('text',{'text-anchor':'middle','font-size':10,'font-family':'Georgia,serif','font-weight':700,fill:'#293d22'});
-   if(port.type==='generic')text.append(n('tspan',{x:0,y:3},'3:1'));else {const type=port.type==='lumber'?'Wood':port.type[0].toUpperCase()+port.type.slice(1);text.append(n('tspan',{x:0,y:-2},type));text.append(n('tspan',{x:0,y:8},'2:1'));}g.append(text);root.append(g);
+  for(const port of view.state.board.ports){
+   const [a,b]=edgePoints(port.edge),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},length=Math.hypot(mid.x,mid.y),pos=p({x:mid.x+mid.x/length*23,y:mid.y+mid.y/length*23}),target=p(mid);
+   const type=port.type==='lumber'?'Wood':port.type==='generic'?'Any resource':port.type[0].toUpperCase()+port.type.slice(1),ratio=port.type==='generic'?'3:1':'2:1';
+   const g=n('g',{'data-port':'','data-port-edge':edgeDisplayKey(port.edge),'aria-label':`${type} harbor, ${ratio}. Both ends of the marked coastal edge grant access.`,role:'img'});
+   g.append(n('title',{},`${type} harbor · ${ratio} · Build at either end of this coastal edge`));
+   const pa=p(a),pb=p(b);
+   g.append(n('line',{'data-port-coast':'',x1:pa.x,y1:pa.y,x2:pb.x,y2:pb.y,stroke:'#bd9754','stroke-width':4,'stroke-linecap':'round'}));
+   g.append(n('line',{'data-port-connector':'',x1:pos.x,y1:pos.y,x2:target.x,y2:target.y,stroke:'#fff3cb','stroke-width':2.5}));
+   g.append(n('circle',{cx:pos.x,cy:pos.y,r:15,fill:'#fff5d8',stroke:'#8c8057','stroke-width':1}));
+   if(port.type==='generic')g.append(n('path',{d:`M${pos.x} ${pos.y-12}v10m-5-5h10m-11 3q6 8 12 0m-6-10a1.5 1.5 0 1 0 .01 0`,fill:'none',stroke:'#345640','stroke-width':1.6,'stroke-linecap':'round'}));
+   else g.append(n('image',{href:`./art/resource-${port.type==='lumber'?'wood':port.type}.webp`,x:pos.x-9,y:pos.y-14,width:18,height:18}));
+   g.append(n('text',{x:pos.x,y:pos.y+10,'text-anchor':'middle','font-size':10,'font-family':'system-ui,sans-serif','font-weight':700,fill:'#293d22'},ratio));root.append(g);
   }
   // Fit static board art and complete port labels. Buildings and selection markers
   // fit inside this padding, so choosing a move never changes the framing.
-  const bounds=root.getBBox(),padding=10;
+  const bounds=root.getBBox(),padding=7;
   root.setAttribute('viewBox',`${bounds.x-padding} ${bounds.y-padding} ${bounds.width+padding*2} ${bounds.height+padding*2}`);
+  root.dispatchEvent(new Event('boardframing',{bubbles:true}));
   for(const road of view.state.board.roads){const[a,b]=edgePoints(road.edge).map(p),color=paint[players.find(player=>player.id===road.playerId)?.color]||paint.red;for(const[stroke,width]of[['#fff8e9',10],[color,6]])root.append(n('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke,'stroke-width':width,'stroke-linecap':'round',...(width===6?{'data-motion-piece':'road','data-motion-key':edgeDisplayKey(road.edge)}:{})}));}
   function piece(position,color,city,preview=false,key=null){const c=p(position);const pieceGroup=n('g',{'data-piece-art':'',...(!preview&&key?{'data-motion-piece':'building','data-motion-key':key}:{})});root.append(pieceGroup);pieceGroup.append(n('path',{d:city?`M${c.x-12} ${c.y+9}v-13h8v-8h11v10h7v11Z`:`M${c.x-9} ${c.y+8}v-13l9-7 9 7v13Z`,fill:color,stroke:preview?'#164b3e':'#fff8e9','stroke-width':preview?3:1.6,opacity:preview?0.65:1,'stroke-dasharray':preview?'4 3':'none','pointer-events':'none'}));if(!preview)pieceGroup.append(n('path',{d:`M${c.x+1} ${c.y-9}v16h7v-13Z`,fill:'#000',opacity:.14,'pointer-events':'none'}));}
   for(const b of view.state.board.buildings)piece(vertexPoint(b.vertex),paint[players.find(player=>player.id===b.playerId)?.color]||paint.red,b.type==='city',false,vertexDisplayKey(b.vertex));

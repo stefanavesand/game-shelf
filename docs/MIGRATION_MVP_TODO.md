@@ -188,3 +188,5 @@ UX-02/UX-09 extension (2026-11-08): owner approved the illustrated PNG, includin
 UX-09 motion tuning (2026-11-09): owner-provided lab profile adopted, with shared action-aware presentation intervals to prevent a 300 ms minimum from cutting longer effects short. Physical game acceptance remains open; see [profile and timing semantics](RESPONSIVE_UI.md#approved-motion-profile--2026-11-09).
 
 UX-02/UX-09 and score-detail UX extension (2026-11-09): horizontal player chips open selected-player scores; chronological activity includes its current action; fixed six-tile hand includes development Cards and main buttons. Completed games retain detailed final scores. Bounded private-view display history and reader-position tests added; physical iPhone/iPad review remains open. See [unified flow](RESPONSIVE_UI.md#chronological-game-flow--owner-approval-2026-11-09).
+
+UX-02/UX-09 phone refinement (2026-11-10): approved one-row navigation, static full-width island with tighter sea framing, and harbor tokens connected to authoritative edge midpoints. Physical installed-iPhone touch/harbor legibility review remains open.

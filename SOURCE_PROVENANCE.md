@@ -77,3 +77,7 @@ The standalone tuning page, bounded motion settings and demo scenarios are origi
 The bounded presentation journal, reader-position controller, score derivation, unified layout and six-tile hand are original Game Shelf code. The development-card tile uses an original inline vector drawing. No external runtime, artwork, fonts or dependencies were added; rule engine, relay and save formats are unchanged.
 
 The 0.8.1 compact-hand and typography refinement uses platform system fonts and original CSS only; no font files or dependencies were added.
+
+## Compact phone framing and harbor tokens (2026-11-10)
+
+Original CSS/SVG presentation changes reuse the existing resource illustrations. The anchor vector, coastal highlight and midpoint connector are original drawings; no mockup image, third-party assets or runtime dependencies were imported. Rules and saves are unchanged.

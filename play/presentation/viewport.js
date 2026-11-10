@@ -11,9 +11,12 @@ export function trackViewport(){
   const landscape=innerWidth>=600&&innerWidth>=innerHeight;
   // Reserve the fixed controls specified in game-layout.css, then fit a square.
   const size=landscape?Math.min(height,width-(innerHeight<=500?280:324)-16):Math.min(width,height-44-248-16);
-  root.style.setProperty('--board-size',`${Math.max(120,Math.floor(size))}px`);
+  const phone=innerWidth<600,box=document.getElementById('board')?.viewBox.baseVal,ratio=box?.width>0?box.height/box.width:1;
+  const boardWidth=phone?width:Math.max(120,Math.floor(size));
+  root.style.setProperty('--board-size',`${boardWidth}px`);
+  root.style.setProperty('--board-height',`${Math.ceil(boardWidth*ratio)}px`);
  }
  function update(){cancelAnimationFrame(frame);frame=requestAnimationFrame(measure);}
  new ResizeObserver(update).observe(document.getElementById('app'));
- window.addEventListener('resize',update);window.visualViewport?.addEventListener('resize',update);window.addEventListener('pageshow',update);update();
+ document.addEventListener('boardframing',update);window.addEventListener('resize',update);window.visualViewport?.addEventListener('resize',update);window.addEventListener('pageshow',update);update();
 }

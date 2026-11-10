@@ -67,3 +67,9 @@ Presentation modules `activity.js`, `activity-scroll.js` and `scores.js` own jou
 ## Compact hand and typography — 2026-11-09
 
 The fixed hand shows only icons and quantities; resource names remain in the accessibility tree. Gameplay panels and controls use the platform system sans-serif for compact reading, while the brand and board retain serif lettering. The scrollable activity region suppresses pointer-focus outlines and uses an inset green keyboard-focus ring, preventing a clipped blue line beneath its heading. Installed Safari appearance still requires physical review.
+
+## Compact phone navigation and harbors — 2026-11-10
+
+Owner-approved option B supersedes the square board requirement on portrait phones below 600 CSS pixels wide. The existing menu trigger shares a 44-pixel row with compact score chips; brand and Help leave this game-only header, with Help reachable in the sidebar. Home and tablet headers remain unchanged. The whole island remains visible, static and full-width; only excess surrounding sea is removed using the actual static SVG bounds. Activity gets the remaining height above the fixed hand; it alone scrolls. Very short screens have less history than tall phones, without shrinking the island or enabling board panning.
+
+Harbors use original cream round tokens with existing resource artwork (or an original anchor vector) and the trade ratio. Each has one connector to the exact midpoint of its authoritative coastal edge, plus a subtle highlight along that edge. Both endpoints give harbor access; the renderer does not choose an approximate nearby vertex. Accessible descriptions explain the association. Rendering uses existing edge/vertex geometry; no rule, bank-rate, session or saved-game changes. Browser regression compares all nine connectors and endpoints against the authorized harbor data, checks phone activity space and menu access, and preserves tablet square framing.

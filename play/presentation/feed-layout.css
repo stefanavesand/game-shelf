@@ -38,3 +38,16 @@
 .game-screen .resource-tile strong{font-variant-numeric:tabular-nums;font-size:20px;line-height:1.15}
 .activity-feed:focus{outline:none}
 .activity-feed:focus-visible{outline:2px solid #41674f;outline-offset:-3px}
+/* Phone play: navigation shares the player row; sea fits the actual board art. */
+@media(max-width:599px){
+ body.table-screen .app-header{position:absolute;top:10px;left:10px;width:44px;height:44px;min-height:44px;padding:0;border:0;background:#faf7ee}
+ body.table-screen .app-header>:not(#room){display:none}
+ body.table-screen .app-header #room{width:44px;height:44px;min-width:44px;min-height:44px}
+ .game-screen{grid-template-rows:44px var(--board-height,350px) minmax(0,1fr)}
+ .game-screen .players{padding-left:48px;gap:4px}
+ .game-screen .player{padding:3px;gap:2px;flex-wrap:nowrap;overflow:hidden}
+ .game-screen .player strong{font-size:11px;flex:1}.game-screen .player-points{font-size:11px}
+ .game-screen .board-wrap{width:var(--board-size);height:var(--board-height);aspect-ratio:auto}
+ .game-screen .activity-panel{grid-template-rows:24px minmax(0,1fr)}
+ .game-screen .activity-panel>h2{position:static;width:auto;height:auto;clip-path:none;font-size:16px;padding-top:4px}
+}

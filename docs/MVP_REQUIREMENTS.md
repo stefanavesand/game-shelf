@@ -142,3 +142,5 @@ Owner-approved illustrated layout (2026-11-08): reproduce the generated referenc
 ## Unified game flow — 2026-11-09
 
 Owner-approved: horizontal clickable player scores, chronological scrollable activity with the current action last, and a fixed six-tile hand including development Cards with main buttons beneath. Preserve a square board, no outer game-page scrolling, reader position and private card information. Final detailed scores remain reachable after completion. See [UI requirements and implementation](RESPONSIVE_UI.md). This supersedes older separate history/action-strip descriptions.
+
+Owner-approved phone option B (2026-11-10): menu and player scores share one row, island size is retained, surplus sea is cropped, and compact harbor symbols connect to the midpoint of their exact coastal edge. Only the activity feed scrolls. This supersedes the square surface on portrait phones; tablet layout remains fixed and square.
