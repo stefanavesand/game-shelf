@@ -6,7 +6,7 @@ for(const [width,height] of [[390,664],[360,640],[844,390],[1024,768],[768,1024]
  const {context,page}=await start(browser,{width,height});try{
   for(const s of ['.players','#board','.action-panel','.action-buttons'])expect(await fits(page,s),s).toEqual({visible:true,inside:true});
   expect(await page.evaluate(()=>({height:document.documentElement.scrollHeight,width:document.documentElement.scrollWidth}))).toEqual({height,width});
-  await expect(page.locator('.board-tools')).toHaveCount(0);const square=await page.locator('.board-wrap').boundingBox();if(width>=600)expect(Math.abs(square.width-square.height)).toBeLessThan(1);else expect(square.width/square.height).toBeGreaterThan(1);
+  await expect(page.locator('.board-tools')).toHaveCount(0);const square=await page.locator('.board-wrap').boundingBox();if(width>=600)expect(Math.abs(square.width-square.height)).toBeLessThan(1);else {const ratio=await page.locator('#board').evaluate(svg=>svg.viewBox.baseVal.width/svg.viewBox.baseVal.height);expect(Math.abs(square.width/square.height-ratio)).toBeLessThan(.01);}
   const framing=await page.locator('#board').evaluate(svg=>{
    const box=svg.getBoundingClientRect(),bounds=[...svg.querySelectorAll('[data-motion-tile],[data-port]')].map(el=>el.getBoundingClientRect());
    const left=Math.min(...bounds.map(b=>b.left)),right=Math.max(...bounds.map(b=>b.right)),top=Math.min(...bounds.map(b=>b.top)),bottom=Math.max(...bounds.map(b=>b.bottom));
@@ -113,12 +113,12 @@ test('the iOS edge-sampling header stays sticky, full-width and opaque on Home a
  }finally{await context.close();}
 });
 
-test('phone navigation frees activity space and each harbor connects to its actual edge midpoint',async({browser})=>{
+test('phone navigation frees activity space and each bare harbor marker is centered outside its actual coastal edge',async({browser})=>{
  const {context,page}=await start(browser,{width:390,height:844});try{
   await expect(page.locator('.app-header .brand')).toBeHidden();const menu=await page.locator('#room').boundingBox(),players=await page.locator('.players').boundingBox();expect(Math.abs(menu.y-players.y)).toBeLessThan(1);expect(menu.width).toBeGreaterThanOrEqual(44);
   await expect.poll(()=>page.locator('.activity-panel').evaluate(e=>e.clientHeight)).toBeGreaterThan(240);
-  const ports=await page.evaluate(async()=>{const {client}=await import('./session.js'),{edgePoints,vertexPoint}=await import('./board.js'),{view}= (await client.inspect()).packet;return view.state.board.ports.map((port,i)=>{const [a,b]=edgePoints(port.edge),g=document.querySelectorAll('[data-port]')[i],line=g.querySelector('[data-port-connector]'),coast=g.querySelector('[data-port-coast]');return {midError:Math.hypot(Number(line.getAttribute('x2'))-320-(a.x+b.x)/2,Number(line.getAttribute('y2'))-275-(a.y+b.y)/2),coastError:Math.hypot(Number(coast.getAttribute('x1'))-320-a.x,Number(coast.getAttribute('y1'))-275-a.y),vertexErrors:port.vertices.map(v=>{const p=vertexPoint(v);return Math.min(Math.hypot(p.x-a.x,p.y-a.y),Math.hypot(p.x-b.x,p.y-b.y));})};});});
-  expect(ports).toHaveLength(9);for(const p of ports){expect(p.midError).toBeLessThan(.001);expect(p.coastError).toBeLessThan(.001);expect(p.vertexErrors).toHaveLength(2);for(const e of p.vertexErrors)expect(e).toBeLessThan(.001);}
+  const ports=await page.evaluate(async()=>{const {client}=await import('./session.js'),{edgePoints,vertexPoint}=await import('./board.js'),{view}= (await client.inspect()).packet;return view.state.board.ports.map((port,i)=>{const [a,b]=edgePoints(port.edge),g=document.querySelectorAll('[data-port]')[i],label=g.querySelector('text'),coast=g.querySelector('[data-port-coast]');return {midError:Math.abs(((Number(label.getAttribute('x'))-320-(a.x+b.x)/2)*(b.x-a.x)+(Number(label.getAttribute('y'))-10-275-(a.y+b.y)/2)*(b.y-a.y))/Math.hypot(b.x-a.x,b.y-a.y)),decorations:g.querySelectorAll('[data-port-connector],circle').length,coastError:Math.hypot(Number(coast.getAttribute('x1'))-320-a.x,Number(coast.getAttribute('y1'))-275-a.y),vertexErrors:port.vertices.map(v=>{const p=vertexPoint(v);return Math.min(Math.hypot(p.x-a.x,p.y-a.y),Math.hypot(p.x-b.x,p.y-b.y));})};});});
+  expect(ports).toHaveLength(9);for(const p of ports){expect(p.midError).toBeLessThan(.001);expect(p.coastError).toBeLessThan(.001);expect(p.decorations).toBe(0);expect(p.vertexErrors).toHaveLength(2);for(const e of p.vertexErrors)expect(e).toBeLessThan(.001);}
   await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.getByRole('button',{name:'Help & rules',exact:true}).click();await expect(page.getByRole('dialog')).toBeVisible();await page.getByRole('button',{name:'Close panel',exact:true}).click();await page.screenshot({path:'test-results/phone-compact-390x844.png'});
  }finally{await context.close();}
 });

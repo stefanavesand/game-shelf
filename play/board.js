@@ -29,14 +29,12 @@ export function draw(root,view,choices,selected,disabled,onSelect){
   }
   const players=view.state.players.players;
   for(const port of view.state.board.ports){
-   const [a,b]=edgePoints(port.edge),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},length=Math.hypot(mid.x,mid.y),pos=p({x:mid.x+mid.x/length*23,y:mid.y+mid.y/length*23}),target=p(mid);
+   const [a,b]=edgePoints(port.edge),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},length=Math.hypot(b.x-a.x,b.y-a.y),normal={x:(b.y-a.y)/length,y:-(b.x-a.x)/length},outward=normal.x*mid.x+normal.y*mid.y>=0?1:-1,pos=p({x:mid.x+normal.x*outward*23,y:mid.y+normal.y*outward*23});
    const type=port.type==='lumber'?'Wood':port.type==='generic'?'Any resource':port.type[0].toUpperCase()+port.type.slice(1),ratio=port.type==='generic'?'3:1':'2:1';
    const g=n('g',{'data-port':'','data-port-edge':edgeDisplayKey(port.edge),'aria-label':`${type} harbor, ${ratio}. Both ends of the marked coastal edge grant access.`,role:'img'});
    g.append(n('title',{},`${type} harbor · ${ratio} · Build at either end of this coastal edge`));
    const pa=p(a),pb=p(b);
    g.append(n('line',{'data-port-coast':'',x1:pa.x,y1:pa.y,x2:pb.x,y2:pb.y,stroke:'#bd9754','stroke-width':4,'stroke-linecap':'round'}));
-   g.append(n('line',{'data-port-connector':'',x1:pos.x,y1:pos.y,x2:target.x,y2:target.y,stroke:'#fff3cb','stroke-width':2.5}));
-   g.append(n('circle',{cx:pos.x,cy:pos.y,r:15,fill:'#fff5d8',stroke:'#8c8057','stroke-width':1}));
    if(port.type==='generic')g.append(n('path',{d:`M${pos.x} ${pos.y-12}v10m-5-5h10m-11 3q6 8 12 0m-6-10a1.5 1.5 0 1 0 .01 0`,fill:'none',stroke:'#345640','stroke-width':1.6,'stroke-linecap':'round'}));
    else g.append(n('image',{href:`./art/resource-${port.type==='lumber'?'wood':port.type}.webp`,x:pos.x-9,y:pos.y-14,width:18,height:18}));
    g.append(n('text',{x:pos.x,y:pos.y+10,'text-anchor':'middle','font-size':10,'font-family':'system-ui,sans-serif','font-weight':700,fill:'#293d22'},ratio));root.append(g);
