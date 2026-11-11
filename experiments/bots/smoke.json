@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "foundation-smoke-v1",
+  "split": "train",
+  "gameSeeds": [
+    37
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 60000,
+  "profiles": {
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "candidate-default": "candidate-default.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-candidate",
+      "profiles": [
+        "candidate-default",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    }
+  ]
+}

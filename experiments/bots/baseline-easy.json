@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "baseline-easy",
+  "policyVersion": "heuristic-1.1.0",
+  "featureSchemaVersion": 1,
+  "level": "easy",
+  "parameters": {}
+}

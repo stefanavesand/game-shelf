@@ -2,7 +2,7 @@
 
 ## Ranked improvement and tuning proposal — 2026-11-11
 
-See [bot improvement, tuning and difficulty specification](BOT_IMPROVEMENT_SPEC.md) for BOT-AI-00–09: ranked delivery, immutable parameter profiles, reproducible simulations, optimization, held-out strength comparisons and calibrated difficulty. This is a requested specification, not implemented functionality or measured stronger play. Initial parameter ranges/device thresholds remain proposed until validated.
+See [bot improvement, tuning and difficulty specification](BOT_IMPROVEMENT_SPEC.md) for BOT-AI-00–09: ranked delivery, immutable parameter profiles, reproducible simulations, optimization, held-out strength comparisons and calibrated difficulty. The first [experiment foundation](BOT_EXPERIMENTS.md) is implemented: frozen baseline, bounded legacy-heuristic parameters, deterministic headless experiments and reports. Planner/search/optimization and stronger-level claims remain proposals. Initial parameter ranges/device thresholds remain proposed until validated.
 
 Current execution is in the PWA coordinator for both Solo and internet games; the backend handles identity and communication. This supersedes historical managed-server bot placement below. Preserve projected inputs, ordinary command validation, pending IDs, policy/profile pinning and foreground-only lifecycle guarantees. The older requirements and implementation notes below retain their historical context.
 

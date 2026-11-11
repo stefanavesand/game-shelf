@@ -8,7 +8,7 @@
     "prototype:check": "node --check prototype/app.js && node --check prototype/board.js && node --check scripts/serve-prototype.mjs",
     "prototype:test": "playwright test --project=prototype",
     "play:dev": "node scripts/serve-prototype.mjs",
-    "test:core": "node tests/presentation/moves.test.js && node tests/presentation/activity.test.js && node tests/core/client.test.js && node tests/core/google-auth.test.js && node tests/core/trade-feedback.test.js && node tests/relay/relay.test.js && node tests/catan/engine.test.js && node tests/catan/validation.test.js && node tests/catan/trading.test.js && node tests/catan/simulations.test.js && node tests/local/local.test.js",
+    "test:core": "node tests/presentation/moves.test.js && node tests/presentation/activity.test.js && node tests/core/client.test.js && node tests/core/google-auth.test.js && node tests/core/trade-feedback.test.js && node tests/relay/relay.test.js && node tests/catan/engine.test.js && node tests/catan/validation.test.js && node tests/catan/trading.test.js && node tests/catan/simulations.test.js && node tests/local/local.test.js && npm run test:bots",
     "test:catan": "node tests/catan/engine.test.js && node tests/catan/validation.test.js && node tests/catan/trading.test.js && node tests/catan/simulations.test.js",
     "test:relay": "node tests/relay/relay.test.js",
     "test:browser": "playwright test",
@@ -16,7 +16,12 @@
     "check": "node scripts/catan-manifest.mjs --check && node scripts/check.mjs",
     "build": "node scripts/build-site.mjs",
     "verify:deployment": "node scripts/verify-deployment.mjs",
-    "test:package": "node tests/package/site.test.js"
+    "test:package": "node tests/package/site.test.js",
+    "bots:profile": "node scripts/bots/cli.mjs profile",
+    "bots:simulate": "node scripts/bots/cli.mjs simulate",
+    "bots:replay": "node scripts/bots/cli.mjs replay",
+    "bots:compare": "node scripts/bots/cli.mjs compare",
+    "test:bots": "node tests/bots/foundation.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

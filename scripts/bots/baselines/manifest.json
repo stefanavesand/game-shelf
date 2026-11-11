@@ -1,0 +1,8 @@
+{
+  "sourceCommit": "4498fb62537e74ce155a9b261f661e83a22b914b",
+  "source": "play/catan/rules/bot.js",
+  "sourceSha256": "4c23ffa3dca8ef7ff8f4c1e52bff7bb6d9e8099ef9d1a934b0459be2fae3ecd2",
+  "snapshot": "scripts/bots/baselines/heuristic-1.1.0.js",
+  "snapshotSha256": "cbebe7c1cf708d487460778e9da9aebccc483e6740850b4b6082deca9178d8e8",
+  "changes": "Import paths only. Required upstream settlement heuristic MIT notice retained. Rules helpers use the recorded engine artifact; the policy snapshot is not a second engine."
+}

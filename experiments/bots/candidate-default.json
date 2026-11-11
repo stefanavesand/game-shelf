@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "candidate-default",
+  "policyVersion": "heuristic-params-0.1.0",
+  "featureSchemaVersion": 1,
+  "level": "standard",
+  "parameters": {
+    "settlementBase": 140,
+    "cityBase": 135,
+    "roadBase": 35,
+    "developmentBase": 80,
+    "bankTradeBase": 45,
+    "tradeAcceptBase": 25,
+    "noiseAmplitude": 0.01
+  }
+}

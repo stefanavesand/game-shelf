@@ -214,6 +214,10 @@ Capture immutable revision/authority epoch/profile/decision seed before scheduli
 
 Version feature normalization, rounding, canonical action ordering, seeded tie-breaking and budget semantics. Freeze these with policy/profile artifacts so optimization results can be reproduced. A watchdog fallback may vary with hardware, so its committed command and fallback reason must be recorded; it cannot be replayed by pretending the normal full search completed.
 
+## First foundation delivery — 2026-11-11
+
+[Implemented experiment tooling](BOT_EXPERIMENTS.md) now provides frozen Easy/Standard baselines, seven tunable legacy-heuristic controls, strict JSON profiles, headless 3/4-seat rotated experiments, deterministic replay, parallel workers, interrupted resume and descriptive reports. This is a partial BOT-AI-00 foundation: the planner schema/example above, automatic optimization, formal uncertainty and calibrated difficulty remain proposals. The tools do not change the bot used by the PWA.
+
 ## 9. Delivery checklist and current status
 
 1. BOT-AI-00: profile schema/registry + frozen baseline + runner/report contract.
@@ -223,7 +227,7 @@ Version feature normalization, rounding, canonical action ordering, seeded tie-b
 5. BOT-AI-08: freeze Easy/Standard; ship Hard only with separate evidence.
 6. BOT-AI-09: optional later MCTS study.
 
-Every item above is **specified, not implemented** by this document. Existing policy remains `heuristic-1.1.0`; current Easy/Standard labels have no new calibrated-strength claim. The earlier review executed 12 baseline games and a legal trade probe; no stronger candidate has yet been benchmarked.
+The foundation subset described above is implemented; remaining items are **specified, not implemented**. Existing policy remains `heuristic-1.1.0`; current Easy/Standard labels have no new calibrated-strength claim. The earlier review executed 12 baseline games and a legal trade probe; no stronger candidate has yet been benchmarked.
 
 ## 10. Research basis and reuse policy
 

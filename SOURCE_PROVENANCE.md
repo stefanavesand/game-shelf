@@ -87,3 +87,7 @@ The temporary motion lab was removed on 2026-11-10 at the owner’s request. Ori
 ## Bot improvement specification (2026-11-11)
 
 The ranked tuning/simulation specification is original planning material informed by cited publications and pinned external source reviews. It imports no external code, model weights, assets or dependencies and does not change runtime behavior. Implementation reuse remains subject to BOT-16 license/provenance review.
+
+## Bot experiment foundation (2026-11-11)
+
+The experiment runner, JSON registry, reports and tests are original code. A frozen copy and a parameterized experimental adaptation of the existing Game Shelf heuristic preserve its settlement-heuristic MIT notice and origin; snapshot hashes and import-only baseline changes are recorded in `scripts/bots/baselines/manifest.json`. No external runtime, model, assets or new dependencies were imported. Experiments reuse the production rules and are excluded from the packaged PWA.

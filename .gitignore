@@ -10,3 +10,6 @@ playwright-pwa-report/
 !.env.example
 *.log
 .DS_Store
+
+# Local synthetic bot experiments
+bot-results/

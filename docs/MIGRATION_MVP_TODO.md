@@ -205,3 +205,5 @@ The owner requested prioritized improvements with adjustable parameters, simulat
 - [ ] **BOT-AI-07:** Bounded same-turn beam search and worker integration.
 - [ ] **BOT-AI-08:** Reproducible tuning, held-out tournaments and promotion of measured Easy/Standard/Hard profiles.
 - [ ] **BOT-AI-09:** Optional later information-set MCTS; not required for the first stronger release.
+
+BOT-AI-00 first delivery (2026-11-11, partial): frozen baseline, validated legacy-heuristic parameter profiles, headless parallel rotated experiments, replay, interrupted resume and descriptive reports implemented. See [experiment guide](BOT_EXPERIMENTS.md). Richer scenarios/statistics, automatic optimization and difficulty promotion remain open; no stronger gameplay policy has been released.
