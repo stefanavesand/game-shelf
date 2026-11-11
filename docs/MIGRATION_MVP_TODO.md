@@ -190,3 +190,18 @@ UX-09 motion tuning (2026-11-09): owner-provided lab profile adopted, with share
 UX-02/UX-09 and score-detail UX extension (2026-11-09): horizontal player chips open selected-player scores; chronological activity includes its current action; fixed six-tile hand includes development Cards and main buttons. Completed games retain detailed final scores. Bounded private-view display history and reader-position tests added; physical iPhone/iPad review remains open. See [unified flow](RESPONSIVE_UI.md#chronological-game-flow--owner-approval-2026-11-09).
 
 UX-02/UX-09 phone refinement (2026-11-10): approved one-row navigation, static full-width island with tighter sea framing, and harbor tokens connected to authoritative edge midpoints. Physical installed-iPhone touch/harbor legibility review remains open.
+
+## Ranked bot improvement program — specification 2026-11-11
+
+The owner requested prioritized improvements with adjustable parameters, simulation-based optimization and calibrated difficulty. See [detailed spec](BOT_IMPROVEMENT_SPEC.md). All items remain open; writing the spec does not complete implementation or strengthen the current policy. These refine BOT-03/06/07/09/10/13/14/18 and BOT-VALIDATION-01.
+
+- [ ] **BOT-AI-00:** Freeze current baseline; profile registry/schema, hashes and experiment runner/report contract.
+- [ ] **BOT-AI-01:** Production-aware concrete build plans and successor valuation.
+- [ ] **BOT-AI-02:** Goal/alternative-aware trades, bounded proposals and recipient selection.
+- [ ] **BOT-AI-03:** Better resource cards, Monopoly, Year of Plenty and discard candidates.
+- [ ] **BOT-AI-04:** Legal-graph expansion and marginal road value.
+- [ ] **BOT-AI-05:** Paired opening evaluation and production correlation.
+- [ ] **BOT-AI-06:** Public win-race, awards, robber and card opportunity cost.
+- [ ] **BOT-AI-07:** Bounded same-turn beam search and worker integration.
+- [ ] **BOT-AI-08:** Reproducible tuning, held-out tournaments and promotion of measured Easy/Standard/Hard profiles.
+- [ ] **BOT-AI-09:** Optional later information-set MCTS; not required for the first stronger release.

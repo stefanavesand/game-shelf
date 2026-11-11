@@ -83,3 +83,7 @@ The 0.8.1 compact-hand and typography refinement uses platform system fonts and 
 Original CSS/SVG presentation changes reuse the existing resource illustrations. The anchor vector, coastal highlight and midpoint connector are original drawings; no mockup image, third-party assets or runtime dependencies were imported. Rules and saves are unchanged.
 
 The temporary motion lab was removed on 2026-11-10 at the owner’s request. Original reusable scenario fixtures moved into tests; production motion code and approved settings remain.
+
+## Bot improvement specification (2026-11-11)
+
+The ranked tuning/simulation specification is original planning material informed by cited publications and pinned external source reviews. It imports no external code, model weights, assets or dependencies and does not change runtime behavior. Implementation reuse remains subject to BOT-16 license/provenance review.
