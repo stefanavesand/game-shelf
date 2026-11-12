@@ -80,3 +80,8 @@ test('another development card cannot mask a resource-enabled win and variant ba
  const d=decision(module.view(state,'p0'),p,37);assert.equal(d.action.type,'PLAY_YEAR_OF_PLENTY');assert.equal(d.reason,'RESOURCE_CARD_ENABLES_WIN');
  const v=module.view(state,'p0');v.state.game.mode='unsupported-variant';assert.equal(opponentTotals(v),null);
 });
+test('natural rule-driven resource games complete and reproduce audited outcomes',{timeout:30000},async()=>{
+ const {runMatch}=await import('../../scripts/bots/match.mjs'),{auditResourceMatch}=await import('../../scripts/bots/resource-audit.mjs'),baseline=validateProfile(template('baseline','heuristic-1.1.0'));
+ const row=runMatch({job:{id:'resource-natural',caseId:'resource-natural',gameSeed:37,rotation:0,repeat:0,roster:'three-resource',profiles:['resource','baseline','baseline']},profiles:[profile,baseline,baseline],maxActions:2500,decisionSeed:92831});assert.equal(row.status,'ended',row.reason);
+ const audit=auditResourceMatch(row,'resource');assert.ok(audit.discards>0);assert.equal(audit.yearOfPlentyBeforeRoll,0);assert.equal(audit.monopolyBeforeRoll,0);assert.equal(audit.zeroYieldMonopoly,0);assert.throws(()=>auditResourceMatch({...row,finalStateHash:'corrupt'},'resource'),/final-state mismatch/);
+});

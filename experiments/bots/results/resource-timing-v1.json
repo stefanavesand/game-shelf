@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "8bc2771cebac9fca24f4a3ae84a9187b76e3ed29b77e6312bf3d469a9623a707",
+    "node": "v24.19.0",
+    "commit": "ce02b4ef81b781875e3dc4b191679217118af4ab"
+  },
+  "note": "Recorded concurrent-host policy invocation timings, including observation cloning/freezing. Action-conditioned samples exclude held-card decisions; not device or incremental-memory evidence.",
+  "groups": {
+    "candidate": {
+      "DISCARD_RESOURCES": {
+        "samples": 27,
+        "p50": 34.42164799999955,
+        "p95": 79.67862699999932,
+        "max": 83.92796200000157
+      },
+      "PLAY_MONOPOLY": {
+        "samples": 13,
+        "p50": 16.70549899999969,
+        "p95": 96.13290000000052,
+        "max": 96.13290000000052
+      },
+      "PLAY_YEAR_OF_PLENTY": {
+        "samples": 14,
+        "p50": 77.88407000000007,
+        "p95": 155.75861900000018,
+        "max": 155.75861900000018
+      }
+    },
+    "control": {
+      "DISCARD_RESOURCES": {
+        "samples": 26,
+        "p50": 0.5052899999991496,
+        "p95": 4.743484999999964,
+        "max": 28.359882000000653
+      },
+      "PLAY_MONOPOLY": {
+        "samples": 18,
+        "p50": 0.669646999998804,
+        "p95": 3.166302999999971,
+        "max": 3.166302999999971
+      },
+      "PLAY_YEAR_OF_PLENTY": {
+        "samples": 12,
+        "p50": 0.5477340000034019,
+        "p95": 4.597465999999713,
+        "max": 4.597465999999713
+      }
+    }
+  }
+}
