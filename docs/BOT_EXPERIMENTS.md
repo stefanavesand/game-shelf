@@ -6,7 +6,7 @@ Implemented 2026-11-11 for the first BOT-AI-00 delivery. See the [ranked specifi
 
 ```sh
 npm run bots:profile -- registry
-npm run bots:profile -- template > /tmp/candidate.json
+npm run --silent bots:profile -- template > /tmp/candidate.json
 npm run bots:profile -- validate experiments/bots/candidate-default.json
 npm run bots:simulate -- --manifest experiments/bots/smoke.json --dry-run
 npm run bots:simulate -- --manifest experiments/bots/smoke.json --out bot-results/smoke
@@ -60,3 +60,7 @@ Automatic random search/successive halving, seed-set overlap enforcement across 
 ## Verification
 
 `tests/bots/foundation.test.mjs` covers strict profile/manifest validation, frozen source integrity and current-policy parity at both levels, a real legal choice changed by parameters, full-game deterministic replay, command-cap failure, concurrency invariance, interrupted resume, duplicate prevention, reports and checkpoint corruption. These tests are included in `test:core`. Existing app/game tests remain unchanged.
+
+## Economic planner candidate
+
+An observation-only `planner-0.1.0` profile and 3/4-seat screening manifests now exercise production-aware build/bank/wait decisions. See [planner behavior, parameters and initial evidence](BOT_PLANNER.md). `bots:profile -- registry` returns separate `legacy` and `planner` groups. The first screening does not establish a stronger difficulty; the app policy remains unchanged.

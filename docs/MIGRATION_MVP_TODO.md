@@ -207,3 +207,5 @@ The owner requested prioritized improvements with adjustable parameters, simulat
 - [ ] **BOT-AI-09:** Optional later information-set MCTS; not required for the first stronger release.
 
 BOT-AI-00 first delivery (2026-11-11, partial): frozen baseline, validated legacy-heuristic parameter profiles, headless parallel rotated experiments, replay, interrupted resume and descriptive reports implemented. See [experiment guide](BOT_EXPERIMENTS.md). Richer scenarios/statistics, automatic optimization and difficulty promotion remain open; no stronger gameplay policy has been released.
+
+BOT-AI-01 first experimental candidate (2026-11-12, partial): bounded concrete economic plans, production/port/bank acquisition estimates, deterministic authoritative successor evaluation, resource readiness and waiting are parameterized in offline tooling. The 42-game training screen completed but produced mixed strength results; no promotion to the app. See [planner evidence and limits](BOT_PLANNER.md).

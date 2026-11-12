@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "planner-smoke-v1",
+  "split": "train",
+  "gameSeeds": [
+    37
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "planner-default": "planner-default.json"
+  },
+  "rosters": [
+    {
+      "id": "three-planner",
+      "profiles": [
+        "planner-default",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-planner",
+      "profiles": [
+        "planner-default",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    }
+  ]
+}

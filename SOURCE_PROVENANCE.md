@@ -91,3 +91,7 @@ The ranked tuning/simulation specification is original planning material informe
 ## Bot experiment foundation (2026-11-11)
 
 The experiment runner, JSON registry, reports and tests are original code. A frozen copy and a parameterized experimental adaptation of the existing Game Shelf heuristic preserve its settlement-heuristic MIT notice and origin; snapshot hashes and import-only baseline changes are recorded in `scripts/bots/baselines/manifest.json`. No external runtime, model, assets or new dependencies were imported. Experiments reuse the production rules and are excluded from the packaged PWA.
+
+## Economic planner experiment (2026-11-12)
+
+The observation-only economic planner, fluid acquisition estimate, parameter registry extensions and tests are original code. They reuse the existing authoritative economy/board/scoring helpers and retain the existing frozen policy only for fallback phases. No external algorithm implementation, runtime, model, artwork or dependency was imported. Production rules and app policy are unchanged.
