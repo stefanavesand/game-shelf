@@ -76,3 +76,7 @@ See [rosters, seed-block analysis and stress extraction](BOT_BROAD_SCREEN.md). `
 ## Offer audit and proposal ablation
 
 See [trade audit, normalization and one-for-one profile](BOT_TRADE_DIAGNOSIS.md). The cohort comparison CLI accepts optional candidate/control focal IDs and flags degenerate seed-block bootstrap intervals. Post-hoc recipient affordability is diagnostic only, never a policy input.
+
+## Frozen-profile validation
+
+The [fresh-seed proposal validation](BOT_TRADE_VALIDATION.md) records the setup/analysis plan, unchanged profile hashes, per-stratum results, full offer audits and an explicit non-promotion decision. Higher trade conversion is not a substitute for competitive performance across relevant opponents.

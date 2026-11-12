@@ -1,0 +1,325 @@
+{
+  "schemaVersion": 1,
+  "note": "Descriptive screening. Percentile bootstrap resamples paired whole game-seed blocks within each stratum. No multiplicity correction, locked test or difficulty promotion. Failures remain in denominators.",
+  "candidateProfile": "focal-equal-trade",
+  "controlProfile": "focal-trade",
+  "bootstrapSeed": 92831,
+  "strata": [
+    {
+      "roster": "four-mixed",
+      "playerCount": 4,
+      "seeds": [
+        2203,
+        2309,
+        2411,
+        2503,
+        2609,
+        2707,
+        2801,
+        2903,
+        3001,
+        3109,
+        3203,
+        3301
+      ],
+      "matches": 48,
+      "independentSeedBlocks": 12,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 32,
+        "failures": 0,
+        "offers": 729,
+        "accepts": 81,
+        "declines": 566,
+        "winRate": 0.6666666666666666
+      },
+      "control": {
+        "wins": 27,
+        "failures": 0,
+        "offers": 843,
+        "accepts": 75,
+        "declines": 586,
+        "winRate": 0.5625
+      },
+      "winRateDifference": 0.10416666666666663,
+      "exploratory95PercentileInterval": {
+        "low": -0.020833333333333332,
+        "high": 0.22916666666666666
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "four-standard",
+      "playerCount": 4,
+      "seeds": [
+        2203,
+        2309,
+        2411,
+        2503,
+        2609,
+        2707,
+        2801,
+        2903,
+        3001,
+        3109,
+        3203,
+        3301
+      ],
+      "matches": 48,
+      "independentSeedBlocks": 12,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 24,
+        "failures": 0,
+        "offers": 769,
+        "accepts": 65,
+        "declines": 621,
+        "winRate": 0.5
+      },
+      "control": {
+        "wins": 20,
+        "failures": 0,
+        "offers": 904,
+        "accepts": 90,
+        "declines": 633,
+        "winRate": 0.4166666666666667
+      },
+      "winRateDifference": 0.08333333333333331,
+      "exploratory95PercentileInterval": {
+        "low": -0.125,
+        "high": 0.3125
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-mixed",
+      "playerCount": 3,
+      "seeds": [
+        2203,
+        2309,
+        2411,
+        2503,
+        2609,
+        2707,
+        2801,
+        2903,
+        3001,
+        3109,
+        3203,
+        3301
+      ],
+      "matches": 36,
+      "independentSeedBlocks": 12,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 15,
+        "failures": 0,
+        "offers": 666,
+        "accepts": 51,
+        "declines": 512,
+        "winRate": 0.4166666666666667
+      },
+      "control": {
+        "wins": 22,
+        "failures": 0,
+        "offers": 770,
+        "accepts": 64,
+        "declines": 509,
+        "winRate": 0.6111111111111112
+      },
+      "winRateDifference": -0.19444444444444448,
+      "exploratory95PercentileInterval": {
+        "low": -0.38888888888888884,
+        "high": 0
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-standard",
+      "playerCount": 3,
+      "seeds": [
+        2203,
+        2309,
+        2411,
+        2503,
+        2609,
+        2707,
+        2801,
+        2903,
+        3001,
+        3109,
+        3203,
+        3301
+      ],
+      "matches": 36,
+      "independentSeedBlocks": 12,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 16,
+        "failures": 0,
+        "offers": 719,
+        "accepts": 62,
+        "declines": 598,
+        "winRate": 0.4444444444444444
+      },
+      "control": {
+        "wins": 13,
+        "failures": 0,
+        "offers": 846,
+        "accepts": 63,
+        "declines": 625,
+        "winRate": 0.3611111111111111
+      },
+      "winRateDifference": 0.08333333333333331,
+      "exploratory95PercentileInterval": {
+        "low": -0.1111111111111111,
+        "high": 0.25
+      },
+      "resamples": 4000
+    }
+  ],
+  "analysisSourceSha256": "fb2b9d74b99672b2b0e789a40d5dc7ac465b9c79745efdad0fd6b4ff633305be",
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "5fe3ecbec03001a055cfd5a2d52dbae5b33ceae2441e92ece116ead7abca1ab5",
+    "node": "v24.19.0",
+    "commit": "d40015be1fcf9cad315569d5b20a2cd27a0cb7a3"
+  },
+  "manifests": {
+    "candidate": {
+      "schemaVersion": 1,
+      "id": "trade-proposal-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        2203,
+        2309,
+        2411,
+        2503,
+        2609,
+        2707,
+        2801,
+        2903,
+        3001,
+        3109,
+        3203,
+        3301
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "baseline-standard": "baseline-standard.json",
+        "baseline-easy": "baseline-easy.json",
+        "planner-default": "planner-default.json",
+        "focal-equal-trade": "focal-equal-trade.json"
+      },
+      "rosters": [
+        {
+          "id": "three-standard",
+          "profiles": [
+            "focal-equal-trade",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-standard",
+          "profiles": [
+            "focal-equal-trade",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "three-mixed",
+          "profiles": [
+            "focal-equal-trade",
+            "planner-default",
+            "baseline-easy"
+          ]
+        },
+        {
+          "id": "four-mixed",
+          "profiles": [
+            "focal-equal-trade",
+            "planner-default",
+            "baseline-standard",
+            "baseline-easy"
+          ]
+        }
+      ]
+    },
+    "control": {
+      "schemaVersion": 1,
+      "id": "trade-proposal-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        2203,
+        2309,
+        2411,
+        2503,
+        2609,
+        2707,
+        2801,
+        2903,
+        3001,
+        3109,
+        3203,
+        3301
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "baseline-standard": "baseline-standard.json",
+        "baseline-easy": "baseline-easy.json",
+        "planner-default": "planner-default.json",
+        "focal-trade": "focal-trade.json"
+      },
+      "rosters": [
+        {
+          "id": "three-standard",
+          "profiles": [
+            "focal-trade",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-standard",
+          "profiles": [
+            "focal-trade",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "three-mixed",
+          "profiles": [
+            "focal-trade",
+            "planner-default",
+            "baseline-easy"
+          ]
+        },
+        {
+          "id": "four-mixed",
+          "profiles": [
+            "focal-trade",
+            "planner-default",
+            "baseline-standard",
+            "baseline-easy"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -113,3 +113,7 @@ The paired checkpoint analysis, deterministic seed-block bootstrap, synthetic st
 ## Trade diagnosis and parameter ablation (2026-11-12)
 
 The synthetic replay audit, normalized proposal/completion metrics, profile-contract tests and statistical warnings are original code. The one-for-one proposal experiment changes existing parameters only and preserves incoming public-threat normalization. No runtime policy, rule, asset, external code or dependency was imported or modified. Aggregate synthetic evidence is committed; full traces remain local.
+
+## Frozen-profile trade validation (2026-11-12)
+
+The fresh-seed manifests, analysis plan and aggregate validation/decision records are original experiment evidence using unchanged existing profiles and tools. No policy, rules, assets, external code or dependency changed. All 336 final-state hashes were independently audited; detailed synthetic traces remain local.

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "plan": "trade-validation-plan-v1.json",
+  "result": "trade-equal-validation-v1.json",
+  "allGamesEnded": true,
+  "matches": 336,
+  "primaryPointDifference": 0.08333333333333331,
+  "secondaryPointRegressions": [
+    "three-mixed"
+  ],
+  "supportsUniformUpgrade": false,
+  "status": "not-promoted",
+  "reason": "The Three/mixed secondary point regression fails the recorded decision rule. Primary improvement and higher offer conversion alone are insufficient. Twelve seed blocks and exploratory intervals do not establish population-level effects.",
+  "nextHypothesis": "Evaluate recipient benefit and opponent strength using public information, rather than maximizing proposal conversion alone. Do not infer causation from this comparison."
+}
