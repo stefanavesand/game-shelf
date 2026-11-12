@@ -213,3 +213,5 @@ BOT-AI-01 first experimental candidate (2026-11-12, partial): bounded concrete e
 BOT-AI-02 first experimental candidate (2026-11-12, partial): goal/bank-aware acceptance, bounded recipient-aware proposals and rejection cooldowns are parameterized in offline tooling. All 126 screening/control games completed; strength is inconclusive and decision cost needs optimization before app integration. See [trading evidence and limits](BOT_TRADING.md).
 
 BOT-AI-02 optimization: 42 full-game trace/state parity checks and a 64-observation interleaved benchmark verify unchanged decisions with about 17% less sampled total decision time. Device/worker/memory gates and strength calibration remain open; see the trading guide.
+
+BOT-AI-02 device tooling: separate worker-based baseline/candidate benchmark with synthetic observations, timing/parity/download and cancel/error handling. Physical Safari measurements and incremental memory profiling remain open. See [device procedure](BOT_DEVICE_BENCHMARK.md).

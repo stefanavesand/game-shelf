@@ -13,7 +13,7 @@ http.createServer(async(req,res)=>{
     if(pathname==='/'||pathname==='/game-shelf/'){res.writeHead(302,{location:prefix+'play/#home'});res.end();return;}
     if(!pathname.startsWith(prefix)){res.writeHead(404);res.end('Not found');return;}
     const relative=decodeURIComponent(pathname.slice(prefix.length));
-    if(!/^(prototype|play|ui|recovery)\//.test(relative)||!(/\.(html|css|js|svg|png|webp|webmanifest)$/.test(relative)||relative.endsWith('/'))){res.writeHead(404);res.end('Not found');return;}
+    if(!/^(prototype|play|ui|recovery|diagnostics\/bots)\//.test(relative)||!(/\.(html|css|js|svg|png|webp|webmanifest)$/.test(relative)||relative.endsWith('/'))){res.writeHead(404);res.end('Not found');return;}
     const target=path.resolve(root,relative.endsWith('/')?relative+'index.html':relative);
     if(!target.startsWith(root.endsWith(path.sep)?root:root+path.sep)){res.writeHead(403);res.end();return;}
     const body=await readFile(target);res.writeHead(200,{'content-type':types[path.extname(target)]||'application/octet-stream','cache-control':'no-store'});res.end(body);

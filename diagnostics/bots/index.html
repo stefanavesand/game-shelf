@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bot device benchmark · Game Shelf</title><link rel="stylesheet" href="./style.css"></head>
+<body><main><h1>Bot device benchmark</h1><p>Experimental trading bot. Synthetic positions only. This does not change your games or sign in to any account.</p>
+<p>Keep this page visible. Run once with your device idle, then repeat. Memory is not measured: Safari has no portable per-worker memory API.</p>
+<label>Device notes <input id="notes" maxlength="160" placeholder="e.g. iPad Pro 13, iPadOS version"></label>
+<div class="buttons"><button id="start">Run benchmark</button><button id="cancel" disabled>Cancel</button><button id="download" disabled>Download report</button></div>
+<p id="status" role="status" aria-live="polite">Ready. Requires internet to load the diagnostic assets.</p><progress id="progress" value="0" max="1"></progress>
+<pre id="result" tabindex="0" aria-label="Benchmark report"></pre>
+<p>Measures worker decision time and round-trip time separately. Animation-frame gaps are a responsiveness signal, not proof of a main-thread task limit. This small fixture set cannot establish playing strength or device release readiness.</p>
+<a href="../../play/">Back to Game Shelf</a></main><script type="module" src="./app.js"></script></body></html>

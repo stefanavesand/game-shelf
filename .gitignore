@@ -13,3 +13,7 @@ playwright-pwa-report/
 
 # Local synthetic bot experiments
 bot-results/
+
+# Generated, explicitly packaged bot diagnostic assets
+diagnostics/bots/policies/
+diagnostics/bots/fixtures.js

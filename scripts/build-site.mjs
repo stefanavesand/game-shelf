@@ -1,12 +1,13 @@
 import {readdir,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
 import {catanManifest} from './catan-manifest.mjs';
 import {offlineVersion} from './offline-version.mjs';
+import {prepareBotBenchmark} from './bots/browser-benchmark.mjs';
 await catanManifest();
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../',import.meta.url)),output=path.join(root,'dist');
-const files=[];
+const files=await prepareBotBenchmark(root);
 async function collect(relative){
   const entries=await readdir(path.join(root,relative),{withFileTypes:true});
   for(const entry of entries){

@@ -101,3 +101,7 @@ The observation-only economic planner, fluid acquisition estimate, parameter reg
 The trade planner, bounded proposal search, registry extensions and tests are original code using authorized observations and existing authoritative rule helpers. No external implementation, model, assets or dependencies were imported. Frozen baseline and economic planner sources, production rules and app policy remain unchanged.
 
 The 2026-11-12 trade optimization adds original decision-local memoization, structural own-hand copies and conservative search guards. It changes no shared planner, rules, third-party code or production policy.
+
+## Browser bot diagnostic (2026-11-12)
+
+The diagnostic UI, worker, deterministic synthetic fixture generator and tests are original code. Browser policy copies are generated solely from the existing experiment policies with import remapping; the frozen heuristic MIT notice is preserved. They reuse existing authoritative rule modules and introduce no dependency or external assets. They are explicitly packaged outside the PWA offline cache and never replace its gameplay bot.
