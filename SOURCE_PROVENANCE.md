@@ -127,3 +127,5 @@ The resource-outcome audit is original observational tooling. It replays authori
 ## Resource-component isolation (2026-11-12)
 
 The composition wrapper, strict phase controls and contract tests are original code delegating to unchanged resource/frozen policies. No external implementation or dependency was imported. Original policy/heuristic source and gameplay/rule assets remain unchanged.
+
+Component results include aggregate synthetic outcomes, exact replicated-control hashes and one post-hoc authorized-own-observation discard probe. Both candidate actions in that probe use the existing authoritative reducer; no alternate rules implementation, opponent private input or real-player data was introduced.

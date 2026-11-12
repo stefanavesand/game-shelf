@@ -227,3 +227,5 @@ BOT-AI-03 first experimental candidate: bounded engine-validated goal-preserving
 BOT-AI-03 initial evidence: 50 passing bot tests, 56 complete matched screening games from a committed policy version, exact replay/resume and full resource-outcome audits. Empty Monopoly plays are avoided in the observed candidate matches; stronger overall play is not demonstrated. Candidate stays outside gameplay pending timing/strength/device work.
 
 BOT-AI-03 component isolation: four immutable profiles (none/discard/cards/both) and explicit phase-gate contract tests isolate existing effects without retuning. No gameplay promotion; card selection versus timing remains a bundled component until a later focused comparison. See [component plan](BOT_RESOURCE_COMPONENTS.md).
+
+BOT-AI-03 component evidence: 112 completed executions, 56 exact replicated controls and complete resource audits; discard-only has mixed seat-count point results, card-enabled variants avoid empty Monopoly, and one natural same-state probe preserves a city hand. No promotion. Next diagnosis separates resource-card valuation from per-card retain/play timing.

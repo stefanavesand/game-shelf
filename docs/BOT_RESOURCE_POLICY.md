@@ -26,7 +26,7 @@ Nine planner controls are reused: production weight, horizon, acquisition discou
 | maxCardBuildComparisons | 4 | Immediate economic value previews, ordered city/settlement/bank/road (0–16) |
 | allowResourceCardBeforeRoll | 0 | 0 defers; 1 permits resource cards before rolling |
 
-The discard DFS also has a node guard of `100 * maxDiscardCandidates` (at most one terminal guard increment), depth five, and never drops the seeded legal fallback. Resource cards have at most 15 legal pairs plus five Monopoly choices. Winning-build checks use the existing input cap of 256 choices and a conservative score upper bound before previewing; their previews are separate from the tunable alternative-value cap. One expected purchase comparison is also separate. Input is bounded to the existing 128 KiB observation limit. These are offline work bounds, not achieved device latency or incremental memory claims.
+The discard DFS also has a node guard of `100 * maxDiscardCandidates` (at most one terminal guard increment), depth five, and never drops the seeded legal fallback. Resource cards have at most 15 legal pairs plus five Monopoly choices. Winning-build checks use the existing input cap of 256 choices and a conservative score upper bound before previewing; their previews are separate from the tunable alternative-value cap. One expected purchase comparison is also separate. Input uses the existing 131,072 UTF-16-code-unit serialized-observation guard; this is not a heap-byte measurement. These are offline work bounds, not achieved device latency or incremental memory claims.
 
 Decision entropy never consumes dice/deck randomness. New module/profile/registry contents are included in the experiment fingerprint; previous cohorts require their recorded source identity for replay. Production rule artifact and bot source stay unchanged. Browser benchmark copies/fixtures still cover the earlier trading candidate, not this new policy.
 
@@ -78,3 +78,5 @@ node scripts/bots/resource-audit.mjs CANDIDATE_RUN resource-default OUTPUT.json
 The resource audit replays actual engine commands rather than executing a second rules implementation. City preservation is a feasible resource-cost proxy. It does not assume that city preservation is always strategically best or that a card caused a win.
 
 Remaining work: tune/evaluate play-versus-retain thresholds and future discard risk, cover more plans/opponents/boards, expand physical-device fixtures and memory measurements, and separately improve Knight/Road Building/award timing. Trading stays parked. No change to production bot, PWA UI, engine artifact, saves, server or release version is included.
+
+A subsequent [component ablation](BOT_RESOURCE_COMPONENTS.md) separates discard and card behavior while exactly replicating the original controls. No uniform stronger configuration was established; the natural-state probe provides a local city-hand preservation example only.
