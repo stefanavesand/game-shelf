@@ -211,3 +211,5 @@ BOT-AI-00 first delivery (2026-11-11, partial): frozen baseline, validated legac
 BOT-AI-01 first experimental candidate (2026-11-12, partial): bounded concrete economic plans, production/port/bank acquisition estimates, deterministic authoritative successor evaluation, resource readiness and waiting are parameterized in offline tooling. The 42-game training screen completed but produced mixed strength results; no promotion to the app. See [planner evidence and limits](BOT_PLANNER.md).
 
 BOT-AI-02 first experimental candidate (2026-11-12, partial): goal/bank-aware acceptance, bounded recipient-aware proposals and rejection cooldowns are parameterized in offline tooling. All 126 screening/control games completed; strength is inconclusive and decision cost needs optimization before app integration. See [trading evidence and limits](BOT_TRADING.md).
+
+BOT-AI-02 optimization: 42 full-game trace/state parity checks and a 64-observation interleaved benchmark verify unchanged decisions with about 17% less sampled total decision time. Device/worker/memory gates and strength calibration remain open; see the trading guide.

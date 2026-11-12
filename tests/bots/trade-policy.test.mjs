@@ -62,3 +62,15 @@ test('trade planner completes a real rule-driven match with a strict own-turn of
  const profiles={trade:profile,baseline},manifest={id:'trade-contract',split:'train',gameSeeds:[37],decisionSeed:71,repeats:1,maxActions:2500,rosters:[{id:'three',profiles:['trade','baseline','baseline']}]},job=plan(manifest,profiles)[0];
  const r=runMatch({job,profiles:job.profiles.map(id=>profiles[id]),maxActions:2500,decisionSeed:71});assert.equal(r.status,'ended',r.reason);let offers=0;for(const step of r.trace){if(step.action.type==='END_TURN')offers=0;if(step.actor==='p0'&&step.action.type==='TRADE_OFFER'){offers++;assert.ok(offers<=p.offersPerOwnTurn);}}
 });
+test('decision-local caches preserve frozen observations and do not leak across profiles',()=>{
+ const view=module.view(prepared(),'p0'),before=structuredClone(view);
+ function freeze(value){if(value&&typeof value==='object'){Object.freeze(value);for(const child of Object.values(value))freeze(child);}return value;}
+ freeze(view);
+ const first=decision(view,p,37),disabled=decision(view,{...p,offersPerOwnTurn:0},37);
+ assert.deepEqual(decision(view,p,37),first);
+ assert.notEqual(disabled.action.type,'TRADE_OFFER');
+ assert.deepEqual(view,before);
+ const other=module.view(offered(prepared()),'p0');
+ assert.equal(decision(other,p,37).action.type,'TRADE_ACCEPT');
+ assert.deepEqual(decision(view,p,37),first);
+});

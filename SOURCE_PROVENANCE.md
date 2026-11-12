@@ -99,3 +99,5 @@ The observation-only economic planner, fluid acquisition estimate, parameter reg
 ## Goal-aware trading experiment (2026-11-12)
 
 The trade planner, bounded proposal search, registry extensions and tests are original code using authorized observations and existing authoritative rule helpers. No external implementation, model, assets or dependencies were imported. Frozen baseline and economic planner sources, production rules and app policy remain unchanged.
+
+The 2026-11-12 trade optimization adds original decision-local memoization, structural own-hand copies and conservative search guards. It changes no shared planner, rules, third-party code or production policy.
