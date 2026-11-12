@@ -15,7 +15,7 @@ async function sourceCommit(){
  const packed=await readFile(path.join(git,'packed-refs'),'utf8');const entry=packed.split('\n').find(line=>line.endsWith(' '+ref));if(!entry)throw Error('Missing git reference');return entry.split(' ')[0];
 }
 export async function fingerprint(){
- const files=['scripts/bots/profiles.mjs','scripts/bots/match.mjs','scripts/bots/worker.mjs','scripts/bots/experiments.mjs','scripts/bots/parameter-policy.js','scripts/bots/planner-policy.mjs','scripts/bots/trade-policy.mjs','scripts/bots/resource-policy.mjs','scripts/bots/baselines/heuristic-1.1.0.js'];
+ const files=['scripts/bots/profiles.mjs','scripts/bots/match.mjs','scripts/bots/worker.mjs','scripts/bots/experiments.mjs','scripts/bots/parameter-policy.js','scripts/bots/planner-policy.mjs','scripts/bots/trade-policy.mjs','scripts/bots/resource-policy.mjs','scripts/bots/resource-components.mjs','scripts/bots/baselines/heuristic-1.1.0.js'];
  const digests=await Promise.all(files.map(async p=>[p,bytesHash(await readFile(path.join(root,p)))]));
  return {rules:CATAN_ARTIFACT.digest,compatibility:CATAN_ARTIFACT.compatibilityId,code:hash(Object.fromEntries(digests)),node:process.version,commit:await sourceCommit()};
 }

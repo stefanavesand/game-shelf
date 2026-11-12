@@ -225,3 +225,5 @@ BOT-AI-02/BOT-AI-08 fresh validation: 336/336 complete games on twelve new seed 
 BOT-AI-03 first experimental candidate: bounded engine-validated goal-preserving discards, complete Year of Plenty hand valuation, visible-bank aggregate Monopoly and resource-card retain/play decisions. Trading is parked; gameplay promotion, broader card/award strategy, device/memory/strength calibration remain open. See [resource policy](BOT_RESOURCE_POLICY.md).
 
 BOT-AI-03 initial evidence: 50 passing bot tests, 56 complete matched screening games from a committed policy version, exact replay/resume and full resource-outcome audits. Empty Monopoly plays are avoided in the observed candidate matches; stronger overall play is not demonstrated. Candidate stays outside gameplay pending timing/strength/device work.
+
+BOT-AI-03 component isolation: four immutable profiles (none/discard/cards/both) and explicit phase-gate contract tests isolate existing effects without retuning. No gameplay promotion; card selection versus timing remains a bundled component until a later focused comparison. See [component plan](BOT_RESOURCE_COMPONENTS.md).

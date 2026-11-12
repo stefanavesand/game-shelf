@@ -84,3 +84,7 @@ The [fresh-seed proposal validation](BOT_TRADE_VALIDATION.md) records the setup/
 ## Resource-policy experiment
 
 The [resource/card policy](BOT_RESOURCE_POLICY.md) adds `resource-heuristic-0.1.0` with bounded goal-preserving discards, whole-hand Year of Plenty, public-aggregate Monopoly and resource-card timing. It wraps the frozen heuristic rather than continuing trade tuning. No production policy changes.
+
+## Resource-component isolation
+
+The [four-profile component ablation](BOT_RESOURCE_COMPONENTS.md) separates goal-aware discards from the combined resource-card component. `resourceComponents` exposes two strict phase gates while delegating to unchanged existing policies. Reused cases are replication/training evidence, not fresh validation.

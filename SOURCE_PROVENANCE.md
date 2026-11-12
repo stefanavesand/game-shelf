@@ -123,3 +123,7 @@ The fresh-seed manifests, analysis plan and aggregate validation/decision record
 The bounded discard generator, whole-hand resource-card evaluation, public-aggregate inference, profile controls and scenario tests are original code. They reuse existing authoritative turn/economy/choice/scoring helpers and the original experiment planner. The frozen heuristic and its MIT notice are unchanged; no external implementation, dependency, model or asset was imported. Rule and gameplay policy sources remain unchanged.
 
 The resource-outcome audit is original observational tooling. It replays authoritative synthetic commands, checks final-state hashes and reports discard/card outcomes without exposing private observations to policies. Aggregate evidence and tests are committed; full synthetic traces remain local.
+
+## Resource-component isolation (2026-11-12)
+
+The composition wrapper, strict phase controls and contract tests are original code delegating to unchanged resource/frozen policies. No external implementation or dependency was imported. Original policy/heuristic source and gameplay/rule assets remain unchanged.

@@ -85,3 +85,17 @@ test('natural rule-driven resource games complete and reproduce audited outcomes
  const row=runMatch({job:{id:'resource-natural',caseId:'resource-natural',gameSeed:37,rotation:0,repeat:0,roster:'three-resource',profiles:['resource','baseline','baseline']},profiles:[profile,baseline,baseline],maxActions:2500,decisionSeed:92831});assert.equal(row.status,'ended',row.reason);
  const audit=auditResourceMatch(row,'resource');assert.ok(audit.discards>0);assert.equal(audit.yearOfPlentyBeforeRoll,0);assert.equal(audit.monopolyBeforeRoll,0);assert.equal(audit.zeroYieldMonopoly,0);assert.throws(()=>auditResourceMatch({...row,finalStateHash:'corrupt'},'resource'),/final-state mismatch/);
 });
+test('component gates isolate discard and card changes; fully enabled preserves v0.1 decisions',async()=>{
+ const {decision:component}=await import('../../scripts/bots/resource-components.mjs'),base=template('components','resource-heuristic-0.2.0');
+ const normal=module.view(prepared({ore:3,grain:2}),'p0'),cardView=module.view(card(prepared({ore:2,grain:1}),'yearOfPlenty'),'p0'),discardState=prepared({ore:3,grain:2,wool:5});Object.assign(discardState.snapshot.state.game,{phase:'discard',pendingDiscard:['p0'],discardAmounts:{p0:5}});const discard=module.view(discardState,'p0');
+ for(const v of [normal,cardView,discard]){
+  assert.deepEqual(component(v,base.parameters,37),decision(v,p,37));
+  const disabled={...base.parameters,enableGoalDiscard:0,enableResourceCards:0};assert.deepEqual(component(v,disabled,37).action,botDecision(v,'standard'));
+ }
+ assert.deepEqual(component(discard,{...base.parameters,enableGoalDiscard:0},37).action,botDecision(discard,'standard'));
+ assert.deepEqual(component(cardView,{...base.parameters,enableResourceCards:0},37).action,botDecision(cardView,'standard'));
+ assert.deepEqual(component(discard,{...base.parameters,enableResourceCards:0},37),decision(discard,p,37));
+ assert.deepEqual(component(cardView,{...base.parameters,enableGoalDiscard:0},37),decision(cardView,p,37));
+ for(const value of [.5,2,true]){const q=structuredClone(base);q.parameters.enableGoalDiscard=value;assert.throws(()=>validateProfile(q));}
+ const q=structuredClone(base);q.level='easy';assert.throws(()=>validateProfile(q));assert.equal(Object.keys(validateProfile(base).parameters).length,Object.keys(p).length+2);
+});

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "resources-none",
+  "policyVersion": "resource-heuristic-0.2.0",
+  "featureSchemaVersion": 1,
+  "level": "standard",
+  "parameters": {
+    "productionWeight": 0.08,
+    "horizonRolls": 12,
+    "etaPenaltyPerRoll": 0.08,
+    "readinessWeight": 0.2,
+    "handReserveWeight": 0.7,
+    "expansionWeight": 0.08,
+    "developmentValue": 0.35,
+    "maxPlans": 8,
+    "maxRoadCandidates": 8,
+    "cardReserveWeight": 0.01,
+    "resourceCardThreshold": 0.08,
+    "cardOpportunityMargin": 0.02,
+    "maxDiscardCandidates": 32,
+    "maxCardBuildComparisons": 4,
+    "allowResourceCardBeforeRoll": 0,
+    "enableGoalDiscard": 0,
+    "enableResourceCards": 0
+  }
+}
