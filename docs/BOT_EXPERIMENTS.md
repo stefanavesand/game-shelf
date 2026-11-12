@@ -63,4 +63,8 @@ Automatic random search/successive halving, seed-set overlap enforcement across 
 
 ## Economic planner candidate
 
-An observation-only `planner-0.1.0` profile and 3/4-seat screening manifests now exercise production-aware build/bank/wait decisions. See [planner behavior, parameters and initial evidence](BOT_PLANNER.md). `bots:profile -- registry` returns separate `legacy` and `planner` groups. The first screening does not establish a stronger difficulty; the app policy remains unchanged.
+An observation-only `planner-0.1.0` profile and 3/4-seat screening manifests now exercise production-aware build/bank/wait decisions. See [planner behavior, parameters and initial evidence](BOT_PLANNER.md). `bots:profile -- registry` returns separate `legacy`, `planner` and `trade` groups. The first screening does not establish a stronger difficulty; the app policy remains unchanged.
+
+## Goal-aware trade candidate
+
+See [trading behavior, controls and screening](BOT_TRADING.md). The candidate remains offline-only; its higher decision cost is an explicit promotion blocker.

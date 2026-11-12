@@ -95,3 +95,7 @@ The experiment runner, JSON registry, reports and tests are original code. A fro
 ## Economic planner experiment (2026-11-12)
 
 The observation-only economic planner, fluid acquisition estimate, parameter registry extensions and tests are original code. They reuse the existing authoritative economy/board/scoring helpers and retain the existing frozen policy only for fallback phases. No external algorithm implementation, runtime, model, artwork or dependency was imported. Production rules and app policy are unchanged.
+
+## Goal-aware trading experiment (2026-11-12)
+
+The trade planner, bounded proposal search, registry extensions and tests are original code using authorized observations and existing authoritative rule helpers. No external implementation, model, assets or dependencies were imported. Frozen baseline and economic planner sources, production rules and app policy remain unchanged.
