@@ -1,5 +1,6 @@
 import {createHash} from 'node:crypto';
 import {botDecision as baseline} from './baselines/heuristic-1.1.0.js';
+import {botDecision as resourcePlanner} from './resource-policy.mjs';
 import {botDecision as tradePlanner} from './trade-policy.mjs';
 import {botDecision as planner} from './planner-policy.mjs';
 import {botDecision as parameterized} from './parameter-policy.js';
@@ -48,13 +49,22 @@ export const tradeRegistry=freeze({...plannerRegistry,
  proposalDiscount:{type:'number',unit:'heuristic discount',min:0.1,max:1,default:0.65},
  publicSupplyWeight:{type:'number',unit:'public production affinity',min:0,max:1,default:0.5}
 });
-export const policyRegistry=version=>version==='trade-planner-0.1.0'?tradeRegistry:version==='planner-0.1.0'?plannerRegistry:version==='heuristic-1.1.0'?{}:registry;
+export const resourceRegistry=freeze({...Object.fromEntries(Object.entries(plannerRegistry).filter(([key])=>!['minActionGain','noiseAmplitude'].includes(key))),
+ cardReserveWeight:{type:'number',unit:'VP utility per scarce retained card',min:0,max:0.1,default:0.01},
+ resourceCardThreshold:{type:'number',unit:'minimum resource-card utility gain',min:0,max:1,default:0.08},
+ cardOpportunityMargin:{type:'number',unit:'utility margin over an immediate build/bank alternative',min:0,max:1,default:0.02},
+ maxDiscardCandidates:{type:'integer',unit:'validated discard bundles',min:8,max:128,default:32},
+ maxCardBuildComparisons:{type:'integer',unit:'immediate economic action previews',min:0,max:16,default:4},
+ allowResourceCardBeforeRoll:{type:'integer',unit:'0 defer resource cards; 1 allow before rolling',min:0,max:1,default:0}
+});
+export const policyRegistry=version=>version==='resource-heuristic-0.1.0'?resourceRegistry:version==='trade-planner-0.1.0'?tradeRegistry:version==='planner-0.1.0'?plannerRegistry:version==='heuristic-1.1.0'?{}:registry;
 export function template(id='heuristic-candidate',policyVersion='heuristic-params-0.1.0'){
  return {schemaVersion:1,id,policyVersion,featureSchemaVersion:1,level:'standard',parameters:policyVersion==='heuristic-1.1.0'?{}:Object.fromEntries(Object.entries(policyRegistry(policyVersion)).map(([k,v])=>[k,v.default]))};
 }
 export function validateProfile(input){
  keys(input,['schemaVersion','id','policyVersion','featureSchemaVersion','level','parameters'],'profile');
- if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
+ if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
+ if(input.policyVersion==='resource-heuristic-0.1.0'&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
  const fields=policyRegistry(input.policyVersion),expected=Object.keys(fields);keys(input.parameters,expected,'parameters');
  for(const key of expected){const value=input.parameters[key],r=fields[key];if(r.type==='integer'&&!Number.isInteger(value))throw Error(`Invalid integer parameter: ${key}`);if(typeof value!=='number'||!Number.isFinite(value)||value<r.min||value>r.max)throw Error(`Invalid parameter: ${key}`);}
  if(Buffer.byteLength(canonical(input))>16384)throw Error('Profile too large');
@@ -63,5 +73,5 @@ export function validateProfile(input){
 // Policy receives a cloned, frozen seat observation, never the authority snapshot.
 export function decide(view,profile,decisionSeed){
  const observation=freeze(structuredClone(view));
- return profile.policyVersion==='heuristic-1.1.0'?baseline(observation,profile.level):(profile.policyVersion==='trade-planner-0.1.0'?tradePlanner:profile.policyVersion==='planner-0.1.0'?planner:parameterized)(observation,profile.level,profile.parameters,decisionSeed);
+ return profile.policyVersion==='heuristic-1.1.0'?baseline(observation,profile.level):(profile.policyVersion==='resource-heuristic-0.1.0'?resourcePlanner:profile.policyVersion==='trade-planner-0.1.0'?tradePlanner:profile.policyVersion==='planner-0.1.0'?planner:parameterized)(observation,profile.level,profile.parameters,decisionSeed);
 }

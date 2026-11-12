@@ -221,3 +221,5 @@ BOT-AI-02/BOT-AI-08 evidence: 224 new complete games across 3/4-seat Standard/mi
 BOT-AI-02 follow-up: full 224-game trade audit and 168-game paired training ablation verify that equal-only proposals convert more often; three-seat Standard wins improved in this small sample. Defaults remain unchanged pending independent validation. See [trade diagnosis](BOT_TRADE_DIAGNOSIS.md).
 
 BOT-AI-02/BOT-AI-08 fresh validation: 336/336 complete games on twelve new seed blocks; conversion improved, but the three-seat/mixed point regression fails the recorded uniform-upgrade condition. No gameplay promotion. Next research is recipient benefit/public threat, with heavy-device/memory/board/final-test gates still open. See [validation decision](BOT_TRADE_VALIDATION.md).
+
+BOT-AI-03 first experimental candidate: bounded engine-validated goal-preserving discards, complete Year of Plenty hand valuation, visible-bank aggregate Monopoly and resource-card retain/play decisions. Trading is parked; gameplay promotion, broader card/award strategy, device/memory/strength calibration remain open. See [resource policy](BOT_RESOURCE_POLICY.md).

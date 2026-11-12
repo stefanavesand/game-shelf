@@ -63,7 +63,7 @@ Automatic random search/successive halving, seed-set overlap enforcement across 
 
 ## Economic planner candidate
 
-An observation-only `planner-0.1.0` profile and 3/4-seat screening manifests now exercise production-aware build/bank/wait decisions. See [planner behavior, parameters and initial evidence](BOT_PLANNER.md). `bots:profile -- registry` returns separate `legacy`, `planner` and `trade` groups. The first screening does not establish a stronger difficulty; the app policy remains unchanged.
+An observation-only `planner-0.1.0` profile and 3/4-seat screening manifests now exercise production-aware build/bank/wait decisions. See [planner behavior, parameters and initial evidence](BOT_PLANNER.md). `bots:profile -- registry` returns separate `legacy`, `planner`, `trade` and `resource` groups. The first screening does not establish a stronger difficulty; the app policy remains unchanged.
 
 ## Goal-aware trade candidate
 
@@ -80,3 +80,7 @@ See [trade audit, normalization and one-for-one profile](BOT_TRADE_DIAGNOSIS.md)
 ## Frozen-profile validation
 
 The [fresh-seed proposal validation](BOT_TRADE_VALIDATION.md) records the setup/analysis plan, unchanged profile hashes, per-stratum results, full offer audits and an explicit non-promotion decision. Higher trade conversion is not a substitute for competitive performance across relevant opponents.
+
+## Resource-policy experiment
+
+The [resource/card policy](BOT_RESOURCE_POLICY.md) adds `resource-heuristic-0.1.0` with bounded goal-preserving discards, whole-hand Year of Plenty, public-aggregate Monopoly and resource-card timing. It wraps the frozen heuristic rather than continuing trade tuning. No production policy changes.

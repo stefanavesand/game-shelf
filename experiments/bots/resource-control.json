@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "id": "resource-control",
+  "policyVersion": "heuristic-1.1.0",
+  "featureSchemaVersion": 1,
+  "level": "standard",
+  "parameters": {}
+}

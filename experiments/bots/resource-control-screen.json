@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "resource-screen-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91,
+    143,
+    211
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "resource-control": "resource-control.json",
+    "baseline-standard": "baseline-standard.json"
+  },
+  "rosters": [
+    {
+      "id": "three-resource",
+      "profiles": [
+        "resource-control",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-resource",
+      "profiles": [
+        "resource-control",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    }
+  ]
+}

@@ -117,3 +117,7 @@ The synthetic replay audit, normalized proposal/completion metrics, profile-cont
 ## Frozen-profile trade validation (2026-11-12)
 
 The fresh-seed manifests, analysis plan and aggregate validation/decision records are original experiment evidence using unchanged existing profiles and tools. No policy, rules, assets, external code or dependency changed. All 336 final-state hashes were independently audited; detailed synthetic traces remain local.
+
+## Resource/card experiment (2026-11-12)
+
+The bounded discard generator, whole-hand resource-card evaluation, public-aggregate inference, profile controls and scenario tests are original code. They reuse existing authoritative turn/economy/choice/scoring helpers and the original experiment planner. The frozen heuristic and its MIT notice are unchanged; no external implementation, dependency, model or asset was imported. Rule and gameplay policy sources remain unchanged.
