@@ -105,3 +105,7 @@ The 2026-11-12 trade optimization adds original decision-local memoization, stru
 ## Browser bot diagnostic (2026-11-12)
 
 The diagnostic UI, worker, deterministic synthetic fixture generator and tests are original code. Browser policy copies are generated solely from the existing experiment policies with import remapping; the frozen heuristic MIT notice is preserved. They reuse existing authoritative rule modules and introduce no dependency or external assets. They are explicitly packaged outside the PWA offline cache and never replace its gameplay bot.
+
+## Broader bot evidence (2026-11-12)
+
+The paired checkpoint analysis, deterministic seed-block bootstrap, synthetic stress extraction and tests are original code with no dependencies or external implementation imports. Aggregate synthetic evidence is checked in; full synthetic traces and the owner’s raw device report remain outside the repository. No production policy, rules or assets changed.

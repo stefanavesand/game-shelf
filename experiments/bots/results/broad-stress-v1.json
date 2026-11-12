@@ -1,0 +1,204 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "5fe3ecbec03001a055cfd5a2d52dbae5b33ceae2441e92ece116ead7abca1ab5",
+    "node": "v24.19.0",
+    "commit": "fa39e3454248c76f00aa680539626f872ef50bfc"
+  },
+  "profile": {
+    "schemaVersion": 1,
+    "id": "focal-trade",
+    "policyVersion": "trade-planner-0.1.0",
+    "featureSchemaVersion": 1,
+    "level": "standard",
+    "parameters": {
+      "productionWeight": 0.08,
+      "horizonRolls": 12,
+      "etaPenaltyPerRoll": 0.08,
+      "readinessWeight": 0.2,
+      "handReserveWeight": 0.7,
+      "expansionWeight": 0.08,
+      "developmentValue": 0.35,
+      "maxPlans": 8,
+      "maxRoadCandidates": 8,
+      "minActionGain": 0.005,
+      "noiseAmplitude": 0,
+      "minOwnUtilityGain": 0.01,
+      "retainedCardWeight": 0.005,
+      "leaderPenalty": 1.5,
+      "leaderPublicVp": 8,
+      "maxCardsPerSide": 2,
+      "offersPerOwnTurn": 1,
+      "rejectionCooldownOwnTurns": 1,
+      "maxTradeBuildPreviews": 2,
+      "maxProposalBundles": 12,
+      "proposalDiscount": 0.65,
+      "publicSupplyWeight": 0.5
+    }
+  },
+  "note": "Eight slowest observed focal decisions from distinct matches (two per stratum), selected post hoc from concurrent screening. Three isolated repetitions after warmup; observation-only policies and ordinary rules validation. This is a host stress probe, not a worst-case bound or physical device measurement.",
+  "probes": [
+    {
+      "roster": "four-mixed",
+      "caseId": "e68d978cbab6ff636bba437e",
+      "matchId": "5546a96b122097acb68ff9e1ccdede9b43971c27510fef7cc62e000c5c37d146",
+      "traceIndex": 467,
+      "revision": 467,
+      "phase": "main",
+      "turn": 82,
+      "choiceCount": 29,
+      "historyEntries": 30,
+      "buildingCount": 18,
+      "roadCount": 36,
+      "screenDecisionMs": 221.93256600000313,
+      "isolatedDecisionMs": [
+        159.148815,
+        166.35740799999996,
+        168.14294900000004
+      ],
+      "decisionSeed": 3051330165
+    },
+    {
+      "roster": "four-mixed",
+      "caseId": "d2a79ffb5eb475b9e115e71f",
+      "matchId": "3c6d5c3c2fd88c0651c67de5cacaa3e6900800210012bfdb9e1719c18b57d401",
+      "traceIndex": 114,
+      "revision": 114,
+      "phase": "main",
+      "turn": 22,
+      "choiceCount": 18,
+      "historyEntries": 30,
+      "buildingCount": 9,
+      "roadCount": 13,
+      "screenDecisionMs": 151.48291700001573,
+      "isolatedDecisionMs": [
+        69.00783200000001,
+        70.20217000000002,
+        77.52469500000007
+      ],
+      "decisionSeed": 4198467471
+    },
+    {
+      "roster": "four-standard",
+      "caseId": "6aca294f8ea998f536a89f71",
+      "matchId": "2786c99614f26831142691844dab8e44c2b41ffa0277e4abad800f4000cbd429",
+      "traceIndex": 537,
+      "revision": 537,
+      "phase": "main",
+      "turn": 93,
+      "choiceCount": 28,
+      "historyEntries": 30,
+      "buildingCount": 16,
+      "roadCount": 39,
+      "screenDecisionMs": 489.53402999999525,
+      "isolatedDecisionMs": [
+        152.555967,
+        153.56790100000035,
+        172.5456210000002
+      ],
+      "decisionSeed": 3601084867
+    },
+    {
+      "roster": "four-standard",
+      "caseId": "f2ef3d96125153265dfbf4de",
+      "matchId": "5946b88c5dc15828c542c1b0b8a682944273646ba44b199ccfc240255e12a9d3",
+      "traceIndex": 455,
+      "revision": 455,
+      "phase": "main",
+      "turn": 78,
+      "choiceCount": 22,
+      "historyEntries": 30,
+      "buildingCount": 15,
+      "roadCount": 38,
+      "screenDecisionMs": 387.88179300000047,
+      "isolatedDecisionMs": [
+        126.976901,
+        114.86896800000022,
+        113.83098700000028
+      ],
+      "decisionSeed": 1187935254
+    },
+    {
+      "roster": "three-mixed",
+      "caseId": "f8ce20b3cf004a82e7fdab07",
+      "matchId": "4c30ab95b0bbdcd477085574b4127f16b969ae86e13506c6c511e328a2e6743a",
+      "traceIndex": 229,
+      "revision": 229,
+      "phase": "main",
+      "turn": 40,
+      "choiceCount": 26,
+      "historyEntries": 30,
+      "buildingCount": 9,
+      "roadCount": 19,
+      "screenDecisionMs": 465.4368839999952,
+      "isolatedDecisionMs": [
+        79.59329600000001,
+        82.10224999999991,
+        88.37533600000006
+      ],
+      "decisionSeed": 1185620951
+    },
+    {
+      "roster": "three-mixed",
+      "caseId": "0ef6c028e4616c7c7042dacb",
+      "matchId": "a9a1ad08b17a0897fe44fb8cebada2d0c9085e9661f3f97bd5b6e6079493b06a",
+      "traceIndex": 386,
+      "revision": 386,
+      "phase": "main",
+      "turn": 68,
+      "choiceCount": 20,
+      "historyEntries": 30,
+      "buildingCount": 11,
+      "roadCount": 25,
+      "screenDecisionMs": 305.0728629999794,
+      "isolatedDecisionMs": [
+        113.76314199999979,
+        123.98640299999988,
+        110.52367299999969
+      ],
+      "decisionSeed": 565264828
+    },
+    {
+      "roster": "three-standard",
+      "caseId": "c9e42ca8e5e50475933d6e51",
+      "matchId": "4805bfd85184e94692f1c1c7b689e02e110e31bdbb57c4b995f0a04368ffb1b3",
+      "traceIndex": 301,
+      "revision": 301,
+      "phase": "main",
+      "turn": 55,
+      "choiceCount": 31,
+      "historyEntries": 30,
+      "buildingCount": 10,
+      "roadCount": 24,
+      "screenDecisionMs": 372.6735320000007,
+      "isolatedDecisionMs": [
+        116.89966399999958,
+        107.29794100000072,
+        161.31118499999957
+      ],
+      "decisionSeed": 3217565403
+    },
+    {
+      "roster": "three-standard",
+      "caseId": "8ceff5ffabe27ecb2ab17691",
+      "matchId": "917396d798074c4787beac8979610aa6c6b298c8744383f3bc1d884a2c9ecf4f",
+      "traceIndex": 253,
+      "revision": 253,
+      "phase": "main",
+      "turn": 49,
+      "choiceCount": 22,
+      "historyEntries": 30,
+      "buildingCount": 10,
+      "roadCount": 13,
+      "screenDecisionMs": 370.882789999996,
+      "isolatedDecisionMs": [
+        91.14025799999945,
+        84.72263399999974,
+        86.26244099999985
+      ],
+      "decisionSeed": 463423748
+    }
+  ]
+}

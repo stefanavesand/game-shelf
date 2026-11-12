@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "focal-trade",
+  "policyVersion": "trade-planner-0.1.0",
+  "featureSchemaVersion": 1,
+  "level": "standard",
+  "parameters": {
+    "productionWeight": 0.08,
+    "horizonRolls": 12,
+    "etaPenaltyPerRoll": 0.08,
+    "readinessWeight": 0.2,
+    "handReserveWeight": 0.7,
+    "expansionWeight": 0.08,
+    "developmentValue": 0.35,
+    "maxPlans": 8,
+    "maxRoadCandidates": 8,
+    "minActionGain": 0.005,
+    "noiseAmplitude": 0,
+    "minOwnUtilityGain": 0.01,
+    "retainedCardWeight": 0.005,
+    "leaderPenalty": 1.5,
+    "leaderPublicVp": 8,
+    "maxCardsPerSide": 2,
+    "offersPerOwnTurn": 1,
+    "rejectionCooldownOwnTurns": 1,
+    "maxTradeBuildPreviews": 2,
+    "maxProposalBundles": 12,
+    "proposalDiscount": 0.65,
+    "publicSupplyWeight": 0.5
+  }
+}

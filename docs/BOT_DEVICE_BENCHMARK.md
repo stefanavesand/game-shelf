@@ -28,3 +28,9 @@ The 10-second per-decision diagnostic timeout stops pathological runs without fr
 Run `npm run build`, `npm run test:package`, and `GAME_SHELF_STATIC_ROOT=dist npx playwright test --project=bot-benchmark`. Package tests verify allowlisting, source/content hashes, offline exclusion, license notice and all synthetic golden decisions. Browser tests cover real worker completion/parity, report download, cancellation and startup failure. They run against the packaged site in the existing GitHub Actions deployment gate. A Chromium run is not physical Safari evidence.
 
 Local browser execution may require permission to bind the test HTTP server. If the environment blocks it, rely on the explicit CI result and report the local limitation; do not claim a local browser pass.
+
+## First physical-device report (2026-11-12)
+
+The owner supplied a successful report from Chrome on reported iPadOS 27.0.1. Device notes/model were not recorded in the file. Its policy hashes match the current candidate/planner/frozen sources and summary quantiles were checked against all raw samples. Candidate median/p95/max decision time: 8/21/22 ms; frozen baseline: below timer resolution/1/2 ms. Candidate round-trip p95/max: 20/21 ms. Frame gaps were 17 ms in this short run and every golden decision matched.
+
+Millisecond timer quantization and independent main/worker clocks can make a round-trip sample appear about 1 ms shorter than its worker measurement; zero does not mean zero cost. The report supports good performance for these eight positions only. It does not measure memory or establish the main-thread task gate. The later [host stress probes](BOT_BROAD_SCREEN.md) use heavier observations absent from this device corpus; do not extrapolate the 22 ms maximum to them. Raw user-agent/report data is not committed.

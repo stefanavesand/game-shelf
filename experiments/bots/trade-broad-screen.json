@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "bot-broad-screen-v1",
+  "split": "validation",
+  "gameSeeds": [
+    1201,
+    1301,
+    1409,
+    1511,
+    1601,
+    1709,
+    1801,
+    1907
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "focal-trade": "focal-trade.json",
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "planner-default": "planner-default.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "focal-trade",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "focal-trade",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "three-mixed",
+      "profiles": [
+        "focal-trade",
+        "planner-default",
+        "baseline-easy"
+      ]
+    },
+    {
+      "id": "four-mixed",
+      "profiles": [
+        "focal-trade",
+        "planner-default",
+        "baseline-standard",
+        "baseline-easy"
+      ]
+    }
+  ]
+}

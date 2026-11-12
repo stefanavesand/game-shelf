@@ -215,3 +215,5 @@ BOT-AI-02 first experimental candidate (2026-11-12, partial): goal/bank-aware ac
 BOT-AI-02 optimization: 42 full-game trace/state parity checks and a 64-observation interleaved benchmark verify unchanged decisions with about 17% less sampled total decision time. Device/worker/memory gates and strength calibration remain open; see the trading guide.
 
 BOT-AI-02 device tooling: separate worker-based baseline/candidate benchmark with synthetic observations, timing/parity/download and cancel/error handling. Physical Safari measurements and incremental memory profiling remain open. See [device procedure](BOT_DEVICE_BENCHMARK.md).
+
+BOT-AI-02/BOT-AI-08 evidence: 224 new complete games across 3/4-seat Standard/mixed strata, paired seed-block intervals and eight heavier legal replay probes. Four-seat results are promising; three-seat regression blocks promotion. Physical iPad report covers only the earlier eight fixtures; heavy-device/memory/board-diversity gates remain open. See [broader screening](BOT_BROAD_SCREEN.md).

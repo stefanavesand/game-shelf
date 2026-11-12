@@ -57,3 +57,5 @@ The same 42 training cases reproduced every command-trace hash, final-state hash
 An interleaved, same-process benchmark used 64 synthetic main-phase observations from four recorded games, three repetitions, and checked complete decision-result equality. Total decision time was 2,996 ms before and 2,481 ms after (about 17% lower); p95 was 48.3 vs 46.9 ms. This small selected sample excludes projection/profile wrapping and does not establish a general latency guarantee. The 42-game concurrent screen had candidate p95 55/66 ms for 3/4 seats; its previous run had different contention, so that difference is not an isolated speedup measurement. Physical-device latency/memory and production worker integration remain open. No new difficulty or stronger play is claimed.
 
 A separate [browser/device benchmark](BOT_DEVICE_BENCHMARK.md) now packages the candidate for explicit diagnostics only. This is not gameplay integration or device performance evidence.
+
+A subsequent [224-game comparison and heavier-position probe](BOT_BROAD_SCREEN.md) found mixed strength by seat count. The candidate remains experimental.

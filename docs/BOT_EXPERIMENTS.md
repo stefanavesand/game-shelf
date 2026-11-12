@@ -68,3 +68,7 @@ An observation-only `planner-0.1.0` profile and 3/4-seat screening manifests now
 ## Goal-aware trade candidate
 
 See [trading behavior, controls and screening](BOT_TRADING.md). The candidate remains offline-only; its higher decision cost is an explicit promotion blocker.
+
+## Paired broader screening
+
+See [rosters, seed-block analysis and stress extraction](BOT_BROAD_SCREEN.md). `cohort-analysis.mjs` verifies complete matched checkpoints and reports exploratory paired seed-block intervals. `stress-probes.mjs` replays selected heavy observations under the exact recorded source/runtime. These tools do not tune parameters or promote profiles.
