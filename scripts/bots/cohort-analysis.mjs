@@ -2,7 +2,7 @@
 import {readFile,readdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {canonical,hash} from './profiles.mjs';
+import {canonical,hash,bytesHash} from './profiles.mjs';
 import {plan} from './experiments.mjs';
 const requireCondition=(ok,message)=>{if(!ok)throw Error(message);};
 export async function loadRun(directory){
@@ -66,16 +66,17 @@ export function compareRows(candidateRows,controlRows,{candidateProfile='focal-t
    blocks.push(delta/playerCount);
   }
   const matches=pairs.length;for(const c of Object.values(counts))c.winRate=c.wins/matches;
-  strata.push({roster,playerCount,seeds,matches,...counts,winRateDifference:counts.candidate.winRate-counts.control.winRate,exploratory95PercentileInterval:bootstrap(blocks,resamples,seed),resamples});
+  strata.push({roster,playerCount,seeds,matches,independentSeedBlocks:seeds.length,bootstrapDegenerate:blocks.every(value=>value===blocks[0]),uncertaintyWarning:blocks.every(value=>value===blocks[0])?'No observed block variation; a zero-width bootstrap interval is not evidence of a precise population effect.':seeds.length<20?'Few independent seed blocks; percentile intervals are exploratory.':null,...counts,winRateDifference:counts.candidate.winRate-counts.control.winRate,exploratory95PercentileInterval:bootstrap(blocks,resamples,seed),resamples});
  }
  return {schemaVersion:1,note:'Descriptive screening. Percentile bootstrap resamples paired whole game-seed blocks within each stratum. No multiplicity correction, locked test or difficulty promotion. Failures remain in denominators.',candidateProfile,controlProfile,bootstrapSeed:seed,strata};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
  try{
-  if(process.argv.length!==5)throw Error('Usage: node scripts/bots/cohort-analysis.mjs candidate-run control-run output.json');
+  if(![5,7].includes(process.argv.length))throw Error('Usage: node scripts/bots/cohort-analysis.mjs candidate-run control-run output.json [candidate-profile control-profile]');
   const [candidate,control]=await Promise.all(process.argv.slice(2,4).map(loadRun));
   requireCondition(canonical(candidate.meta.identity)===canonical(control.meta.identity),'Source/runtime identities differ');
-  const report={...compareRows(candidate.rows,control.rows),identity:candidate.meta.identity,manifests:{candidate:candidate.meta.manifest,control:control.meta.manifest}};
+  const options=process.argv.length===7?{candidateProfile:process.argv[5],controlProfile:process.argv[6]}:{};
+  const report={...compareRows(candidate.rows,control.rows,options),analysisSourceSha256:bytesHash(await readFile(new URL(import.meta.url))),identity:candidate.meta.identity,manifests:{candidate:candidate.meta.manifest,control:control.meta.manifest}};
   await writeFile(process.argv[4],JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report.strata,null,2));
  }catch(error){console.error(error.message);process.exitCode=1;}
 }

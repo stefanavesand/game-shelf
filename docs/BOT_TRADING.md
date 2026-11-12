@@ -59,3 +59,5 @@ An interleaved, same-process benchmark used 64 synthetic main-phase observations
 A separate [browser/device benchmark](BOT_DEVICE_BENCHMARK.md) now packages the candidate for explicit diagnostics only. This is not gameplay integration or device performance evidence.
 
 A subsequent [224-game comparison and heavier-position probe](BOT_BROAD_SCREEN.md) found mixed strength by seat count. The candidate remains experimental.
+
+The [trade diagnosis and one-for-one ablation](BOT_TRADE_DIAGNOSIS.md) identify low-conversion give-one/request-two proposals and a promising parameter-only variant. Defaults and gameplay remain unchanged.

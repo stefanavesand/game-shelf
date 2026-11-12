@@ -26,3 +26,7 @@ test('checkpoint loader rejects corrupt and unexpected files',async()=>{
   await writeFile(path.join(root,'matches',jobs[0].id+'.json'),JSON.stringify({result:{matchId:'corrupt'},checksum:'bad'}));await assert.rejects(()=>loadRun(root),/integrity/);
  }finally{await rm(root,{recursive:true,force:true});}
 });
+test('identical observed seed-block differences flag a degenerate interval rather than precision',()=>{
+ const report=compareRows(cohort('focal-trade'),cohort('focal-planner')),s=report.strata[0];assert.equal(s.independentSeedBlocks,2);assert.equal(s.bootstrapDegenerate,true);assert.deepEqual(s.exploratory95PercentileInterval,{low:0,high:0});assert.match(s.uncertaintyWarning,/not evidence/);
+ const custom=compareRows(cohort('experiment'),cohort('reference'),{candidateProfile:'experiment',controlProfile:'reference'});assert.equal(custom.strata[0].candidate.wins,6);
+});

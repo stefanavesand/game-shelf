@@ -74,3 +74,10 @@ test('decision-local caches preserve frozen observations and do not leak across 
  assert.equal(decision(other,p,37).action.type,'TRADE_ACCEPT');
  assert.deepEqual(decision(view,p,37),first);
 });
+test('equal-proposal profile preserves incoming trade valuation and public threat weighting',async()=>{
+ const {readFile}=await import('node:fs/promises'),variant=validateProfile(JSON.parse(await readFile(new URL('../../experiments/bots/focal-equal-trade.json',import.meta.url),'utf8'))),q=variant.parameters;
+ assert.equal(q.maxCardsPerSide,1);assert.equal(q.leaderPenalty/q.maxCardsPerSide,p.leaderPenalty/p.maxCardsPerSide);
+ const v=module.view(offered(prepared()),'p0');assert.equal(tradeDecision(v,q).action.type,'TRADE_ACCEPT');assert.deepEqual(tradeDecision(v,q),tradeDecision(v,p));
+ v.state.players.players.find(peer=>peer.id==='p1').victoryPoints=9;assert.deepEqual(tradeDecision(v,q),tradeDecision(v,p));
+ const state=prepared(),offer=proposal(module.view(state,'p0'),{...q,minOwnUtilityGain:.001,proposalDiscount:1,publicSupplyWeight:0},0);assert.ok(offer);assert.equal(Object.values(offer.action.give).reduce((a,b)=>a+b,0),1);assert.equal(Object.values(offer.action.receive).reduce((a,b)=>a+b,0),1);module.apply(state,'p0',{actor:'p0',action:offer.action},{},{coordinatorId:'p0'});
+});

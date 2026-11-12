@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "trade-proposal-ablation-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91,
+    143,
+    211,
+    307,
+    401
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "planner-default": "planner-default.json",
+    "focal-equal-trade": "focal-equal-trade.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "focal-equal-trade",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "focal-equal-trade",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "three-mixed",
+      "profiles": [
+        "focal-equal-trade",
+        "planner-default",
+        "baseline-easy"
+      ]
+    },
+    {
+      "id": "four-mixed",
+      "profiles": [
+        "focal-equal-trade",
+        "planner-default",
+        "baseline-standard",
+        "baseline-easy"
+      ]
+    }
+  ]
+}

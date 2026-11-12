@@ -109,3 +109,7 @@ The diagnostic UI, worker, deterministic synthetic fixture generator and tests a
 ## Broader bot evidence (2026-11-12)
 
 The paired checkpoint analysis, deterministic seed-block bootstrap, synthetic stress extraction and tests are original code with no dependencies or external implementation imports. Aggregate synthetic evidence is checked in; full synthetic traces and the owner’s raw device report remain outside the repository. No production policy, rules or assets changed.
+
+## Trade diagnosis and parameter ablation (2026-11-12)
+
+The synthetic replay audit, normalized proposal/completion metrics, profile-contract tests and statistical warnings are original code. The one-for-one proposal experiment changes existing parameters only and preserves incoming public-threat normalization. No runtime policy, rule, asset, external code or dependency was imported or modified. Aggregate synthetic evidence is committed; full traces remain local.

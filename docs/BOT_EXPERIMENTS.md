@@ -72,3 +72,7 @@ See [trading behavior, controls and screening](BOT_TRADING.md). The candidate re
 ## Paired broader screening
 
 See [rosters, seed-block analysis and stress extraction](BOT_BROAD_SCREEN.md). `cohort-analysis.mjs` verifies complete matched checkpoints and reports exploratory paired seed-block intervals. `stress-probes.mjs` replays selected heavy observations under the exact recorded source/runtime. These tools do not tune parameters or promote profiles.
+
+## Offer audit and proposal ablation
+
+See [trade audit, normalization and one-for-one profile](BOT_TRADE_DIAGNOSIS.md). The cohort comparison CLI accepts optional candidate/control focal IDs and flags degenerate seed-block bootstrap intervals. Post-hoc recipient affordability is diagnostic only, never a policy input.

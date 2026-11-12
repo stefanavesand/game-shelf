@@ -217,3 +217,5 @@ BOT-AI-02 optimization: 42 full-game trace/state parity checks and a 64-observat
 BOT-AI-02 device tooling: separate worker-based baseline/candidate benchmark with synthetic observations, timing/parity/download and cancel/error handling. Physical Safari measurements and incremental memory profiling remain open. See [device procedure](BOT_DEVICE_BENCHMARK.md).
 
 BOT-AI-02/BOT-AI-08 evidence: 224 new complete games across 3/4-seat Standard/mixed strata, paired seed-block intervals and eight heavier legal replay probes. Four-seat results are promising; three-seat regression blocks promotion. Physical iPad report covers only the earlier eight fixtures; heavy-device/memory/board-diversity gates remain open. See [broader screening](BOT_BROAD_SCREEN.md).
+
+BOT-AI-02 follow-up: full 224-game trade audit and 168-game paired training ablation verify that equal-only proposals convert more often; three-seat Standard wins improved in this small sample. Defaults remain unchanged pending independent validation. See [trade diagnosis](BOT_TRADE_DIAGNOSIS.md).
