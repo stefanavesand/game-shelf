@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "note": "Descriptive screening. Percentile bootstrap resamples paired whole game-seed blocks within each stratum. No multiplicity correction, locked test or difficulty promotion. Failures remain in denominators.",
+  "candidateProfile": "build-trade-default",
+  "controlProfile": "shared-plan-default",
+  "bootstrapSeed": 92831,
+  "strata": [
+    {
+      "roster": "four-mixed",
+      "playerCount": 4,
+      "seeds": [
+        5003,
+        5101,
+        5209,
+        5303,
+        5407,
+        5501
+      ],
+      "matches": 24,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 11,
+        "failures": 0,
+        "offers": 445,
+        "accepts": 32,
+        "declines": 171,
+        "winRate": 0.4583333333333333
+      },
+      "control": {
+        "wins": 7,
+        "failures": 0,
+        "offers": 294,
+        "accepts": 44,
+        "declines": 256,
+        "winRate": 0.2916666666666667
+      },
+      "winRateDifference": 0.16666666666666663,
+      "exploratory95PercentileInterval": {
+        "low": -0.20833333333333334,
+        "high": 0.5
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "four-standard",
+      "playerCount": 4,
+      "seeds": [
+        5003,
+        5101,
+        5209,
+        5303,
+        5407,
+        5501
+      ],
+      "matches": 24,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 11,
+        "failures": 0,
+        "offers": 463,
+        "accepts": 17,
+        "declines": 191,
+        "winRate": 0.4583333333333333
+      },
+      "control": {
+        "wins": 9,
+        "failures": 0,
+        "offers": 308,
+        "accepts": 41,
+        "declines": 353,
+        "winRate": 0.375
+      },
+      "winRateDifference": 0.08333333333333331,
+      "exploratory95PercentileInterval": {
+        "low": -0.16666666666666666,
+        "high": 0.375
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-mixed",
+      "playerCount": 3,
+      "seeds": [
+        5003,
+        5101,
+        5209,
+        5303,
+        5407,
+        5501
+      ],
+      "matches": 18,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 8,
+        "failures": 0,
+        "offers": 393,
+        "accepts": 29,
+        "declines": 121,
+        "winRate": 0.4444444444444444
+      },
+      "control": {
+        "wins": 8,
+        "failures": 0,
+        "offers": 269,
+        "accepts": 33,
+        "declines": 234,
+        "winRate": 0.4444444444444444
+      },
+      "winRateDifference": 0,
+      "exploratory95PercentileInterval": {
+        "low": -0.16666666666666666,
+        "high": 0.16666666666666666
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-standard",
+      "playerCount": 3,
+      "seeds": [
+        5003,
+        5101,
+        5209,
+        5303,
+        5407,
+        5501
+      ],
+      "matches": 18,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 4,
+        "failures": 0,
+        "offers": 431,
+        "accepts": 26,
+        "declines": 206,
+        "winRate": 0.2222222222222222
+      },
+      "control": {
+        "wins": 6,
+        "failures": 0,
+        "offers": 290,
+        "accepts": 34,
+        "declines": 297,
+        "winRate": 0.3333333333333333
+      },
+      "winRateDifference": -0.1111111111111111,
+      "exploratory95PercentileInterval": {
+        "low": -0.2222222222222222,
+        "high": 0
+      },
+      "resamples": 4000
+    }
+  ],
+  "analysisSourceSha256": "fb2b9d74b99672b2b0e789a40d5dc7ac465b9c79745efdad0fd6b4ff633305be",
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "c69b658bf36b01eec3c37d3cacb8b0fa4b9b9a57abe423cd047b7c9a7a7725e8",
+    "node": "v24.19.0",
+    "commit": "f2cdae60c0db94a001b14bb7e74a792703dad9b1"
+  },
+  "manifests": {
+    "candidate": {
+      "schemaVersion": 1,
+      "id": "build-trade-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        5003,
+        5101,
+        5209,
+        5303,
+        5407,
+        5501
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "build-trade-default": "build-trade-default.json",
+        "baseline-standard": "baseline-standard.json",
+        "baseline-easy": "baseline-easy.json",
+        "planner-default": "planner-default.json"
+      },
+      "rosters": [
+        {
+          "id": "three-standard",
+          "profiles": [
+            "build-trade-default",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-standard",
+          "profiles": [
+            "build-trade-default",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "three-mixed",
+          "profiles": [
+            "build-trade-default",
+            "planner-default",
+            "baseline-easy"
+          ]
+        },
+        {
+          "id": "four-mixed",
+          "profiles": [
+            "build-trade-default",
+            "planner-default",
+            "baseline-standard",
+            "baseline-easy"
+          ]
+        }
+      ]
+    },
+    "control": {
+      "schemaVersion": 1,
+      "id": "build-trade-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        5003,
+        5101,
+        5209,
+        5303,
+        5407,
+        5501
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "shared-plan-default": "shared-plan-default.json",
+        "baseline-standard": "baseline-standard.json",
+        "baseline-easy": "baseline-easy.json",
+        "planner-default": "planner-default.json"
+      },
+      "rosters": [
+        {
+          "id": "three-standard",
+          "profiles": [
+            "shared-plan-default",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-standard",
+          "profiles": [
+            "shared-plan-default",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "three-mixed",
+          "profiles": [
+            "shared-plan-default",
+            "planner-default",
+            "baseline-easy"
+          ]
+        },
+        {
+          "id": "four-mixed",
+          "profiles": [
+            "shared-plan-default",
+            "planner-default",
+            "baseline-standard",
+            "baseline-easy"
+          ]
+        }
+      ]
+    }
+  }
+}

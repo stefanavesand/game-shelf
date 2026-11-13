@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "build-trade-validation-v1",
+  "split": "validation",
+  "gameSeeds": [
+    5003,
+    5101,
+    5209,
+    5303,
+    5407,
+    5501
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "build-trade-default": "build-trade-default.json",
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "planner-default": "planner-default.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "build-trade-default",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "build-trade-default",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "three-mixed",
+      "profiles": [
+        "build-trade-default",
+        "planner-default",
+        "baseline-easy"
+      ]
+    },
+    {
+      "id": "four-mixed",
+      "profiles": [
+        "build-trade-default",
+        "planner-default",
+        "baseline-standard",
+        "baseline-easy"
+      ]
+    }
+  ]
+}

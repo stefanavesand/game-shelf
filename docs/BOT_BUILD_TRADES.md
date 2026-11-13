@@ -47,3 +47,50 @@ The overlay produced 88 replacement counteroffers across its fourteen games. Aut
 [Aggregate replay and hand metrics](../experiments/bots/results/build-trade-screen-v1.json) record the fixed source identity, counts and definitions. Ten new targeted tests and the complete 75-test bot suite passed, as did source/document checks, build and seven package tests. Existing PWA rules and release artifacts are unchanged. Next priorities are held-out mixed-opponent validation and negotiating quality, keeping development-card/robber improvements deferred.
 
 The [offer ledger audit](../experiments/bots/results/build-trade-offer-audit-v1.json) independently replayed all three cohorts. Full-overlay outgoing offers/counters were accepted 27/153 times (three seats) and 49/196 (four seats), versus previous shared-goal 11/76 and 15/133. Risk-off conversion was 35/160 and 37/202. These are different reached offers/positions, not matched offer-quality experiments. Counts include off-turn replacement counters: offers per own turn is not a budget-violation metric. Incoming counters are replacement offers rather than decline responses. In 69/153 and 66/196 full-overlay proposals no recipient could afford the requested types; that is synthetic post-hoc knowledge, never policy input. Better trade quality must preserve this privacy boundary.
+
+## Frozen-profile fresh validation plan
+
+The next comparison fixes the existing full overlay against `shared-plan-default`, with no retuning or early stopping. Six seeds (5003, 5101, 5209, 5303, 5407, 5501) were checked absent from prior top-level experiment manifests. Each variant has 84 cases with every focal seat rotation: 18 three-Standard, 24 four-Standard, 18 three-mixed and 24 four-mixed. Mixed opponents are unchanged planner plus Easy, with another Standard at four seats. The profile pair, decision seed, action cap and watchdog are unchanged; resolved manifests capture the comparison. This isolates the combined trade/bank/risk overlay against the previous shared planner, not against production and not individual components.
+
+Reliable rule-driven completion and policy/memory replay remain gates. Three-seat Standard is the primary competitive check; report other strata separately, retaining failures. Analyze paired whole-seed uncertainty without pooling correlated seat rotations. Report end-turn hand exposure, accepted offers, off-turn replacement counters and subsequent active-turn construction proxies, without treating conversion or raw losses as causal win benefit. Six blocks remain exploratory. No gameplay promotion or new difficulty follows automatically; board layout and starting policy remain fixed. Development-card and robber improvements stay out of scope.
+
+## Fresh validation outcomes
+
+All 168 planned games ended normally, with zero rule/decision failures, action caps or watchdog failures. Policy/profile bytes remained frozen; source identity is `f2cdae60c0db94a001b14bb7e74a792703dad9b1`. The new manifests are resolved in run metadata; this source commit contains the complete unchanged implementation and earlier screen evidence.
+
+| Stratum | Build/trade overlay wins | Previous shared-goal wins | Exploratory paired 95% difference interval |
+| --- | ---: | ---: | --- |
+| Three seats, Standard | 4 / 18 | 6 / 18 | −22.2 to 0.0 pp |
+| Four seats, Standard | 11 / 24 | 9 / 24 | −16.7 to +37.5 pp |
+| Three seats, mixed | 8 / 18 | 8 / 18 | −16.7 to +16.7 pp |
+| Four seats, mixed | 11 / 24 | 7 / 24 | −20.8 to +50.0 pp |
+
+The primary three-seat Standard point result regressed. Six paired seed blocks, fixed board, wide exploratory percentile intervals and no multiplicity correction do not establish superiority or equivalence. The zero upper boundary in the primary interval does not imply precise population inference. No pooled win result, automatic promotion or calibrated difficulty is claimed. These seeds are now consumed validation; subsequent tuning needs training cases and another held-out cohort.
+
+### Offer outcomes
+
+| Stratum | Overlay accepted / outgoing offers | Previous shared accepted / outgoing offers | Active focal turns with accepted trade followed by investment: overlay / previous |
+| --- | ---: | ---: | ---: |
+| Three seats, Standard | 98 / 431 | 25 / 290 | 37 / 8 |
+| Four seats, Standard | 120 / 463 | 24 / 308 | 47 / 8 |
+| Three seats, mixed | 106 / 393 | 34 / 269 | 38 / 11 |
+| Four seats, mixed | 135 / 445 | 32 / 294 | 48 / 9 |
+
+Outgoing counts include off-turn replacement counters. The final column counts focal active turns, not all accepted deals or all off-turn counter exchanges; it is a temporal construction/development-purchase proxy, not proof that the trade caused the investment. Different reached positions, opponents' gains and game lengths preclude interpreting higher conversion as a win benefit. Incoming replacements are outgoing offers, not decline responses. Post-hoc replay found no recipient able to afford the requested resource types for 191/431, 184/463, 165/393 and 164/445 overlay offers respectively. Proposers never receive that private information.
+
+[Paired outcomes](../experiments/bots/results/build-trade-validation-v1.json) and [aggregate offer ledger audit](../experiments/bots/results/build-trade-validation-offer-audit-v1.json) preserve identities and exact counts. The overlay improves observed trade conversion against this control but has not established competitive improvement. Next diagnosis should stay within the approved build/trade scope: usefulness and cost of counters, resource surplus valuation, and the public benefit given to the recipient. Development-card/robber tuning remains deferred, and production remains unchanged.
+
+### Hand exposure, counters and replay
+
+| Stratum | Overlay own end turns above seven | Previous shared-goal own end turns above seven | Cards discarded: overlay / previous |
+| --- | ---: | ---: | ---: |
+| Three seats, Standard | 21 / 409 (5.1%) | 37 / 433 (8.5%) | 146 / 166 |
+| Four seats, Standard | 32 / 416 (7.7%) | 53 / 480 (11.0%) | 161 / 330 |
+| Three seats, mixed | 29 / 359 (8.1%) | 45 / 392 (11.5%) | 116 / 195 |
+| Four seats, mixed | 23 / 422 (5.5%) | 56 / 439 (12.8%) | 216 / 332 |
+
+Exposure and raw discarded-card counts were lower in all observed strata. This comparison bundles different trade, bank and risk behavior; unlike the earlier risk-off screen, it cannot attribute that change to the risk weight alone. Different production, game lengths and reached hands still matter.
+
+The overlay issued 379 replacement counters (95/99/96/89 in table order), of which 50 were accepted: 13.2%, versus 409/1,353 ordinary offers (30.2%). Records were matched by focal outgoing command order and verified give/receive/recipient terms; `replaces` identifies counters. Counters and ordinary proposals arise in different positions, so this is a diagnostic difference, not causal evidence that removing counters helps. It does make **separate counteroffer on/off isolation on training cases** the next priority before increasing negotiation sophistication. Consider recipient benefit and saved resources only after distinguishing that mechanism; do not tune on these validation seeds.
+
+All 84 candidate command, final-state, winner and plan-trace results reproduced with fresh policy memory. Independent authoritative replays verified all 168 final-state hashes; all 84 candidate/control initial placement prefixes matched. Duplicate-free candidate resume was verified. [Replay and hand/counter counts](../experiments/bots/results/build-trade-validation-replay-v1.json) retain the fixed source identity and definitions. Raw synthetic observations/plan traces remain local. No policy code, parameters, rule artifact, PWA release or live gameplay changed during this validation; source/document checks apply to the evidence-only change.
