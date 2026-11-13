@@ -2,6 +2,8 @@ import {readdir,readFile,mkdir,writeFile,rm} from 'node:fs/promises';
 import {catanManifest} from './catan-manifest.mjs';
 import {offlineVersion} from './offline-version.mjs';
 import {prepareBotBenchmark} from './bots/browser-benchmark.mjs';
+import {preparePlanner} from './bots/prepare-runtime.mjs';
+await preparePlanner();
 await catanManifest();
 import {createHash} from 'node:crypto';
 import path from 'node:path';

@@ -17,3 +17,7 @@ bot-results/
 # Generated, explicitly packaged bot diagnostic assets
 diagnostics/bots/policies/
 diagnostics/bots/fixtures.js
+
+# Generated explicit PWA planner policy assets
+play/bots/policies/
+play/bots/profile.js

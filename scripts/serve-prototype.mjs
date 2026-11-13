@@ -1,3 +1,5 @@
+import {preparePlanner} from './bots/prepare-runtime.mjs';
+if(!process.env.GAME_SHELF_STATIC_ROOT)await preparePlanner();
 import http from 'node:http';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';

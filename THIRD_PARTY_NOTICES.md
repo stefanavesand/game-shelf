@@ -13,3 +13,5 @@ This notice does not resolve licensing/asset questions for the pre-existing Open
 ## PWA Catan engine extraction
 
 play/catan/rules/bot.js retains the full catan-ai MIT notice for the settlement-scoring adaptation. It does not license the whole engine as catan-ai code. Other extracted module origins and newly authored replacement helpers are recorded in [the engine guide](docs/CATAN_ENGINE.md) and [source manifest](docs/provenance/CATAN_SOURCE.json). No original OpenCatan artwork or legacy helper implementations were imported in this extraction.
+
+The optional Solo Planner worker also ships the frozen heuristic under `play/bots/policies/baselines/heuristic-1.1.0.js`, retaining its complete MIT notice. Import paths are rewritten during the build; the original experimental planner/trade modules do not add third-party dependencies. See [planner runtime provenance](SOURCE_PROVENANCE.md#opt-in-pwa-planner-runtime).

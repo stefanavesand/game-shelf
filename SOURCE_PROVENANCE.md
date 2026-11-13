@@ -143,3 +143,7 @@ The fresh shared-goal validation adds only original experiment manifests, aggreg
 The trade overlay, own-hand counterfactual valuation, soft discard-exposure heuristic, strict profile controls and tests are original code using existing shared-goal, topology/economy and ordinary session helpers. No external code, dependency or asset was imported. Frozen policy implementations and production rules/gameplay remain unchanged; synthetic goal diagnostics stay private to experiment artifacts.
 
 The counteroffer component gate, strict parameter and contract tests are original code wrapping the unchanged construction/trade policy. It substitutes an ordinary engine-authorized decline only when counters are disabled. No external implementation, dependency, asset, authoritative rule or production gameplay changed.
+
+## Opt-in PWA planner runtime
+
+The Solo controller, dedicated-worker adapter, private-memory contract, explicit asset generator and integration tests are original code. Seven existing experiment policy sources are shipped through import-path/extension rewriting only; their algorithms and the frozen baseline's complete MIT notice are retained. No new library, external implementation or asset was imported. The fixed counter-on profile/hash is generated from the tested experiment. Worker proposals use the unchanged authoritative reducer; private goal memory remains in account-scoped local storage and is never added to public state or relay messages.

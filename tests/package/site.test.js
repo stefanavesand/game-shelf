@@ -60,3 +60,16 @@ test('packaged browser policies reproduce every synthetic golden decision',async
   assert.equal(JSON.stringify({action:botDecision(structuredClone(f.view),'standard')}),f.expected.baseline,f.id);
  }
 });
+
+test('the complete planner worker and fixed profile are offline and match experiment decisions',async()=>{
+ const {fixtures}=await import('../../dist/diagnostics/bots/fixtures.js');
+ const {profile,profileHash}=await import('../../dist/play/bots/profile.js');
+ const {hash}=await import('../../scripts/bots/profiles.mjs');
+ const {decision:source}=await import('../../scripts/bots/build-trade-components.mjs');
+ const {decision:packaged}=await import('../../dist/play/bots/policies/build-trade-components.js');
+ const fixed=JSON.parse(await readFile(new URL('experiments/bots/counter-on.json',root),'utf8'));assert.deepEqual(profile,fixed);assert.equal(profileHash,hash(profile));
+ const offline=await readFile(new URL('play/offline-assets.js',dist),'utf8'),assets=JSON.parse(offline.match(/self\.OFFLINE_ASSETS=(\[.*\]);/)[1]);
+ for(const name of ['client.js','contract.js','worker.js','profile.js','policies/build-trade-components.js','policies/build-trade-policy.js','policies/shared-plan-policy.js','policies/trade-policy.js','policies/resource-policy.js','policies/planner-policy.js','policies/baselines/heuristic-1.1.0.js']){assert.ok(assets.some(a=>a.path==='play/bots/'+name),name);const text=await readFile(new URL('play/bots/'+name,dist),'utf8');assert.doesNotMatch(text,/from ['"]node:/);}
+ assert.match(await readFile(new URL('play/bots/policies/baselines/heuristic-1.1.0.js',dist),'utf8'),/MIT License/);
+ for(const f of fixtures){let memory=null;for(let i=0;i<2;i++){const a=source(structuredClone(f.view),profile.parameters,0,memory),b=packaged(structuredClone(f.view),profile.parameters,0,memory);assert.deepEqual(b,a,f.id);memory=JSON.parse(JSON.stringify(a.memory));}}
+});
