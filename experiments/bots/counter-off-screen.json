@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "counter-ablation-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91,
+    143,
+    211
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "counter-off": "counter-off.json",
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "planner-default": "planner-default.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "counter-off",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "counter-off",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "three-mixed",
+      "profiles": [
+        "counter-off",
+        "planner-default",
+        "baseline-easy"
+      ]
+    },
+    {
+      "id": "four-mixed",
+      "profiles": [
+        "counter-off",
+        "planner-default",
+        "baseline-standard",
+        "baseline-easy"
+      ]
+    }
+  ]
+}

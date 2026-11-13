@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "counter-on",
+  "policyVersion": "build-trade-0.2.0",
+  "featureSchemaVersion": 1,
+  "level": "standard",
+  "parameters": {
+    "maxRouteLength": 2,
+    "maxGraphNodes": 96,
+    "horizonRolls": 24,
+    "productionWeight": 0.08,
+    "etaPenalty": 0.1,
+    "readinessWeight": 0.2,
+    "routePenalty": 0.05,
+    "switchMargin": 0.15,
+    "developmentValue": 0.35,
+    "reserveWeight": 0.005,
+    "cardUseThreshold": 0.05,
+    "maxDiscardCandidates": 24,
+    "urgentPublicVp": 8,
+    "urgentEtaWeight": 0.5,
+    "discardRiskWeight": 0.08,
+    "tradeMinGain": 0.01,
+    "tradeMaxGive": 2,
+    "tradeOffersPerTurn": 1,
+    "tradeCooldownOwnTurns": 1,
+    "tradeProposalDiscount": 0.75,
+    "tradeLeaderPenalty": 0.2,
+    "tradeLeaderVp": 7,
+    "enableCounterOffers": 1
+  }
+}

@@ -141,3 +141,5 @@ The fresh shared-goal validation adds only original experiment manifests, aggreg
 ## Construction-linked trades and hand exposure
 
 The trade overlay, own-hand counterfactual valuation, soft discard-exposure heuristic, strict profile controls and tests are original code using existing shared-goal, topology/economy and ordinary session helpers. No external code, dependency or asset was imported. Frozen policy implementations and production rules/gameplay remain unchanged; synthetic goal diagnostics stay private to experiment artifacts.
+
+The counteroffer component gate, strict parameter and contract tests are original code wrapping the unchanged construction/trade policy. It substitutes an ordinary engine-authorized decline only when counters are disabled. No external implementation, dependency, asset, authoritative rule or production gameplay changed.
