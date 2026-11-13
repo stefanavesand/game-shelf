@@ -43,7 +43,7 @@ test('a sole robber victim is stolen from automatically without opening a picker
   // Prepared authoritative position: ordinary resource transfers preserve totals.
   for(const q of s.state.players.players.filter(q=>q.id!=='p1')){s.state.game.bank.brick+=q.resources.brick-1;q.resources.brick=1;}
   const {victims}=await import('./catan/rules/turn.js'),tile=s.state.board.tiles.find(t=>victims(s.state,t.coord,'p1').length===1);if(!tile)throw Error('Missing sole-victim fixture');
-  const victim=victims(s.state,tile.coord,'p1')[0];Object.assign(s.state.game,{phase:'robber-steal',currentPlayerId:'p1',turn:20});s.state.board.robberLocation=tile.coord;
+  const victim=victims(s.state,tile.coord,'p1')[0];Object.assign(s.state.game,{phase:'robber-steal',currentPlayerId:'p1',turn:20,lastRoll:{die1:3,die2:4,total:7}});s.state.board.robberLocation=tile.coord;
   const {digest}=await import('./relay/protocol.js');g.hash=await digest(g.state);await new Promise(resolve=>{const tx=db.transaction('records','readwrite');tx.objectStore('records').put(lib,'account:alice');tx.oncomplete=resolve;});db.close();return {revision:s.revision,victim};
  });
  await page.reload();await expect.poll(()=>page.evaluate(async()=>{const {client}=await import('./session.js');return (await client.inspect()).packet?.view.state.game.phase;})).toBe('main');await expect(page.locator('#sheet')).not.toBeVisible();const result=await page.evaluate(async()=>{const {client}=await import('./session.js');const {packet:p}=await client.inspect();return {revision:p.revision,message:p.view.history.at(-1)?.message};});expect(result.revision).toBe(prepared.revision+1);expect(result.message).toContain('steal');
