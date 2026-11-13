@@ -229,3 +229,5 @@ BOT-AI-03 initial evidence: 50 passing bot tests, 56 complete matched screening 
 BOT-AI-03 component isolation: four immutable profiles (none/discard/cards/both) and explicit phase-gate contract tests isolate existing effects without retuning. No gameplay promotion; card selection versus timing remains a bundled component until a later focused comparison. See [component plan](BOT_RESOURCE_COMPONENTS.md).
 
 BOT-AI-03 component evidence: 112 completed executions, 56 exact replicated controls and complete resource audits; discard-only has mixed seat-count point results, card-enabled variants avoid empty Monopoly, and one natural same-state probe preserves a city hand. No promotion. Next diagnosis separates resource-card valuation from per-card retain/play timing.
+
+BOT-AI-01/03/04 shared-goal slice: legal bounded multi-road site plans, concrete city/development targets, current-state revaluation with hysteresis and scoped private policy memory now connect construction, discard, bank and resource cards. Player-trade integration, richer goal value, production persistence/worker/device gates remain open. See [shared goals](BOT_SHARED_PLAN.md).

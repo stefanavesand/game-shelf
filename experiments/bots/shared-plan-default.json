@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "shared-plan-default",
+  "policyVersion": "shared-plan-0.1.0",
+  "featureSchemaVersion": 1,
+  "level": "standard",
+  "parameters": {
+    "maxRouteLength": 2,
+    "maxGraphNodes": 96,
+    "horizonRolls": 24,
+    "productionWeight": 0.08,
+    "etaPenalty": 0.1,
+    "readinessWeight": 0.2,
+    "routePenalty": 0.05,
+    "switchMargin": 0.15,
+    "developmentValue": 0.35,
+    "reserveWeight": 0.005,
+    "cardUseThreshold": 0.05,
+    "maxDiscardCandidates": 24,
+    "urgentPublicVp": 8,
+    "urgentEtaWeight": 0.5
+  }
+}

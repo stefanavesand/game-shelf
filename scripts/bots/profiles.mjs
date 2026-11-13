@@ -1,5 +1,6 @@
 import {createHash} from 'node:crypto';
 import {botDecision as baseline} from './baselines/heuristic-1.1.0.js';
+import {decision as sharedPlanDecision} from './shared-plan-policy.mjs';
 import {botDecision as resourceComponents} from './resource-components.mjs';
 import {botDecision as resourcePlanner} from './resource-policy.mjs';
 import {botDecision as tradePlanner} from './trade-policy.mjs';
@@ -62,14 +63,30 @@ export const resourceComponentRegistry=freeze({...resourceRegistry,
  enableGoalDiscard:{type:'integer',unit:'0 frozen discard; 1 goal-aware discard',min:0,max:1,default:1},
  enableResourceCards:{type:'integer',unit:'0 frozen resource-card decisions; 1 whole-hand valuation/timing',min:0,max:1,default:1}
 });
-export const policyRegistry=version=>version==='resource-heuristic-0.2.0'?resourceComponentRegistry:version==='resource-heuristic-0.1.0'?resourceRegistry:version==='trade-planner-0.1.0'?tradeRegistry:version==='planner-0.1.0'?plannerRegistry:version==='heuristic-1.1.0'?{}:registry;
+export const sharedPlanRegistry=freeze({
+ maxRouteLength:{type:'integer',unit:'new roads per site plan',min:0,max:3,default:2},
+ maxGraphNodes:{type:'integer',unit:'expanded public vertices',min:8,max:128,default:96},
+ horizonRolls:{type:'integer',unit:'acquisition-estimate rolls',min:4,max:48,default:24},
+ productionWeight:{type:'number',unit:'VP per expected production card',min:0,max:0.5,default:0.08},
+ etaPenalty:{type:'number',unit:'utility discount per roll',min:0.01,max:1,default:0.1},
+ readinessWeight:{type:'number',unit:'utility per completed resource fraction',min:0,max:1,default:0.2},
+ routePenalty:{type:'number',unit:'utility per remaining road',min:0,max:0.5,default:0.05},
+ switchMargin:{type:'number',unit:'utility improvement required to abandon a valid goal',min:0,max:2,default:0.15},
+ developmentValue:{type:'number',unit:'expected development purchase utility',min:0,max:1,default:0.35},
+ reserveWeight:{type:'number',unit:'utility per retained card',min:0,max:0.05,default:0.005},
+ cardUseThreshold:{type:'number',unit:'minimum same-goal resource-card gain',min:0,max:1,default:0.05},
+ maxDiscardCandidates:{type:'integer',unit:'validated same-goal discard bundles',min:8,max:128,default:24},
+ urgentPublicVp:{type:'integer',unit:'opponent public VP urgency boundary',min:6,max:9,default:8},
+ urgentEtaWeight:{type:'number',unit:'extra ETA discount per public race point',min:0,max:2,default:0.5}
+});
+export const policyRegistry=version=>version==='shared-plan-0.1.0'?sharedPlanRegistry:version==='resource-heuristic-0.2.0'?resourceComponentRegistry:version==='resource-heuristic-0.1.0'?resourceRegistry:version==='trade-planner-0.1.0'?tradeRegistry:version==='planner-0.1.0'?plannerRegistry:version==='heuristic-1.1.0'?{}:registry;
 export function template(id='heuristic-candidate',policyVersion='heuristic-params-0.1.0'){
  return {schemaVersion:1,id,policyVersion,featureSchemaVersion:1,level:'standard',parameters:policyVersion==='heuristic-1.1.0'?{}:Object.fromEntries(Object.entries(policyRegistry(policyVersion)).map(([k,v])=>[k,v.default]))};
 }
 export function validateProfile(input){
  keys(input,['schemaVersion','id','policyVersion','featureSchemaVersion','level','parameters'],'profile');
- if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
- if(['resource-heuristic-0.1.0','resource-heuristic-0.2.0'].includes(input.policyVersion)&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
+ if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','shared-plan-0.1.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
+ if(['resource-heuristic-0.1.0','resource-heuristic-0.2.0','shared-plan-0.1.0'].includes(input.policyVersion)&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
  const fields=policyRegistry(input.policyVersion),expected=Object.keys(fields);keys(input.parameters,expected,'parameters');
  for(const key of expected){const value=input.parameters[key],r=fields[key];if(r.type==='integer'&&!Number.isInteger(value))throw Error(`Invalid integer parameter: ${key}`);if(typeof value!=='number'||!Number.isFinite(value)||value<r.min||value>r.max)throw Error(`Invalid parameter: ${key}`);}
  if(Buffer.byteLength(canonical(input))>16384)throw Error('Profile too large');
@@ -77,6 +94,22 @@ export function validateProfile(input){
 }
 // Policy receives a cloned, frozen seat observation, never the authority snapshot.
 export function decide(view,profile,decisionSeed){
+ if(profile.policyVersion==='shared-plan-0.1.0')return decideWithMemory(view,profile,decisionSeed).action;
  const observation=freeze(structuredClone(view));
  return profile.policyVersion==='heuristic-1.1.0'?baseline(observation,profile.level):(profile.policyVersion==='resource-heuristic-0.2.0'?resourceComponents:profile.policyVersion==='resource-heuristic-0.1.0'?resourcePlanner:profile.policyVersion==='trade-planner-0.1.0'?tradePlanner:profile.policyVersion==='planner-0.1.0'?planner:parameterized)(observation,profile.level,profile.parameters,decisionSeed);
+}
+
+// Goal memory belongs to one seat/game/profile, separate from authoritative rules.
+export function decideWithMemory(view,profile,decisionSeed,memory=null){
+ if(profile.policyVersion!=='shared-plan-0.1.0'){if(memory!==null)throw Error('This policy does not accept plan memory');return {action:decide(view,profile,decisionSeed),memory:null,diagnostics:null};}
+ const profileHash=hash(profile);
+ if(memory!==null){
+  keys(memory,['schemaVersion','policyVersion','profileHash','gameId','actor','engineVersion','lastRevision','data'],'plan memory');
+  keys(memory.data,['schemaVersion','goalKey'],'plan memory data');
+  if(memory.schemaVersion!==1||memory.policyVersion!==profile.policyVersion||memory.profileHash!==profileHash||memory.gameId!==view.id||memory.actor!==view.you||memory.engineVersion!==view.engineVersion||!Number.isSafeInteger(memory.lastRevision)||memory.lastRevision<0||memory.lastRevision>view.revision||memory.data.schemaVersion!==1||memory.data.goalKey!==null&&(typeof memory.data.goalKey!=='string'||memory.data.goalKey.length>128)||Buffer.byteLength(canonical(memory))>4096)throw Error('Incompatible plan memory');
+ }
+ const result=sharedPlanDecision(freeze(structuredClone(view)),profile.parameters,decisionSeed,memory?freeze(structuredClone(memory.data)):null);
+ const next={schemaVersion:1,policyVersion:profile.policyVersion,profileHash,gameId:view.id,actor:view.you,engineVersion:view.engineVersion,lastRevision:view.revision,data:result.memory};
+ if(Buffer.byteLength(canonical(next))>4096)throw Error('Plan memory exceeds budget');
+ return freeze({action:result.action,memory:next,diagnostics:result.diagnostics?{reason:result.reason,...result.diagnostics}:null});
 }

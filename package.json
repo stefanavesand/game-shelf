@@ -21,7 +21,7 @@
     "bots:simulate": "node scripts/bots/cli.mjs simulate",
     "bots:replay": "node scripts/bots/cli.mjs replay",
     "bots:compare": "node scripts/bots/cli.mjs compare",
-    "test:bots": "node tests/bots/foundation.test.mjs && node tests/bots/planner.test.mjs && node tests/bots/trade-policy.test.mjs && node tests/bots/cohort-analysis.test.mjs && node tests/bots/trade-audit.test.mjs && node tests/bots/resource-policy.test.mjs"
+    "test:bots": "node tests/bots/foundation.test.mjs && node tests/bots/planner.test.mjs && node tests/bots/trade-policy.test.mjs && node tests/bots/cohort-analysis.test.mjs && node tests/bots/trade-audit.test.mjs && node tests/bots/resource-policy.test.mjs && node tests/bots/shared-plan.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1"

@@ -1,6 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
-import {canonical,hash,template,validateProfile,registry,plannerRegistry,tradeRegistry,resourceRegistry,resourceComponentRegistry} from './profiles.mjs';
+import {canonical,hash,template,validateProfile,registry,plannerRegistry,tradeRegistry,resourceRegistry,resourceComponentRegistry,sharedPlanRegistry} from './profiles.mjs';
 import {loadExperiment,plan,simulate,fingerprint} from './experiments.mjs';
 import {runMatch} from './match.mjs';
 const args=process.argv.slice(2),command=args.shift();
@@ -10,7 +10,7 @@ try{
  if(command==='profile'){
   const action=args.shift();
   if(action==='template'){if(args.length>1)throw Error('Expected optional policy version');const p=validateProfile(template('heuristic-candidate',args[0]||'heuristic-params-0.1.0'));console.log(JSON.stringify(p,null,2));}
-  else if(action==='registry'){if(args.length)throw Error('Unexpected arguments');console.log(JSON.stringify({legacy:registry,planner:plannerRegistry,trade:tradeRegistry,resource:resourceRegistry,resourceComponents:resourceComponentRegistry},null,2));}
+  else if(action==='registry'){if(args.length)throw Error('Unexpected arguments');console.log(JSON.stringify({legacy:registry,planner:plannerRegistry,trade:tradeRegistry,resource:resourceRegistry,resourceComponents:resourceComponentRegistry,sharedPlanRegistry},null,2));}
   else if(action==='validate'){if(args.length!==1)throw Error('Expected profile file');const p=validateProfile(await readJson(args[0]));console.log(JSON.stringify({profile:p,sha256:hash(p)},null,2));}
   else throw Error('Use bots:profile -- template [policyVersion] | registry | validate file.json');
  }else if(command==='simulate'){
@@ -26,7 +26,7 @@ try{
   const envelope=await readJson(path.join(opts['--out'],'matches',job.id+'.json'));if(envelope.checksum!==hash(envelope.result))throw Error('Corrupt checkpoint');
   if(['MATCH_WATCHDOG','WORKER_EXIT'].includes(envelope.result.reason)||envelope.result.reason?.startsWith('WORKER_ERROR'))throw Error('Infrastructure failure has no complete deterministic replay; rerun as a separate experiment');
   const actual=runMatch({job,profiles:job.profiles.map(id=>meta.profiles[id]),maxActions:meta.manifest.maxActions,decisionSeed:meta.manifest.decisionSeed});
-  for(const k of ['status','reason','traceHash','finalStateHash','winnerSeat'])if(canonical(actual[k])!==canonical(envelope.result[k]))throw Error('Replay mismatch: '+k);
+  for(const k of ['status','reason','traceHash','finalStateHash','winnerSeat',...(envelope.result.planTraceHash?['planTraceHash']:[])])if(canonical(actual[k])!==canonical(envelope.result[k]))throw Error('Replay mismatch: '+k);
   console.log(JSON.stringify({matchId:job.id,reproduced:true,traceHash:actual.traceHash,steps:actual.steps}));
  }else if(command==='compare'){
   if(args.length!==2)throw Error('Expected two run directories');const [a,b]=await Promise.all(args.map(p=>readJson(path.join(p,'summary.json'))));console.log(JSON.stringify({note:'Descriptive comparison only; not paired inference or a difficulty rating.',runs:args.map((directory,i)=>({directory,summary:i?b:a}))},null,2));

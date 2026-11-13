@@ -88,3 +88,7 @@ The [resource/card policy](BOT_RESOURCE_POLICY.md) adds `resource-heuristic-0.1.
 ## Resource-component isolation
 
 The [four-profile component ablation](BOT_RESOURCE_COMPONENTS.md) separates goal-aware discards from the combined resource-card component. `resourceComponents` exposes two strict phase gates while delegating to unchanged existing policies. Reused cases are replication/training evidence, not fresh validation.
+
+## Adaptive shared goals
+
+The [shared-plan experiment](BOT_SHARED_PLAN.md) links concrete legal routes, construction and resource choices with explicit seat/game/profile-scoped private policy memory. Its new `sharedPlan` registry and optional plan-change trace do not alter older policy versions or authoritative state. Player trading is still a documented legacy boundary.

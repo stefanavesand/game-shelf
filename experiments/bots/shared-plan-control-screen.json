@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "shared-plan-screen-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "shared-plan-control": "shared-plan-control.json",
+    "baseline-standard": "baseline-standard.json"
+  },
+  "rosters": [
+    {
+      "id": "three-shared",
+      "profiles": [
+        "shared-plan-control",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-shared",
+      "profiles": [
+        "shared-plan-control",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    }
+  ]
+}
