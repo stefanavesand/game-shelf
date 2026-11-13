@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "build-trade-screen-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "shared-plan-default": "shared-plan-default.json",
+    "baseline-standard": "baseline-standard.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "shared-plan-default",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "shared-plan-default",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    }
+  ]
+}

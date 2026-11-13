@@ -137,3 +137,7 @@ The public-topology shortest-path planner, goal scoring/hysteresis, shared resou
 Shared-goal aggregate evidence includes synthetic plan/command correspondence and deterministic memory replay. The private-memory protocol and plan diagnostics are confined to offline experiment tooling; no real-player data or private plan trace is committed or broadcast.
 
 The fresh shared-goal validation adds only original experiment manifests, aggregate synthetic results and documentation. Existing policies, dependencies, rules and gameplay assets are unchanged. Full policy/memory and authoritative command replays remain local; no real-player data is included.
+
+## Construction-linked trades and hand exposure
+
+The trade overlay, own-hand counterfactual valuation, soft discard-exposure heuristic, strict profile controls and tests are original code using existing shared-goal, topology/economy and ordinary session helpers. No external code, dependency or asset was imported. Frozen policy implementations and production rules/gameplay remain unchanged; synthetic goal diagnostics stay private to experiment artifacts.

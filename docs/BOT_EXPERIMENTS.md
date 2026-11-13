@@ -92,3 +92,7 @@ The [four-profile component ablation](BOT_RESOURCE_COMPONENTS.md) separates goal
 ## Adaptive shared goals
 
 The [shared-plan experiment](BOT_SHARED_PLAN.md) links concrete legal routes, construction and resource choices with explicit seat/game/profile-scoped private policy memory. Its new `sharedPlan` registry and optional plan-change trace do not alter older policy versions or authoritative state. Player trading is still a documented legacy boundary.
+
+## Construction-linked trades and hand exposure
+
+The [build/trade overlay](BOT_BUILD_TRADES.md) uses the shared goal for offers, acceptance, replacement counters and bank decisions, with a configurable soft large-hand penalty. Development-card and robber tuning remain deferred. This is an offline experiment, not a gameplay policy promotion.

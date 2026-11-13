@@ -1,6 +1,6 @@
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
-import {canonical,hash,template,validateProfile,registry,plannerRegistry,tradeRegistry,resourceRegistry,resourceComponentRegistry,sharedPlanRegistry} from './profiles.mjs';
+import {canonical,hash,template,validateProfile,registry,plannerRegistry,tradeRegistry,resourceRegistry,resourceComponentRegistry,sharedPlanRegistry,buildTradeRegistry} from './profiles.mjs';
 import {loadExperiment,plan,simulate,fingerprint} from './experiments.mjs';
 import {runMatch} from './match.mjs';
 const args=process.argv.slice(2),command=args.shift();
@@ -10,7 +10,7 @@ try{
  if(command==='profile'){
   const action=args.shift();
   if(action==='template'){if(args.length>1)throw Error('Expected optional policy version');const p=validateProfile(template('heuristic-candidate',args[0]||'heuristic-params-0.1.0'));console.log(JSON.stringify(p,null,2));}
-  else if(action==='registry'){if(args.length)throw Error('Unexpected arguments');console.log(JSON.stringify({legacy:registry,planner:plannerRegistry,trade:tradeRegistry,resource:resourceRegistry,resourceComponents:resourceComponentRegistry,sharedPlanRegistry},null,2));}
+  else if(action==='registry'){if(args.length)throw Error('Unexpected arguments');console.log(JSON.stringify({legacy:registry,planner:plannerRegistry,trade:tradeRegistry,resource:resourceRegistry,resourceComponents:resourceComponentRegistry,sharedPlanRegistry,buildTradeRegistry},null,2));}
   else if(action==='validate'){if(args.length!==1)throw Error('Expected profile file');const p=validateProfile(await readJson(args[0]));console.log(JSON.stringify({profile:p,sha256:hash(p)},null,2));}
   else throw Error('Use bots:profile -- template [policyVersion] | registry | validate file.json');
  }else if(command==='simulate'){
