@@ -45,3 +45,23 @@ Defaults are prepared-scenario starting values, not optimized parameters or cali
 Focused scenarios check exact off delegation, immutable observations, strict bounds, army distance, own blocked production, action-card queue, exhaustion/double counting, absent road routes, empty deck, high-hand non-trigger, ordinary draws/timing/VP scoring, winning city priority, remembered goals, changed-hand decisions and hidden-deck/opponent-card invariance. A natural match checks deterministic action/plan/state replay and gate-off parity.
 
 The first training screen is frozen before execution: seeds 37/91, all seat rotations, three/four total players against frozen Standard, 2 workers/run, 2,500-action cap and 120-second watchdog. Compare purchase gate off/on with identical robber/Knight settings. These are reused training blocks; they cannot establish general strength. Report purchases and natural Knight use as coverage, not optimization targets. Fresh mixed/self-play cohorts, full owned-card comparison and worker/device measurements remain rollout gates.
+
+
+## Initial fixed-profile results
+
+Implementation/source identity: `1763d813f255e5ae5a535408a4beab2067ec1911`. All 101 bot tests passed (nine new purchase scenarios), as did source/documentation checks, build and eight package tests. An initial package check after restoring generated files failed on source/package byte mismatch; rebuilding the package resolved it. Existing PWA policy implementation/profile bytes are unchanged; no browser/device performance claim is made.
+
+All **28/28 games ended**, with zero failures/caps/watchdogs. The audit reconstructed every actor decision from authorized views/fresh scoped memory and reproduced command, compressed plan, final-state and winner hashes. All 14 paired setup prefixes matched. Gate-off also exactly reproduced all 14 cases with the frozen robber-both policy, including action/plan/state/winner hashes.
+
+| Purchase gate | Three-seat wins | Four-seat wins | Purchases | Knights played | Knights before roll | Army acquisitions |
+| --- | --- | --- | --- | --- | --- | --- |
+| Off | 2/6 | 5/8 | 0 | 0 | 0 | 0 |
+| On | 3/6 | 3/8 | 21 | 16 | 15 | 3 |
+
+The on arm also played one Road Building and one Monopoly, with four Knight hold decisions on two distinct turns. Neither arm naturally played Year of Plenty. These are focal-policy metrics, not all participants. More purchases and army awards establish natural execution coverage, **not** better purchasing decisions or strength. Results are mixed and the two seed blocks are too small for a promotion decision. The PWA remains unchanged.
+
+Observed on-arm decision p95 was 72.3 ms (three seats) and 58.5 ms (four), maximum 144.0 ms in these concurrent Linux simulations. This excludes real PWA fresh-worker startup and is not an iPad budget guarantee. No parameters were adjusted after seeing results.
+
+[Aggregate run summaries/profiles](../experiments/bots/results/development-investment-screen-v1.json) and [full decision/state replay metrics](../experiments/bots/results/development-investment-replay-v1.json) retain source/profile identities; no private raw traces are published. Audit source SHA is recorded in the replay artifact; the standalone audit and synthetic run outputs are local workspace artifacts.
+
+Next: inspect purchase-versus-construction opportunity cost and actual card follow-through, then implement the separately gated common owned-card comparison. Retain existing prepared scenarios and distinguish natural card coverage from strength. Fresh held-out mixed/self-play and real-worker/device measurements remain required before app promotion. Case identities differ from the older robber screen, so compare on/off within this manifest rather than treating older screen wins as its control.
