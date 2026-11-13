@@ -43,3 +43,13 @@ test('the approved short gap cannot truncate long rolls, flights or piece moves'
  assert.equal(motionInterval('ROLL_DICE'),5550);assert.equal(motionInterval('BUILD_SETTLEMENT'),2950);assert.equal(motionInterval('MOVE_ROBBER'),1700);assert.equal(motionInterval('END_TURN'),300);
  let time=0;const pacer=createMovePacer({now:()=>time}),p={ok:true,roomId:'long',revision:1,view:{history:[{message:'build settlement'}]},botWorkPending:true};pacer.observe(p);time=300;assert.equal(pacer.takeBudget(p),0);time=2949;assert.equal(pacer.takeBudget(p),0);time=2950;assert.equal(pacer.takeBudget(p),1);
 });
+
+test('trade responses wait a stable random 2–5 seconds without sleeping or rerolling on refresh',()=>{
+ for(const [random,expected]of [[0,2000],[1,5000]]){let time=0,draws=0;const p={ok:true,roomId:'trade',revision:1,botWorkPending:true,view:{offer:{id:'offer'},history:[]}},pacer=createMovePacer({now:()=>time,random:()=>{draws++;return random;}});
+  assert.equal(pacer.takeBudget(p),0);time=1000;assert.equal(pacer.remaining(p),expected-1000);assert.equal(draws,1);time=expected-1;assert.equal(pacer.takeBudget(p),0);time++;assert.equal(pacer.takeBudget(p),1);assert.equal(pacer.takeBudget(p),0);
+  p.revision++;pacer.observe(p);assert.equal(pacer.remaining(p),expected);assert.equal(draws,2);
+ }
+});
+test('only a sole mandatory legal theft is automatic',async()=>{
+ const {automaticSteal}=await import('../../play/presentation/forced-action.js'),a={type:'STEAL_RESOURCE',victimId:'a'},v={state:{game:{phase:'robber-steal'}},choices:[a]};assert.deepEqual(automaticSteal(v),a);assert.equal(automaticSteal({...v,choices:[]}),null);assert.equal(automaticSteal({...v,choices:[a,{...a,victimId:'b'}]}),null);assert.equal(automaticSteal({...v,state:{game:{phase:'main'}}}),null);assert.equal(automaticSteal(null),null);
+});

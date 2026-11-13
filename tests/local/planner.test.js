@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {preparePlanner} from '../../scripts/bots/prepare-runtime.mjs';
 await preparePlanner();
 const {profile,profileHash}=await import('../../play/bots/profile.js');
-import {decision} from '../../scripts/bots/build-trade-components.mjs';
+import {decision} from '../../scripts/bots/purchase-policy.mjs';
 import {createLocalClient} from '../../play/local/client.js';
 import {createPlannerRunner} from '../../play/bots/client.js';
 import {validateMemory,PLANNER_POLICY} from '../../play/bots/contract.js';
@@ -45,6 +45,9 @@ test('the actual generated worker matches the tested policy and returns scoped m
  const url=new URL('../../play/bots/worker.js',import.meta.url).href;let terminated=0;
  const runner=createPlannerRunner({workerFactory:()=>{const w=new Thread(`const {parentPort}=require('node:worker_threads');globalThis.self={postMessage:d=>parentPort.postMessage(d)};const ready=import(${JSON.stringify(url)});parentPort.on('message',async d=>{await ready;self.onmessage({data:d});});`,{eval:true});const adapter={postMessage:d=>w.postMessage(d),terminate:()=>{terminated++;w.terminate();}};w.on('message',data=>adapter.onmessage?.({data}));w.on('error',()=>adapter.onerror?.());return adapter;}});
  const actual=await runner.decide(v,null),expected=await planner.decide(v,null);assert.deepEqual(actual,expected);assert.equal(terminated,1);validateMemory(actual.memory,v,profileHash);module.apply(state,'p1',{actor,action:actual.action},{},{coordinatorId:'p1'});
+ const {profile:old,profileHash:oldHash}=await import('../../play/bots/legacy-profile.js'),{decision:oldDecision}=await import('../../scripts/bots/build-trade-components.mjs');
+ const legacy=await runner.decide(v,null,'build-trade-0.2.0');assert.deepEqual(legacy.action,oldDecision(v,old.parameters,0).action);validateMemory(legacy.memory,v,oldHash,'build-trade-0.2.0');assert.deepEqual((await runner.decide(v,legacy.memory)).action,legacy.action);
+ f.data.games[p.roomId].botPolicy='build-trade-0.2.0';assert.equal((await c.inspect()).packet.botPolicy,'build-trade-0.2.0');
 });
 
 test('an illegal worker proposal cannot commit either state or its new plan',async()=>{

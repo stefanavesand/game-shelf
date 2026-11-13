@@ -42,7 +42,7 @@ test('setup confirmation fits a short phone viewport',async({browser})=>{
 test('help, score details and cards remain reachable in landscape',async({browser})=>{
  const {context,page}=await start(browser,{width:844,height:390});try{
   await page.getByRole('button',{name:'Help and rules',exact:true}).click();await page.getByLabel('Topic',{exact:true}).selectOption({label:'Knight'});expect(await fits(page,'#help-next')).toEqual({visible:true,inside:true});await page.getByRole('button',{name:'Close panel',exact:true}).click();
-  await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.getByRole('button',{name:'Score breakdown',exact:true}).click();await page.getByLabel('Player',{exact:true}).selectOption({index:1});expect(await fits(page,'.score-detail:not([hidden])')).toEqual({visible:true,inside:true});await page.getByRole('button',{name:'Close panel',exact:true}).click();
+  await page.locator('.player[data-action]').first().click();await page.getByLabel('Player',{exact:true}).selectOption({index:1});expect(await fits(page,'.score-detail:not([hidden])')).toEqual({visible:true,inside:true});await page.getByRole('button',{name:'Close panel',exact:true}).click();
   await page.getByRole('button',{name:/Cards ·/}).click();expect(await fits(page,'.card-button:not([hidden])')).toEqual({visible:true,inside:true});
  }finally{await context.close();}
 });

@@ -21,3 +21,5 @@ diagnostics/bots/fixtures.js
 # Generated explicit PWA planner policy assets
 play/bots/policies/
 play/bots/profile.js
+
+play/bots/legacy-profile.js

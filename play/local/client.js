@@ -1,5 +1,5 @@
 import {createPlannerRunner} from '../bots/client.js';
-import {PLANNER_POLICY} from '../bots/contract.js';
+import {PLANNER_POLICY,supportedPolicy} from '../bots/contract.js';
 import {createCatanModule,catanConfig} from '../catan/module.js';
 import {CATAN_ARTIFACT} from '../catan/artifact.js';
 import {digest,clone} from '../relay/protocol.js';
@@ -16,10 +16,10 @@ export function createLocalStorage({indexedDB=globalThis.indexedDB,owner=()=>nul
 export function createLocalClient({planner=createPlannerRunner(),storage=createLocalStorage(),locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),seed=()=>{const n=new Uint32Array(1);do{crypto.getRandomValues(n);}while(!n[0]);return n[0];}}={}){
  const lock=work=>locked('game-shelf-local-solo',work,locks);let local=false;
  async function load(){const lib=await storage.load();if(lib.schemaVersion!==1)throw new PlayError('UNSUPPORTED_VERSION','This local save needs a compatible app.');local=lib.local;return lib;}
- async function verify(game){if((game.botPolicy!==undefined||game.botMemory!==undefined)&&(game.botPolicy!==PLANNER_POLICY||await digest(game.botMemory||{})!==game.botMemoryHash))throw new PlayError('UNSUPPORTED_VERSION','This saved bot plan needs its original policy. The last saved move is preserved.');if(game.artifact!==CATAN_ARTIFACT.compatibilityId)throw new PlayError('UNSUPPORTED_VERSION','This game needs its original engine version.');if(await digest(game.state)!==game.hash)throw new PlayError('STORAGE_FAILURE','The saved game failed its integrity check.');}
+ async function verify(game){if((game.botPolicy!==undefined||game.botMemory!==undefined)&&(!supportedPolicy(game.botPolicy)||await digest(game.botMemory||{})!==game.botMemoryHash))throw new PlayError('UNSUPPORTED_VERSION','This saved bot plan needs its original policy. The last saved move is preserved.');if(game.artifact!==CATAN_ARTIFACT.compatibilityId)throw new PlayError('UNSUPPORTED_VERSION','This game needs its original engine version.');if(await digest(game.state)!==game.hash)throw new PlayError('STORAGE_FAILURE','The saved game failed its integrity check.');}
  async function commit(lib,game,next,memory){game.state=next;game.hash=await digest(next);if(memory){game.botMemory=memory;game.botMemoryHash=await digest(memory);}await storage.save(lib);}
  async function bots(lib,game,budget=8){for(let i=0;i<Math.min(8,budget);i++){let command=module.nextBot(game.state);if(!command)return;let memories;
-   if(game.botPolicy){let result;try{result=await planner.decide(module.view(game.state,command.actor),game.botMemory?.[command.actor]||null);}catch(error){throw new PlayError('BOT_FAILURE',error.message);}command={actor:command.actor,action:result.action};memories={...game.botMemory,[command.actor]:result.memory};}
+   if(game.botPolicy){let result;try{result=await planner.decide(module.view(game.state,command.actor),game.botMemory?.[command.actor]||null,game.botPolicy);}catch(error){throw new PlayError('BOT_FAILURE',error.message);}command={actor:command.actor,action:result.action};memories={...game.botMemory,[command.actor]:result.memory};}
    await commit(lib,game,module.apply(game.state,'p1',command,{}, {coordinatorId:'p1'}),memories);}}
  function packet(game){const s=game.state.snapshot;return {ok:true,apiVersion:1,roomId:s.id,you:'p1',status:s.state.game.phase==='ended'?'ended':'playing',revision:s.revision,members:s.seats,view:module.view(game.state,'p1'),local:true,botPolicy:game.botPolicy||null,botWorkPending:module.hasBotWork(game.state)};}
  return {

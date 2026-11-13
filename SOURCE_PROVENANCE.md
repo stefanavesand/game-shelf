@@ -157,3 +157,7 @@ The public production/threat scorer, deterministic victim choice, bounded Knight
 ## Experimental development investment
 
 Original observation-only purchase valuation, registry, scenarios and experiment configurations were written for this repository. No external implementation, model, asset or dependency was imported. Ordinary reducer entropy draws cards; the policy has no private deck access. The shipped PWA profile remains unchanged.
+
+## PWA development-investment playtest
+
+The owner authorized publishing the original development-investment/robber policy through the existing opt-in Solo Planner worker. The browser generator rewrites import paths/extensions only and includes both new purchase-on and legacy counter-on profiles for pinned saves. No additional dependency, third-party source or artwork is introduced. UI-only trade scheduling and sole-victim command automation leave authoritative rule randomness and legality unchanged.
