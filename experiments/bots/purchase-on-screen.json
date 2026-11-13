@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "development-investment-screen-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "purchase-on": "purchase-on.json",
+    "baseline-standard": "baseline-standard.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "purchase-on",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "purchase-on",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    }
+  ]
+}

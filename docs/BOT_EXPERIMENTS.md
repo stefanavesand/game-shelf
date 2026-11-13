@@ -98,3 +98,5 @@ The [shared-plan experiment](BOT_SHARED_PLAN.md) links concrete legal routes, co
 The [build/trade overlay](BOT_BUILD_TRADES.md) uses the shared goal for offers, acceptance, replacement counters and bank decisions, with a configurable soft large-hand penalty. Development-card and robber tuning remain deferred. This is an offline experiment, not a gameplay policy promotion.
 
 The [robber/Knight component experiment](BOT_ROBBER_KNIGHT.md) adds production/threat placement and optional Knight retention around the unchanged shipped policy. Two independent gates support exact previous-policy parity and separate timing/placement training screens; no PWA profile is changed.
+
+The separate [development investment experiment](BOT_DEVELOPMENT_INVESTMENT.md) adds a gated observation-only purchase goal value without changing the shipped bot.

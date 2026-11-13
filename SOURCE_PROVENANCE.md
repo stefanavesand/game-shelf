@@ -153,3 +153,7 @@ The shipped-bot benchmark tool and aggregate reports are original synthetic simu
 ## Robber and Knight experiment
 
 The public production/threat scorer, deterministic victim choice, bounded Knight/army/other-card previews, own-card availability counterfactual, strict controls and tests are original code using existing authoritative geometry/turn/economy/scoring helpers. No external implementation, model, dependency or asset was imported. Actual theft remains ordinary engine entropy; policies receive only authorized observations. Existing published policy files and PWA runtime/profile remain unchanged.
+
+## Experimental development investment
+
+Original observation-only purchase valuation, registry, scenarios and experiment configurations were written for this repository. No external implementation, model, asset or dependency was imported. Ordinary reducer entropy draws cards; the policy has no private deck access. The shipped PWA profile remains unchanged.

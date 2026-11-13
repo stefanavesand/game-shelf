@@ -1,3 +1,4 @@
+import {decision as purchaseDecision} from './purchase-policy.mjs';
 import {decision as robberDecision} from './robber-policy.mjs';
 import {decision as buildTradeComponents} from './build-trade-components.mjs';
 import {createHash} from 'node:crypto';
@@ -107,14 +108,27 @@ export const robberRegistry=freeze({...buildTradeComponentRegistry,
  knightMinGain:{type:'number',unit:'minimum net Knight utility',min:0,max:0.5,default:0.02},
  knightOtherCardWeight:{type:'number',unit:'weight of legal same-goal resource-card gain',min:0,max:2,default:1}
 });
-export const policyRegistry=version=>version==='robber-knight-0.1.0'?robberRegistry:version==='build-trade-0.2.0'?buildTradeComponentRegistry:version==='build-trade-0.1.0'?buildTradeRegistry:version==='shared-plan-0.1.0'?sharedPlanRegistry:version==='resource-heuristic-0.2.0'?resourceComponentRegistry:version==='resource-heuristic-0.1.0'?resourceRegistry:version==='trade-planner-0.1.0'?tradeRegistry:version==='planner-0.1.0'?plannerRegistry:version==='heuristic-1.1.0'?{}:registry;
+export const purchaseRegistry=freeze({...robberRegistry,
+ enablePurchaseValuation:{type:'integer',unit:'0 previous purchases; 1 state-dependent investment',min:0,max:1,default:1},
+ purchaseVpValue:{type:'number',unit:'VP utility',min:0,max:2,default:1},
+ purchaseLateVpWeight:{type:'number',unit:'late-game VP multiplier increment',min:0,max:2,default:0.5},
+ purchaseKnightValue:{type:'number',unit:'neutral Knight utility',min:0,max:2,default:0.4},
+ purchaseArmyWeight:{type:'number',unit:'army-distance utility multiplier',min:0,max:2,default:0.6},
+ purchaseRoadValue:{type:'number',unit:'feasible free-road utility',min:0,max:2,default:0.6},
+ purchaseResourceValue:{type:'number',unit:'resource-card goal utility',min:0,max:2,default:0.5},
+ purchaseMonopolyDiscount:{type:'number',unit:'uncertain future Monopoly discount',min:0,max:1,default:0.5},
+ purchaseDelayDiscount:{type:'number',unit:'new action-card delay discount',min:0,max:1,default:0.8},
+ purchaseQueuePenalty:{type:'number',unit:'penalty per owned unplayed action card',min:0,max:2,default:0.5},
+ purchaseMinValue:{type:'number',unit:'minimum investment utility, not a hand-risk trigger',min:0,max:1,default:0.05}
+});
+export const policyRegistry=version=>version==='development-investment-0.1.0'?purchaseRegistry:version==='robber-knight-0.1.0'?robberRegistry:version==='build-trade-0.2.0'?buildTradeComponentRegistry:version==='build-trade-0.1.0'?buildTradeRegistry:version==='shared-plan-0.1.0'?sharedPlanRegistry:version==='resource-heuristic-0.2.0'?resourceComponentRegistry:version==='resource-heuristic-0.1.0'?resourceRegistry:version==='trade-planner-0.1.0'?tradeRegistry:version==='planner-0.1.0'?plannerRegistry:version==='heuristic-1.1.0'?{}:registry;
 export function template(id='heuristic-candidate',policyVersion='heuristic-params-0.1.0'){
  return {schemaVersion:1,id,policyVersion,featureSchemaVersion:1,level:'standard',parameters:policyVersion==='heuristic-1.1.0'?{}:Object.fromEntries(Object.entries(policyRegistry(policyVersion)).map(([k,v])=>[k,v.default]))};
 }
 export function validateProfile(input){
  keys(input,['schemaVersion','id','policyVersion','featureSchemaVersion','level','parameters'],'profile');
- if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
- if(['resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
+ if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['development-investment-0.1.0','heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
+ if(['development-investment-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
  const fields=policyRegistry(input.policyVersion),expected=Object.keys(fields);keys(input.parameters,expected,'parameters');
  for(const key of expected){const value=input.parameters[key],r=fields[key];if(r.type==='integer'&&!Number.isInteger(value))throw Error(`Invalid integer parameter: ${key}`);if(typeof value!=='number'||!Number.isFinite(value)||value<r.min||value>r.max)throw Error(`Invalid parameter: ${key}`);}
  if(Buffer.byteLength(canonical(input))>16384)throw Error('Profile too large');
@@ -122,21 +136,21 @@ export function validateProfile(input){
 }
 // Policy receives a cloned, frozen seat observation, never the authority snapshot.
 export function decide(view,profile,decisionSeed){
- if(['shared-plan-0.1.0','build-trade-0.1.0','build-trade-0.2.0','robber-knight-0.1.0'].includes(profile.policyVersion))return decideWithMemory(view,profile,decisionSeed).action;
+ if(['development-investment-0.1.0','shared-plan-0.1.0','build-trade-0.1.0','build-trade-0.2.0','robber-knight-0.1.0'].includes(profile.policyVersion))return decideWithMemory(view,profile,decisionSeed).action;
  const observation=freeze(structuredClone(view));
  return profile.policyVersion==='heuristic-1.1.0'?baseline(observation,profile.level):(profile.policyVersion==='resource-heuristic-0.2.0'?resourceComponents:profile.policyVersion==='resource-heuristic-0.1.0'?resourcePlanner:profile.policyVersion==='trade-planner-0.1.0'?tradePlanner:profile.policyVersion==='planner-0.1.0'?planner:parameterized)(observation,profile.level,profile.parameters,decisionSeed);
 }
 
 // Goal memory belongs to one seat/game/profile, separate from authoritative rules.
 export function decideWithMemory(view,profile,decisionSeed,memory=null){
- if(!['shared-plan-0.1.0','build-trade-0.1.0','build-trade-0.2.0','robber-knight-0.1.0'].includes(profile.policyVersion)){if(memory!==null)throw Error('This policy does not accept plan memory');return {action:decide(view,profile,decisionSeed),memory:null,diagnostics:null};}
+ if(!['development-investment-0.1.0','shared-plan-0.1.0','build-trade-0.1.0','build-trade-0.2.0','robber-knight-0.1.0'].includes(profile.policyVersion)){if(memory!==null)throw Error('This policy does not accept plan memory');return {action:decide(view,profile,decisionSeed),memory:null,diagnostics:null};}
  const profileHash=hash(profile);
  if(memory!==null){
   keys(memory,['schemaVersion','policyVersion','profileHash','gameId','actor','engineVersion','lastRevision','data'],'plan memory');
   keys(memory.data,['schemaVersion','goalKey'],'plan memory data');
   if(memory.schemaVersion!==1||memory.policyVersion!==profile.policyVersion||memory.profileHash!==profileHash||memory.gameId!==view.id||memory.actor!==view.you||memory.engineVersion!==view.engineVersion||!Number.isSafeInteger(memory.lastRevision)||memory.lastRevision<0||memory.lastRevision>view.revision||memory.data.schemaVersion!==1||memory.data.goalKey!==null&&(typeof memory.data.goalKey!=='string'||memory.data.goalKey.length>128)||Buffer.byteLength(canonical(memory))>4096)throw Error('Incompatible plan memory');
  }
- const policy=profile.policyVersion==='robber-knight-0.1.0'?robberDecision:profile.policyVersion==='build-trade-0.2.0'?buildTradeComponents:profile.policyVersion==='build-trade-0.1.0'?buildTradeDecision:sharedPlanDecision;
+ const policy=profile.policyVersion==='development-investment-0.1.0'?purchaseDecision:profile.policyVersion==='robber-knight-0.1.0'?robberDecision:profile.policyVersion==='build-trade-0.2.0'?buildTradeComponents:profile.policyVersion==='build-trade-0.1.0'?buildTradeDecision:sharedPlanDecision;
  const result=policy(freeze(structuredClone(view)),profile.parameters,decisionSeed,memory?freeze(structuredClone(memory.data)):null);
  const next={schemaVersion:1,policyVersion:profile.policyVersion,profileHash,gameId:view.id,actor:view.you,engineVersion:view.engineVersion,lastRevision:view.revision,data:result.memory};
  if(Buffer.byteLength(canonical(next))>4096)throw Error('Plan memory exceeds budget');

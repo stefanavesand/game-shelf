@@ -1,6 +1,6 @@
 # Robber and development-card strategy
 
-Status: staged requirements, with a narrow first robber/Knight slice implemented in a separate experiment linked below. Purchases and the full owned-card arbiter remain planned work. This opens the scope previously deferred by the owner. The shipped PWA 0.10.0 counter-on profile remains unchanged.
+Status: staged requirements, with a narrow first robber/Knight slice implemented in a separate experiment linked below. A separate first purchase overlay is implemented in [development investment](BOT_DEVELOPMENT_INVESTMENT.md); the full owned-card arbiter remains planned work. This opens the scope previously deferred by the owner. The shipped PWA 0.10.0 counter-on profile remains unchanged.
 
 ## Verified current behavior
 
