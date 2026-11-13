@@ -3,8 +3,9 @@ test('Solo exposes Planner, real workers save bot plans, and an installed-cache 
  test.setTimeout(60000);
  const context=await browser.newContext(),page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await expect(page.locator('#bot-level option[value=planner]')).toHaveCount(0);
-  await page.getByLabel('Play mode').selectOption('solo');await page.getByLabel('Bot level').selectOption('planner');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board [role=button]').first()).toBeVisible();
-  // Drive human setup through the same local session; bot choices use real module workers.
+  await page.getByLabel('Play mode').selectOption('solo');await page.getByLabel('Bot level').selectOption('planner');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board')).toBeVisible();
+  // Starting order is randomized: a bot may act before any human board targets exist.
+  // Drive either order through the same local session; bots use real module workers.
   const result=await page.evaluate(async()=>{const {client}=await import('/game-shelf/play/session.js'),{botDecision}=await import('/game-shelf/play/catan/rules/index.js');let {packet:p}=await client.inspect();const room=p.roomId;
    for(let i=0;i<30&&p.view.state.game.phase.startsWith('setup');i++){p=p.view.choices.length?await client.execute('command',{roomId:room,expectedRevision:p.revision,action:botDecision(p.view,'standard')},{botBudget:0}):await client.refresh({botBudget:1});if(!p.ok)throw Error('setup failed');}
    const db=await new Promise((resolve,reject)=>{const r=indexedDB.open('game-shelf-solo-v1');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});const record=await new Promise((resolve,reject)=>{const tx=db.transaction('records'),r=tx.objectStore('records').get('account:alice');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});db.close();const g=record.games[room];return {room,revision:p.revision,phase:p.view.state.game.phase,policy:p.botPolicy,memories:Object.keys(g.botMemory),privateInPacket:JSON.stringify(p).includes('goalKey')};});
