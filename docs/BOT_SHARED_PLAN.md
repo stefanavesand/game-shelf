@@ -48,3 +48,32 @@ The base board graph is public and fixed-size. Graph-node limits concern expande
 Fourteen focused tests cover real legal multi-road costs and follow-through, target completion, enemy occupation/roads, rerouting, configurable inertia, changed-card replanning, common-goal discard/Year of Plenty/city sequence, bank acquisition, explicit free-road recipes, winning build/Knight overrides, memory isolation/serialization, hidden-hand permutation invariance, unchanged trade response and deterministic full-game action/plan replay.
 
 The committed-source training screen uses two known seeds (37, 91), all seat rotations, and frozen Standard opponents: 14 focal games plus 14 frozen-control games. Both case sets use `shared-plan-screen-v1`; this is architecture/completion screening, not independent validation. The policy, weights, memory protocol and manifests are frozen before those runs. No automatic promotion follows from the small win counts.
+
+## Initial committed-source results (2026-11-13)
+
+All 28 games ended normally: zero rule/decision errors, action caps or watchdog failures. The candidate and control had identical initial-placement command prefixes in all 14 paired cases. Every candidate command, final-state and plan-trace hash was reproduced by a fresh policy/memory replay; all 28 authoritative final-state hashes were independently reproduced by the resource-outcome audit.
+
+| Stratum | Shared-goal wins | Frozen-control wins | Exploratory paired 95% difference interval |
+| --- | ---: | ---: | --- |
+| Three seats | 3 / 6 | 2 / 6 | 0.0 to +33.3 pp |
+| Four seats | 3 / 8 | 1 / 8 | 0.0 to +50.0 pp |
+
+These positive point counts are not a strength result: only two previously used training seed blocks per stratum were run. Percentile intervals cannot express unseen block variation here; a zero lower boundary is not proof of superiority. No automatic gameplay promotion, difficulty calibration or parameter optimality claim follows.
+
+### Coherence evidence
+
+The compressed diagnostic trace was checked against the accepted commands:
+
+- 136 observed paid construction/development-purchase actions matched the active target and its next road/site/upgrade step.
+- Four different final winning construction actions were allowed to override the active goal. No observed paid construction needed a no-goal fallback.
+- Across the logged changes, 34 events selected a clearly better current alternative, four reported a goal unavailable within the search bounds, and 77 reported completed goals. Each reported completion was checked against an actual prior own construction/purchase; no duplicate or unsupported completion was found.
+- Diagnostics are recorded for structural/missing-resource changes and non-Keep selections, not every decision. Their Keep counts are not an overall retention percentage. Unavailable events are not individually classified as opponent actions versus bounded reachability.
+- One natural complete city-cost discard opportunity in four-seat games and three in three-seat games were all preserved. This is a local resource-cost proxy, not proof that preserving a city hand always maximizes winning chances.
+
+Only three development cards were purchased by the candidate in these trajectories, with two Knight plays. No Year of Plenty, Monopoly or Road Building plays occurred in the candidate cohort. Shared-card selection and free-road recipes therefore remain supported by prepared tests rather than this natural screen; do not imply that all card paths were covered in these games.
+
+Candidate invocation p95 was approximately 44/39 ms and observed maxima 98/70 ms for 3/4 seats on the concurrent Linux/Node host, including controller cloning/freezing. Those are not physical-device or worst-case bounds. The 4 KiB serialized memory guard is not an incremental-heap measurement; worker/device/memory gates remain open.
+
+Evidence: [paired screen](../experiments/bots/results/shared-plan-screen-v1.json), [resource outcomes](../experiments/bots/results/shared-plan-resource-audit-v1.json), [full policy/memory replay](../experiments/bots/results/shared-plan-replay-v1.json), [construction/goal correspondence](../experiments/bots/results/shared-plan-coherence-v1.json). The immutable implementation/profile/manifests are recorded at `97c8a6201a67784b32784e3178405579b9107fa3`. Full synthetic commands and private plan traces remain local artifacts. Exact CLI replay checks the additional plan-trace hash; duplicate-free resume is also verified. The complete bot suite has 65 passing tests, with seven package tests and source/document checks passing.
+
+The next integration boundary is still deliberate: bank/ports and resources use the common goal, while player offers/responses remain in the frozen helper. Before gameplay adoption, investigate that boundary, value/timing quality, larger independent cases, board/opponent diversity and production worker/storage integration. Current PWA UI, rule artifact, server, release version and gameplay bot are unchanged.

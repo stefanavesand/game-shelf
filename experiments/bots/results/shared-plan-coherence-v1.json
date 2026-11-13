@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "9d72714fab637d13a94422a54c18312f43e288acf749677aa663899363a6f1c4",
+    "node": "v24.19.0",
+    "commit": "97c8a6201a67784b32784e3178405579b9107fa3"
+  },
+  "note": "Checks recorded compressed plan diagnostics against accepted synthetic commands. Events describe structural/missing-resource changes, not every selection call. Paid construction is checked against the last structurally current target; final winning overrides and no-plan/free-road fallbacks are reported separately. Full engine/state and memory replays are separate evidence.",
+  "groups": [
+    {
+      "roster": "four-shared",
+      "matches": 8,
+      "loggedPlanEvents": 294,
+      "paidConstructionAligned": 83,
+      "finalWinOverrides": 2,
+      "freeRoadActions": 0,
+      "noPlanFallbackActions": 0,
+      "selections": {
+        "NEW_GOAL": 8,
+        "KEEP_GOAL": 217,
+        "BETTER_ALTERNATIVE": 21,
+        "GOAL_COMPLETED": 45,
+        "GOAL_UNAVAILABLE_WITHIN_BOUNDS": 3
+      },
+      "confirmedCompletionEvents": 45,
+      "unmatchedCompletionEvents": 0,
+      "duplicateCompletionEvents": 0
+    },
+    {
+      "roster": "three-shared",
+      "matches": 6,
+      "loggedPlanEvents": 210,
+      "paidConstructionAligned": 53,
+      "finalWinOverrides": 2,
+      "freeRoadActions": 0,
+      "noPlanFallbackActions": 0,
+      "selections": {
+        "NEW_GOAL": 6,
+        "KEEP_GOAL": 158,
+        "BETTER_ALTERNATIVE": 13,
+        "GOAL_COMPLETED": 32,
+        "GOAL_UNAVAILABLE_WITHIN_BOUNDS": 1
+      },
+      "confirmedCompletionEvents": 32,
+      "unmatchedCompletionEvents": 0,
+      "duplicateCompletionEvents": 0
+    }
+  ]
+}

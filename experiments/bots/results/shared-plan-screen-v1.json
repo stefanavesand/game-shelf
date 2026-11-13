@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "note": "Descriptive screening. Percentile bootstrap resamples paired whole game-seed blocks within each stratum. No multiplicity correction, locked test or difficulty promotion. Failures remain in denominators.",
+  "candidateProfile": "shared-plan-default",
+  "controlProfile": "shared-plan-control",
+  "bootstrapSeed": 92831,
+  "strata": [
+    {
+      "roster": "four-shared",
+      "playerCount": 4,
+      "seeds": [
+        37,
+        91
+      ],
+      "matches": 8,
+      "independentSeedBlocks": 2,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 3,
+        "failures": 0,
+        "offers": 118,
+        "accepts": 9,
+        "declines": 107,
+        "winRate": 0.375
+      },
+      "control": {
+        "wins": 1,
+        "failures": 0,
+        "offers": 126,
+        "accepts": 10,
+        "declines": 124,
+        "winRate": 0.125
+      },
+      "winRateDifference": 0.25,
+      "exploratory95PercentileInterval": {
+        "low": 0,
+        "high": 0.5
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-shared",
+      "playerCount": 3,
+      "seeds": [
+        37,
+        91
+      ],
+      "matches": 6,
+      "independentSeedBlocks": 2,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 3,
+        "failures": 0,
+        "offers": 96,
+        "accepts": 11,
+        "declines": 124,
+        "winRate": 0.5
+      },
+      "control": {
+        "wins": 2,
+        "failures": 0,
+        "offers": 134,
+        "accepts": 11,
+        "declines": 131,
+        "winRate": 0.3333333333333333
+      },
+      "winRateDifference": 0.16666666666666669,
+      "exploratory95PercentileInterval": {
+        "low": 0,
+        "high": 0.3333333333333333
+      },
+      "resamples": 4000
+    }
+  ],
+  "analysisSourceSha256": "fb2b9d74b99672b2b0e789a40d5dc7ac465b9c79745efdad0fd6b4ff633305be",
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "9d72714fab637d13a94422a54c18312f43e288acf749677aa663899363a6f1c4",
+    "node": "v24.19.0",
+    "commit": "97c8a6201a67784b32784e3178405579b9107fa3"
+  },
+  "manifests": {
+    "candidate": {
+      "schemaVersion": 1,
+      "id": "shared-plan-screen-v1",
+      "split": "train",
+      "gameSeeds": [
+        37,
+        91
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "shared-plan-default": "shared-plan-default.json",
+        "baseline-standard": "baseline-standard.json"
+      },
+      "rosters": [
+        {
+          "id": "three-shared",
+          "profiles": [
+            "shared-plan-default",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-shared",
+          "profiles": [
+            "shared-plan-default",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        }
+      ]
+    },
+    "control": {
+      "schemaVersion": 1,
+      "id": "shared-plan-screen-v1",
+      "split": "train",
+      "gameSeeds": [
+        37,
+        91
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "shared-plan-control": "shared-plan-control.json",
+        "baseline-standard": "baseline-standard.json"
+      },
+      "rosters": [
+        {
+          "id": "three-shared",
+          "profiles": [
+            "shared-plan-control",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-shared",
+          "profiles": [
+            "shared-plan-control",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        }
+      ]
+    }
+  }
+}
