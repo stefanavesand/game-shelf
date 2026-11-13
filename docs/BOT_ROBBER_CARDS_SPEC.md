@@ -1,6 +1,6 @@
 # Robber and development-card strategy
 
-Status: source-reviewed requirements and staged implementation plan. This opens the scope previously deferred by the owner. The shipped PWA 0.10.0 counter-on profile remains unchanged; this document does not claim a new strategy has been implemented or benchmarked.
+Status: staged requirements, with a narrow first robber/Knight slice implemented in a separate experiment linked below. Purchases and the full owned-card arbiter remain planned work. This opens the scope previously deferred by the owner. The shipped PWA 0.10.0 counter-on profile remains unchanged.
 
 ## Verified current behavior
 
@@ -80,4 +80,6 @@ Then use fresh held-out seed blocks, all seat rotations, Standard/mixed opponent
 
 The first implementation should be a separate experimental policy/profile with robber valuation and Knight timing only; purchase/build/trade weights remain fixed. Existing PWA 0.10.0 games pin 0.2 profile/worker memory. A later app integration must preserve that loader/profile alongside the new version and pin new games explicitly; overwriting the current generated profile would reject saved plan envelopes. Rule-engine changes are not implied by this strategy work. No server or protocol change is required for Solo.
 
-Review execution evidence: the existing 21 rule-validation tests and 14 shared-plan tests pass, including card timing, army ties and prepared card/build sequences. These verify the current engine/planner only. New scoring, purchase quality, the proposed new scenario matrix, worker performance and competitive benefit have not yet been implemented or validated. Current-strategy findings above are code-review evidence plus the already published benchmark counts.
+Review baseline evidence: the existing 21 rule-validation tests and 14 shared-plan tests passed before implementation, including card timing, army ties and prepared card/build sequences. Those verify the existing engine/planner only. Current-strategy findings above are code-review evidence plus the published benchmark counts. The separate experiment records added scenario evidence; the full matrix, new purchase quality, device performance and competitive benefit remain unproven.
+
+The first [robber/Knight experiment](BOT_ROBBER_KNIGHT.md) is now implemented separately with two independent gates and thirteen focused tests. Its narrow timing gate preserves selected builds/trades/other cards and can retain an otherwise selected Knight; the full owned-card arbiter and purchase valuation above remain future slices. The shipped PWA profile remains unchanged.
