@@ -135,3 +135,5 @@ Component results include aggregate synthetic outcomes, exact replicated-control
 The public-topology shortest-path planner, goal scoring/hysteresis, shared resource decisions, memory controller and tests are original code using existing authoritative topology/economy/turn/choice/scoring helpers and unchanged frozen/resource policies. No external implementation, dependency or model was imported. Private policy memory is separate from authoritative state; gameplay, rules, UI and assets remain unchanged.
 
 Shared-goal aggregate evidence includes synthetic plan/command correspondence and deterministic memory replay. The private-memory protocol and plan diagnostics are confined to offline experiment tooling; no real-player data or private plan trace is committed or broadcast.
+
+The fresh shared-goal validation adds only original experiment manifests, aggregate synthetic results and documentation. Existing policies, dependencies, rules and gameplay assets are unchanged. Full policy/memory and authoritative command replays remain local; no real-player data is included.

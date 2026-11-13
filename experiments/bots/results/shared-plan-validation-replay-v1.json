@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "9d72714fab637d13a94422a54c18312f43e288acf749677aa663899363a6f1c4",
+    "node": "v24.19.0",
+    "commit": "62d17b278607652db56d039869d37ab5bd3a059c"
+  },
+  "matchedStartingPlacementCases": 84,
+  "fullyReplayedPlanCases": 84,
+  "verifiedFields": [
+    "status",
+    "reason",
+    "traceHash",
+    "finalStateHash",
+    "winnerSeat",
+    "planTraceHash"
+  ],
+  "note": "Full deterministic policy/memory replay of every candidate. Logged selection/goal counts are compressed events, not per-decision frequencies; unavailable goals are not individually attributed. Timings are concurrent Linux/Node host measurements, not device bounds.",
+  "groups": [
+    {
+      "roster": "four-mixed",
+      "matches": 24,
+      "loggedSelections": {
+        "NEW_GOAL": 24,
+        "KEEP_GOAL": 547,
+        "GOAL_COMPLETED": 107,
+        "BETTER_ALTERNATIVE": 40,
+        "GOAL_UNAVAILABLE_WITHIN_BOUNDS": 1
+      },
+      "loggedGoalKinds": {
+        "city": 356,
+        "settlement": 351,
+        "development": 12
+      },
+      "loggedGraphTruncations": 0,
+      "focalActions": {
+        "PLACE_SETTLEMENT": 48,
+        "PLACE_ROAD": 48,
+        "ROLL_DICE": 440,
+        "MOVE_ROBBER": 70,
+        "STEAL_RESOURCE": 70,
+        "TRADE_OFFER": 302,
+        "END_TURN": 435,
+        "TRADE_DECLINE": 266,
+        "TRADE_ACCEPT": 34,
+        "BANK_TRADE": 157,
+        "BUILD_CITY": 54,
+        "BUILD_ROAD": 80,
+        "BUILD_SETTLEMENT": 53,
+        "DISCARD_RESOURCES": 66,
+        "BUY_DEVELOPMENT_CARD": 3,
+        "PLAY_MONOPOLY": 1,
+        "PLAY_KNIGHT": 2
+      },
+      "hostTimingMs": {
+        "samples": 2129,
+        "p50": 5.577671000006376,
+        "p95": 43.15643400000408,
+        "max": 84.56548199999088
+      }
+    },
+    {
+      "roster": "four-standard",
+      "matches": 24,
+      "loggedSelections": {
+        "NEW_GOAL": 26,
+        "KEEP_GOAL": 572,
+        "GOAL_COMPLETED": 123,
+        "GOAL_UNAVAILABLE_WITHIN_BOUNDS": 6,
+        "BETTER_ALTERNATIVE": 58
+      },
+      "loggedGoalKinds": {
+        "city": 385,
+        "settlement": 392,
+        "development": 5
+      },
+      "loggedGraphTruncations": 0,
+      "focalActions": {
+        "PLACE_SETTLEMENT": 48,
+        "PLACE_ROAD": 48,
+        "ROLL_DICE": 458,
+        "MOVE_ROBBER": 88,
+        "STEAL_RESOURCE": 88,
+        "TRADE_OFFER": 323,
+        "END_TURN": 450,
+        "TRADE_DECLINE": 307,
+        "BANK_TRADE": 175,
+        "BUILD_CITY": 71,
+        "BUILD_ROAD": 93,
+        "TRADE_ACCEPT": 38,
+        "BUILD_SETTLEMENT": 57,
+        "DISCARD_RESOURCES": 55,
+        "BUY_DEVELOPMENT_CARD": 1,
+        "PLAY_KNIGHT": 1
+      },
+      "hostTimingMs": {
+        "samples": 2301,
+        "p50": 6.457441999998991,
+        "p95": 45.4742499999993,
+        "max": 85.2381000000023
+      }
+    },
+    {
+      "roster": "three-mixed",
+      "matches": 18,
+      "loggedSelections": {
+        "NEW_GOAL": 18,
+        "KEEP_GOAL": 487,
+        "GOAL_COMPLETED": 104,
+        "BETTER_ALTERNATIVE": 50,
+        "GOAL_UNAVAILABLE_WITHIN_BOUNDS": 1
+      },
+      "loggedGoalKinds": {
+        "settlement": 365,
+        "city": 291,
+        "development": 4
+      },
+      "loggedGraphTruncations": 0,
+      "focalActions": {
+        "PLACE_SETTLEMENT": 36,
+        "PLACE_ROAD": 36,
+        "ROLL_DICE": 452,
+        "TRADE_OFFER": 297,
+        "END_TURN": 443,
+        "TRADE_DECLINE": 287,
+        "BANK_TRADE": 123,
+        "BUILD_ROAD": 87,
+        "BUILD_SETTLEMENT": 57,
+        "MOVE_ROBBER": 67,
+        "STEAL_RESOURCE": 66,
+        "TRADE_ACCEPT": 25,
+        "DISCARD_RESOURCES": 37,
+        "BUILD_CITY": 52,
+        "BUY_DEVELOPMENT_CARD": 1
+      },
+      "hostTimingMs": {
+        "samples": 2066,
+        "p50": 7.460172999999486,
+        "p95": 45.19220600000699,
+        "max": 74.18166999999085
+      }
+    },
+    {
+      "roster": "three-standard",
+      "matches": 18,
+      "loggedSelections": {
+        "NEW_GOAL": 18,
+        "KEEP_GOAL": 485,
+        "GOAL_COMPLETED": 90,
+        "BETTER_ALTERNATIVE": 44,
+        "GOAL_UNAVAILABLE_WITHIN_BOUNDS": 2
+      },
+      "loggedGoalKinds": {
+        "settlement": 342,
+        "city": 293,
+        "development": 4
+      },
+      "loggedGraphTruncations": 0,
+      "focalActions": {
+        "PLACE_SETTLEMENT": 36,
+        "PLACE_ROAD": 36,
+        "ROLL_DICE": 428,
+        "TRADE_OFFER": 278,
+        "END_TURN": 424,
+        "TRADE_DECLINE": 270,
+        "TRADE_ACCEPT": 50,
+        "BUILD_ROAD": 71,
+        "BUILD_SETTLEMENT": 50,
+        "MOVE_ROBBER": 62,
+        "STEAL_RESOURCE": 59,
+        "DISCARD_RESOURCES": 27,
+        "BANK_TRADE": 132,
+        "BUILD_CITY": 43,
+        "BUY_DEVELOPMENT_CARD": 1,
+        "PLAY_KNIGHT": 1
+      },
+      "hostTimingMs": {
+        "samples": 1968,
+        "p50": 6.353600000002189,
+        "p95": 43.1739690000004,
+        "max": 77.04972500000031
+      }
+    }
+  ]
+}

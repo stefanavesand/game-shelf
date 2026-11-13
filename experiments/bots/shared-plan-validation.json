@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "shared-plan-validation-v1",
+  "split": "validation",
+  "gameSeeds": [
+    4001,
+    4103,
+    4201,
+    4303,
+    4409,
+    4507
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "baseline-standard": "baseline-standard.json",
+    "baseline-easy": "baseline-easy.json",
+    "planner-default": "planner-default.json",
+    "shared-plan-default": "shared-plan-default.json"
+  },
+  "rosters": [
+    {
+      "id": "three-standard",
+      "profiles": [
+        "shared-plan-default",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "four-standard",
+      "profiles": [
+        "shared-plan-default",
+        "baseline-standard",
+        "baseline-standard",
+        "baseline-standard"
+      ]
+    },
+    {
+      "id": "three-mixed",
+      "profiles": [
+        "shared-plan-default",
+        "planner-default",
+        "baseline-easy"
+      ]
+    },
+    {
+      "id": "four-mixed",
+      "profiles": [
+        "shared-plan-default",
+        "planner-default",
+        "baseline-standard",
+        "baseline-easy"
+      ]
+    }
+  ]
+}

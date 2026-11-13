@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "sourceIdentity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "9d72714fab637d13a94422a54c18312f43e288acf749677aa663899363a6f1c4",
+    "node": "v24.19.0",
+    "commit": "62d17b278607652db56d039869d37ab5bd3a059c"
+  },
+  "auditSourceSha256": "9548ae5af868040101905c211e79793b792edf19d26b2aecfbc1e5d719660e33",
+  "focalProfile": "shared-plan-default",
+  "note": "Complete synthetic command replay with final-state hash verification. City preservation is a feasible resource-cost proxy, not proof that keeping a city hand is always best. Main-phase Year of Plenty unlocks concern an immediately legal city, not a future sequence or causal win. No timing/memory or strength claim.",
+  "groups": [
+    {
+      "roster": "four-mixed",
+      "matches": 24,
+      "discards": 66,
+      "discardedCards": 304,
+      "cityKeepOpportunities": 3,
+      "cityHandsPreserved": 3,
+      "yearOfPlenty": 0,
+      "yearOfPlentyBeforeRoll": 0,
+      "yearOfPlentyMainCityUnlocks": 0,
+      "monopoly": 1,
+      "monopolyBeforeRoll": 0,
+      "monopolyCardsTaken": 3,
+      "zeroYieldMonopoly": 0
+    },
+    {
+      "roster": "four-standard",
+      "matches": 24,
+      "discards": 55,
+      "discardedCards": 255,
+      "cityKeepOpportunities": 3,
+      "cityHandsPreserved": 3,
+      "yearOfPlenty": 0,
+      "yearOfPlentyBeforeRoll": 0,
+      "yearOfPlentyMainCityUnlocks": 0,
+      "monopoly": 0,
+      "monopolyBeforeRoll": 0,
+      "monopolyCardsTaken": 0,
+      "zeroYieldMonopoly": 0
+    },
+    {
+      "roster": "three-mixed",
+      "matches": 18,
+      "discards": 37,
+      "discardedCards": 171,
+      "cityKeepOpportunities": 2,
+      "cityHandsPreserved": 2,
+      "yearOfPlenty": 0,
+      "yearOfPlentyBeforeRoll": 0,
+      "yearOfPlentyMainCityUnlocks": 0,
+      "monopoly": 0,
+      "monopolyBeforeRoll": 0,
+      "monopolyCardsTaken": 0,
+      "zeroYieldMonopoly": 0
+    },
+    {
+      "roster": "three-standard",
+      "matches": 18,
+      "discards": 27,
+      "discardedCards": 120,
+      "cityKeepOpportunities": 0,
+      "cityHandsPreserved": 0,
+      "yearOfPlenty": 0,
+      "yearOfPlentyBeforeRoll": 0,
+      "yearOfPlentyMainCityUnlocks": 0,
+      "monopoly": 0,
+      "monopolyBeforeRoll": 0,
+      "monopolyCardsTaken": 0,
+      "zeroYieldMonopoly": 0
+    }
+  ]
+}

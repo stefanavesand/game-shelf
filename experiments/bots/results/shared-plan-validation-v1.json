@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "note": "Descriptive screening. Percentile bootstrap resamples paired whole game-seed blocks within each stratum. No multiplicity correction, locked test or difficulty promotion. Failures remain in denominators.",
+  "candidateProfile": "shared-plan-default",
+  "controlProfile": "shared-plan-control",
+  "bootstrapSeed": 92831,
+  "strata": [
+    {
+      "roster": "four-mixed",
+      "playerCount": 4,
+      "seeds": [
+        4001,
+        4103,
+        4201,
+        4303,
+        4409,
+        4507
+      ],
+      "matches": 24,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 5,
+        "failures": 0,
+        "offers": 302,
+        "accepts": 34,
+        "declines": 266,
+        "winRate": 0.20833333333333334
+      },
+      "control": {
+        "wins": 3,
+        "failures": 0,
+        "offers": 356,
+        "accepts": 31,
+        "declines": 248,
+        "winRate": 0.125
+      },
+      "winRateDifference": 0.08333333333333334,
+      "exploratory95PercentileInterval": {
+        "low": -0.08333333333333333,
+        "high": 0.20833333333333334
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "four-standard",
+      "playerCount": 4,
+      "seeds": [
+        4001,
+        4103,
+        4201,
+        4303,
+        4409,
+        4507
+      ],
+      "matches": 24,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 8,
+        "failures": 0,
+        "offers": 323,
+        "accepts": 38,
+        "declines": 307,
+        "winRate": 0.3333333333333333
+      },
+      "control": {
+        "wins": 7,
+        "failures": 0,
+        "offers": 357,
+        "accepts": 44,
+        "declines": 299,
+        "winRate": 0.2916666666666667
+      },
+      "winRateDifference": 0.04166666666666663,
+      "exploratory95PercentileInterval": {
+        "low": -0.16666666666666666,
+        "high": 0.2916666666666667
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-mixed",
+      "playerCount": 3,
+      "seeds": [
+        4001,
+        4103,
+        4201,
+        4303,
+        4409,
+        4507
+      ],
+      "matches": 18,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 9,
+        "failures": 0,
+        "offers": 297,
+        "accepts": 25,
+        "declines": 287,
+        "winRate": 0.5
+      },
+      "control": {
+        "wins": 9,
+        "failures": 0,
+        "offers": 347,
+        "accepts": 27,
+        "declines": 278,
+        "winRate": 0.5
+      },
+      "winRateDifference": 0,
+      "exploratory95PercentileInterval": {
+        "low": -0.2777777777777778,
+        "high": 0.2222222222222222
+      },
+      "resamples": 4000
+    },
+    {
+      "roster": "three-standard",
+      "playerCount": 3,
+      "seeds": [
+        4001,
+        4103,
+        4201,
+        4303,
+        4409,
+        4507
+      ],
+      "matches": 18,
+      "independentSeedBlocks": 6,
+      "bootstrapDegenerate": false,
+      "uncertaintyWarning": "Few independent seed blocks; percentile intervals are exploratory.",
+      "candidate": {
+        "wins": 4,
+        "failures": 0,
+        "offers": 278,
+        "accepts": 50,
+        "declines": 270,
+        "winRate": 0.2222222222222222
+      },
+      "control": {
+        "wins": 7,
+        "failures": 0,
+        "offers": 364,
+        "accepts": 42,
+        "declines": 317,
+        "winRate": 0.3888888888888889
+      },
+      "winRateDifference": -0.16666666666666669,
+      "exploratory95PercentileInterval": {
+        "low": -0.4444444444444445,
+        "high": 0.11111111111111112
+      },
+      "resamples": 4000
+    }
+  ],
+  "analysisSourceSha256": "fb2b9d74b99672b2b0e789a40d5dc7ac465b9c79745efdad0fd6b4ff633305be",
+  "identity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "9d72714fab637d13a94422a54c18312f43e288acf749677aa663899363a6f1c4",
+    "node": "v24.19.0",
+    "commit": "62d17b278607652db56d039869d37ab5bd3a059c"
+  },
+  "manifests": {
+    "candidate": {
+      "schemaVersion": 1,
+      "id": "shared-plan-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        4001,
+        4103,
+        4201,
+        4303,
+        4409,
+        4507
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "baseline-standard": "baseline-standard.json",
+        "baseline-easy": "baseline-easy.json",
+        "planner-default": "planner-default.json",
+        "shared-plan-default": "shared-plan-default.json"
+      },
+      "rosters": [
+        {
+          "id": "three-standard",
+          "profiles": [
+            "shared-plan-default",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-standard",
+          "profiles": [
+            "shared-plan-default",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "three-mixed",
+          "profiles": [
+            "shared-plan-default",
+            "planner-default",
+            "baseline-easy"
+          ]
+        },
+        {
+          "id": "four-mixed",
+          "profiles": [
+            "shared-plan-default",
+            "planner-default",
+            "baseline-standard",
+            "baseline-easy"
+          ]
+        }
+      ]
+    },
+    "control": {
+      "schemaVersion": 1,
+      "id": "shared-plan-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        4001,
+        4103,
+        4201,
+        4303,
+        4409,
+        4507
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "baseline-standard": "baseline-standard.json",
+        "baseline-easy": "baseline-easy.json",
+        "planner-default": "planner-default.json",
+        "shared-plan-control": "shared-plan-control.json"
+      },
+      "rosters": [
+        {
+          "id": "three-standard",
+          "profiles": [
+            "shared-plan-control",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "four-standard",
+          "profiles": [
+            "shared-plan-control",
+            "baseline-standard",
+            "baseline-standard",
+            "baseline-standard"
+          ]
+        },
+        {
+          "id": "three-mixed",
+          "profiles": [
+            "shared-plan-control",
+            "planner-default",
+            "baseline-easy"
+          ]
+        },
+        {
+          "id": "four-mixed",
+          "profiles": [
+            "shared-plan-control",
+            "planner-default",
+            "baseline-standard",
+            "baseline-easy"
+          ]
+        }
+      ]
+    }
+  }
+}

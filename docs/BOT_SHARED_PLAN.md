@@ -77,3 +77,45 @@ Candidate invocation p95 was approximately 44/39 ms and observed maxima 98/70 ms
 Evidence: [paired screen](../experiments/bots/results/shared-plan-screen-v1.json), [resource outcomes](../experiments/bots/results/shared-plan-resource-audit-v1.json), [full policy/memory replay](../experiments/bots/results/shared-plan-replay-v1.json), [construction/goal correspondence](../experiments/bots/results/shared-plan-coherence-v1.json). The immutable implementation/profile/manifests are recorded at `97c8a6201a67784b32784e3178405579b9107fa3`. Full synthetic commands and private plan traces remain local artifacts. Exact CLI replay checks the additional plan-trace hash; duplicate-free resume is also verified. The complete bot suite has 65 passing tests, with seven package tests and source/document checks passing.
 
 The next integration boundary is still deliberate: bank/ports and resources use the common goal, while player offers/responses remain in the frozen helper. Before gameplay adoption, investigate that boundary, value/timing quality, larger independent cases, board/opponent diversity and production worker/storage integration. Current PWA UI, rule artifact, server, release version and gameplay bot are unchanged.
+
+## Frozen-profile fresh-seed validation
+
+The next cohort fixes `shared-plan-default` and `shared-plan-control` without parameter search. Candidate/control manifests use `shared-plan-validation-v1`, validation split, six seeds (4001, 4103, 4201, 4303, 4409, 4507) checked absent from all prior top-level experiment manifests, and every focal seat rotation. Each side has 84 games: 18 three-Standard, 24 four-Standard, 18 three-mixed and 24 four-mixed. Mixed opponents are the unchanged planner plus Easy (three seats), with another Standard at four seats. The board layout and starting-placement policy remain fixed; fresh randomness does not establish board diversity.
+
+The first question is reliable goal/memory execution; competitive performance against Standard is the primary strength check, with mixed-opponent results reported separately. No pooling, retuning, early stop on winning results or automatic promotion is planned. The ordinary 2,500-action cap and 120-second per-match watchdog retain failures in the results. Paired intervals resample entire seed blocks; six blocks are still exploratory. Full candidate policy/memory replay, matched initial placements and both cohorts' authoritative final-state replay are checked before interpreting outcomes. Natural card/discard coverage and the unresolved player-trade boundary are reported explicitly.
+
+### Fresh-seed outcomes
+
+All 168 planned games ended normally, with zero rule/decision, action-cap or watchdog failures. Profiles and policy code were unchanged throughout the cohort.
+
+| Stratum | Shared-goal wins | Frozen-control wins | Exploratory paired 95% difference interval |
+| --- | ---: | ---: | --- |
+| Three seats, Standard | 4 / 18 | 7 / 18 | −44.4 to +11.1 pp |
+| Four seats, Standard | 8 / 24 | 7 / 24 | −16.7 to +29.2 pp |
+| Three seats, mixed | 9 / 18 | 9 / 18 | −27.8 to +22.2 pp |
+| Four seats, mixed | 5 / 24 | 3 / 24 | −8.3 to +20.8 pp |
+
+The primary three-seat Standard point result regressed. Every exploratory interval includes zero, with only six independent seed blocks and no multiplicity correction. Coherent execution does not establish better strategy. This candidate is **not promoted** to gameplay and is not a calibrated difficulty. These validation seeds are now consumed; any subsequent tuning must use training cases and a new held-out cohort.
+
+Resource-outcome replay verifies every final-state hash in both cohorts. The candidate preserved all eight observed feasible city-cost discard opportunities; control preserved none of its three opportunities. These are different reached positions, not a matched causal comparison. Candidate discarded 850 resource cards across 185 discard actions versus control's 356 cards across 83 actions. Raw counts also depend on different hands, production, game duration and trajectories; they flag resource accumulation for diagnosis, rather than proving a faulty discard choice.
+
+The planner made 220 city upgrades but purchased only six development cards across 84 games. Control made 79 upgrades and purchased 467 cards. Candidate played one Monopoly (three cards taken), four Knights, no Year of Plenty and no Road Building. Resource-card and free-road natural coverage remains inadequate. The large city/development imbalance makes relative goal value and the opportunity cost of saving the next priorities; those are hypotheses to isolate, not established causes of the win result. Player trading remains frozen as planned, including its possible mismatch with the selected goal.
+
+Evidence: [paired outcomes](../experiments/bots/results/shared-plan-validation-v1.json), [candidate resource outcomes](../experiments/bots/results/shared-plan-validation-resource-audit-v1.json), [control resource outcomes](../experiments/bots/results/shared-plan-validation-control-audit-v1.json). The source identity is `62d17b278607652db56d039869d37ab5bd3a059c`; the resolved new manifests and profile hashes are captured in the experiment metadata. The code fingerprint matches the initial screen; the commit changed only to record that earlier evidence before this cohort.
+
+All 84 candidate command/final-state/winner/plan-trace results were reproduced with fresh policy memory, and all 84 candidate/control initial-placement prefixes matched. Duplicate-free candidate resume was verified. Compressed diagnostics logged 192 better-alternative selections, ten unavailable-within-bounds selections and 424 goal-completed selections. These are emitted diagnostic classifications, not independently attributed opponent blocks or per-decision transition rates. See [full replay and diagnostic aggregates](../experiments/bots/results/shared-plan-validation-replay-v1.json).
+
+Candidate invocation p95 ranged from 43.2 to 45.5 ms across strata on the concurrent Node host; observed maxima ranged from 74.2 to 85.3 ms. This includes controller cloning/freezing and does not close physical-device or incremental-memory gates. All 65 bot tests and source/document checks passed for this evidence-only change. Production policy, PWA assets, rules and release remain unchanged.
+
+Reproduce the two cohorts with the committed manifests, then run the existing audits:
+
+```sh
+node scripts/bots/cli.mjs simulate --manifest experiments/bots/shared-plan-validation.json --out /tmp/shared-plan-validation
+node scripts/bots/cli.mjs simulate --manifest experiments/bots/shared-plan-control-validation.json --out /tmp/shared-plan-control-validation
+node scripts/bots/cohort-analysis.mjs /tmp/shared-plan-validation /tmp/shared-plan-control-validation /tmp/shared-plan-validation-comparison.json shared-plan-default shared-plan-control
+node scripts/bots/resource-audit.mjs /tmp/shared-plan-validation shared-plan-default /tmp/shared-plan-validation-resource-audit.json
+node scripts/bots/resource-audit.mjs /tmp/shared-plan-control-validation shared-plan-control /tmp/shared-plan-validation-control-audit.json
+node scripts/bots/cli.mjs replay --out /tmp/shared-plan-validation --match MATCH_ID_FROM_EXPERIMENT
+```
+
+Use the source identity recorded in a run for exact CLI replay; a new run at a later evidence commit records that new commit even when policy bytes match. No raw private plan traces are committed.
