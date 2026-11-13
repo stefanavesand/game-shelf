@@ -1,6 +1,6 @@
 # Experimental development investment
 
-BOT-AI-01/06, separate `development-investment-0.1.0` policy. The PWA remains on its pinned `build-trade-0.2.0` profile. This is an experiment, not a strength or device-performance claim.
+BOT-AI-01/06, separate `development-investment-0.1.0` policy. Owner-authorized PWA 0.11.0 playtesting uses this policy for new Solo Planner games; existing 0.2 games keep their pinned profile. See the runtime integration section below. This is an experiment, not a strength or device-performance claim.
 
 ## Design
 
