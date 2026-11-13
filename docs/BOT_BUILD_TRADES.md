@@ -102,3 +102,35 @@ All 84 candidate command, final-state, winner and plan-trace results reproduced 
 Four tests verify exact delegation and engine-valid declines with retained goal, unchanged acceptance/proposal/construction, strict flag and cross-profile memory fencing, full natural-game on/previous-policy trace/plan/state parity, deterministic off replay and absence of off replacement offers. Previous published policy/profile versions remain unchanged.
 
 The fixed training ablation uses four already known seeds (37, 91, 143, 211), all seat rotations and the same four Standard/mixed rosters as validation: 56 games per flag setting, 112 total. All parameters except the flag are equal. Primary diagnostic is negotiation activity and actual accepted deals; report construction/hand exposure and wins in each stratum separately, retaining failures. No early stopping or retuning follows interim results. Seed blocks are reused training evidence, not a fresh strength test; do not tune on consumed validation seeds. No automatic gameplay promotion or difficulty calibration follows.
+
+### Counteroffer ablation results
+
+All 112 planned games ended normally, without decision/rule failures, action caps or watchdog failures. The fixed implementation/profiles/manifests were committed at `f56ec0fd1c7370eb4edc8dcd45f618dd7cfdc400` before simulation. No parameters changed during the cohort.
+
+| Stratum | Counters on wins | Counters off wins | Exploratory paired 95% difference: off minus on |
+| --- | ---: | ---: | --- |
+| Three seats, Standard | 3 / 12 | 5 / 12 | 0.0 to +50.0 pp |
+| Four seats, Standard | 6 / 16 | 7 / 16 | 0.0 to +18.8 pp |
+| Three seats, mixed | 9 / 12 | 3 / 12 | −66.7 to −33.3 pp |
+| Four seats, mixed | 10 / 16 | 10 / 16 | −18.8 to +18.8 pp |
+
+Disabling counters is not a uniform improvement: it reduces negotiation but regresses the three-seat mixed training result. Four reused seed blocks per stratum, fixed board and exploratory intervals do not establish population strength or precise uncertainty, including intervals whose boundaries are zero. Keep counters enabled as the unchanged experiment default; no production promotion or new difficulty is justified. All comparisons remain training evidence.
+
+| Stratum | Accepted / outgoing offers with counters on | Accepted / outgoing offers with counters off |
+| --- | ---: | ---: |
+| Three seats, Standard | 59 / 294 | 47 / 217 |
+| Four seats, Standard | 75 / 295 | 67 / 235 |
+| Three seats, mixed | 78 / 292 | 70 / 230 |
+| Four seats, mixed | 106 / 309 | 89 / 238 |
+
+Across these games, on issued 273 replacement counters, with 40 accepted (14.7%). Off issued zero. Total outgoing offers/counters fell from 1,190 to 920 when disabled, while ordinary outgoing offers were 917 with on and 920 with off. These aggregate activity counts are descriptive, not pooled strength inference. Different future trajectories mean the difference in total accepted deals is not simply the number of accepted counters.
+
+Counter acceptance also differed by observed opponent: in three-seat mixed games, Easy accepted 11/53 counters and the planner accepted 4/21; in four-seat mixed games those counts were 11/38 and 0/15, with Standard accepting 3/15. These are experimental roster labels and post-hoc outcomes, never additional policy inputs. They do not identify which individual counter caused a win.
+
+Construction-after-trade proxies are not a substitute for strategy quality: three-seat mixed off games had 38 active focal turns with accepted trade followed by investment versus 22 with on, despite the opposite win direction. The positions, gains given to recipients, construction types and game timing diverge. Next evaluate **selective** counters and recipient benefit on training cases rather than removing all counters or optimizing acceptance/construction counts alone. Development-card/robber tuning remains deferred.
+
+Evidence: [paired training outcomes](../experiments/bots/results/counter-ablation-v1.json) and [aggregate offer/counter audit](../experiments/bots/results/counter-ablation-offer-audit-v1.json).
+
+All 112 action, final-state, winner and plan-trace results reproduced with fresh policy memory; the independent authoritative command replay also verified all 112 final-state hashes. All 56 paired initial-placement prefixes matched. Every off focal trace was checked to contain zero replacement offers; duplicate-free off resume passed. [Replay and resource aggregates](../experiments/bots/results/counter-ablation-replay-v1.json) retain exact counts. Own end-turn exposure above seven (on/off) was 14/258 versus 14/256 for three-Standard, 10/291 versus 10/290 for four-Standard, 11/265 versus 18/261 for three-mixed, and 9/275 versus 18/276 for four-mixed. Actual discarded-card totals did not improve uniformly in either direction; the trajectories and production differ.
+
+Four new focused tests, the complete 79-test bot suite, source/document checks, build and seven package tests passed. Raw synthetic observations and plan traces remain local. The component is experiment-only; production gameplay, release and rules artifacts are unchanged.
