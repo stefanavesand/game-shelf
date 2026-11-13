@@ -1,0 +1,1415 @@
+{
+  "schemaVersion": 1,
+  "sourceIdentity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+    "node": "v24.19.0",
+    "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5"
+  },
+  "benchmarkSourceSha256": "24575120bf54ed5e366614a95fd3e13cfdb80199837052fcd4314886d393e6fe",
+  "release": "0.10.0",
+  "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+  "policyVersion": "build-trade-0.2.0",
+  "fixtureHash": "40732bd47e70fcd867867e9908e5e5339a5bf62d6ce22547a41d2eba0d8f04ca",
+  "host": {
+    "platform": "linux",
+    "arch": "x64",
+    "node": "v24.19.0"
+  },
+  "warmupRounds": 1,
+  "measuredRounds": 7,
+  "parity": true,
+  "memory": {
+    "measured": false,
+    "reason": "No incremental heap/device memory measurement."
+  },
+  "note": "Synthetic authorized Solo observations, including retained per-seat plan envelopes. Controllers clone/freeze observations; timing is host wall time, not CPU cycles. Fresh-worker timing uses the real shipped worker via a Node worker-thread shim including startup/import/postMessage overhead, not browser/Safari or physical iPad latency. Repeated fixtures are not independent positions or worst-case bounds. Frozen Standard is a controller baseline, not worker startup.",
+  "runtimeSourceHashes": {
+    "client.js": "1a915c0cba30d7a0bca17523e901730950dee3b8b9e7d9d2eae56cb22f0b2439",
+    "contract.js": "0025ab4937c65469566e3e738f44d27c3b70f79d2ccabca44524d7a7c9a7a5f1",
+    "worker.js": "27e6c8f24647ad50106ad0d3355380844a4119654b2d804f4afba231ccdb3903",
+    "profile.js": "f3449b513f0d0312fc09ae99ea6176828c0aa23e3bd04ed350aa64d0629e69d6",
+    "policies/planner-policy.js": "c029e4082a578da80defb19c785712a2abab06d0bd2b202b253ca564816dd7ce",
+    "policies/resource-policy.js": "d582bfaa612f9681fd3e13ba630aba591f79eea05f2d2f721b2412b21c1b7ca5",
+    "policies/trade-policy.js": "699ac1e0472d8dded5f7eeeaef6703a13ae8f9bf90e40d844dc78f2daf62dd92",
+    "policies/shared-plan-policy.js": "ede85f5e12918fba4d6531a5aa8177624bb88df1b70711d0ac691d33e4940995",
+    "policies/build-trade-policy.js": "79932b35a43955f4b20b1e78f9b455c3ae38aba9ad8c8386e4972d97c404ad87",
+    "policies/build-trade-components.js": "50195335ab492e8980805bfd918d9903655f1de691f934eb5b0db71b3057a09a",
+    "policies/baselines/heuristic-1.1.0.js": "be5488888400335b85388c088272abe357f465e8a4fe437ee91ae656a008bcde"
+  },
+  "fixtures": [
+    {
+      "id": "3-discard",
+      "phase": "discard",
+      "turn": 62,
+      "choices": 1,
+      "handCards": 9,
+      "selectedAction": "DISCARD_RESOURCES",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "3-main-early",
+      "phase": "main",
+      "turn": 6,
+      "choices": 11,
+      "handCards": 5,
+      "selectedAction": "BUILD_SETTLEMENT",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "3-main-late",
+      "phase": "main",
+      "turn": 60,
+      "choices": 28,
+      "handCards": 19,
+      "selectedAction": "BANK_TRADE",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "3-offer-affordable",
+      "phase": "main",
+      "turn": 1,
+      "choices": 2,
+      "handCards": 3,
+      "selectedAction": "TRADE_OFFER",
+      "hasRetainedGoal": false
+    },
+    {
+      "id": "3-setup",
+      "phase": "setup-settlement-1",
+      "turn": 0,
+      "choices": 54,
+      "handCards": 0,
+      "selectedAction": "PLACE_SETTLEMENT",
+      "hasRetainedGoal": false
+    },
+    {
+      "id": "4-discard",
+      "phase": "discard",
+      "turn": 60,
+      "choices": 1,
+      "handCards": 12,
+      "selectedAction": "DISCARD_RESOURCES",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "4-main-early",
+      "phase": "main",
+      "turn": 8,
+      "choices": 11,
+      "handCards": 5,
+      "selectedAction": "BUILD_SETTLEMENT",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "4-main-late",
+      "phase": "main",
+      "turn": 82,
+      "choices": 40,
+      "handCards": 18,
+      "selectedAction": "BUILD_CITY",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "4-offer-affordable",
+      "phase": "main",
+      "turn": 3,
+      "choices": 2,
+      "handCards": 4,
+      "selectedAction": "TRADE_OFFER",
+      "hasRetainedGoal": true
+    },
+    {
+      "id": "4-setup",
+      "phase": "setup-settlement-1",
+      "turn": 0,
+      "choices": 54,
+      "handCards": 0,
+      "selectedAction": "PLACE_SETTLEMENT",
+      "hasRetainedGoal": false
+    }
+  ],
+  "statistics": {
+    "standard-controller": {
+      "samples": 70,
+      "p50": 1.5553089999993972,
+      "p95": 12.23748599999999,
+      "max": 38.11987500000032
+    },
+    "planner-controller": {
+      "samples": 70,
+      "p50": 7.924849999999424,
+      "p95": 16.460166999999274,
+      "max": 17.48846400000002
+    },
+    "planner-fresh-worker": {
+      "samples": 70,
+      "p50": 55.7206470000001,
+      "p95": 72.08954699999958,
+      "max": 80.3212769999991
+    }
+  },
+  "samples": [
+    {
+      "round": 0,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.6472529999991821
+    },
+    {
+      "round": 0,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 7.456285000000207
+    },
+    {
+      "round": 0,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 57.2567229999986
+    },
+    {
+      "round": 0,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 2.0630030000011175
+    },
+    {
+      "round": 0,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 8.506219000000783
+    },
+    {
+      "round": 0,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 61.35146199999872
+    },
+    {
+      "round": 0,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 12.459800000000541
+    },
+    {
+      "round": 0,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 17.48846400000002
+    },
+    {
+      "round": 0,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 73.21202000000085
+    },
+    {
+      "round": 0,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.5020249999997759
+    },
+    {
+      "round": 0,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 4.954071000000113
+    },
+    {
+      "round": 0,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 48.450026999998954
+    },
+    {
+      "round": 0,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 1.3736659999995027
+    },
+    {
+      "round": 0,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.1955980000002455
+    },
+    {
+      "round": 0,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 40.89093300000059
+    },
+    {
+      "round": 0,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.6346849999990809
+    },
+    {
+      "round": 0,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 8.963321999999607
+    },
+    {
+      "round": 0,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 73.16464900000028
+    },
+    {
+      "round": 0,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 2.8191099999985454
+    },
+    {
+      "round": 0,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 9.269200999999157
+    },
+    {
+      "round": 0,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 66.0563689999999
+    },
+    {
+      "round": 0,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 7.658527999999933
+    },
+    {
+      "round": 0,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 12.897838999999294
+    },
+    {
+      "round": 0,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 64.01460700000098
+    },
+    {
+      "round": 0,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.6168979999984003
+    },
+    {
+      "round": 0,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 2.8531810000004043
+    },
+    {
+      "round": 0,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 56.357765999999174
+    },
+    {
+      "round": 0,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 1.4500610000013694
+    },
+    {
+      "round": 0,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 1.1623579999995854
+    },
+    {
+      "round": 0,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 46.88002499999857
+    },
+    {
+      "round": 1,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 8.537991999999576
+    },
+    {
+      "round": 1,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.4244380000000092
+    },
+    {
+      "round": 1,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 54.569195000000036
+    },
+    {
+      "round": 1,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 8.997292000000016
+    },
+    {
+      "round": 1,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 1.868240000001606
+    },
+    {
+      "round": 1,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 50.864824000000226
+    },
+    {
+      "round": 1,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 16.460166999999274
+    },
+    {
+      "round": 1,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 11.669993000001341
+    },
+    {
+      "round": 1,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 67.76441200000045
+    },
+    {
+      "round": 1,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 5.614594000000579
+    },
+    {
+      "round": 1,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.29525400000056834
+    },
+    {
+      "round": 1,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 58.74532100000033
+    },
+    {
+      "round": 1,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.3757190000014816
+    },
+    {
+      "round": 1,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 2.413710999999239
+    },
+    {
+      "round": 1,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 46.13320199999907
+    },
+    {
+      "round": 1,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 8.131359999999404
+    },
+    {
+      "round": 1,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.43775900000036927
+    },
+    {
+      "round": 1,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 56.21828599999935
+    },
+    {
+      "round": 1,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 15.041022000001249
+    },
+    {
+      "round": 1,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 3.4837900000002264
+    },
+    {
+      "round": 1,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 65.59869999999864
+    },
+    {
+      "round": 1,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 9.927841000000626
+    },
+    {
+      "round": 1,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 6.9361229999994976
+    },
+    {
+      "round": 1,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 66.31995000000097
+    },
+    {
+      "round": 1,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 3.0665719999997236
+    },
+    {
+      "round": 1,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.647264000001087
+    },
+    {
+      "round": 1,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 65.35524400000031
+    },
+    {
+      "round": 1,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 1.302028000000064
+    },
+    {
+      "round": 1,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 1.0347860000001674
+    },
+    {
+      "round": 1,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 42.570918999999776
+    },
+    {
+      "round": 2,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.8531429999984539
+    },
+    {
+      "round": 2,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 8.798172999999224
+    },
+    {
+      "round": 2,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 67.81718099999853
+    },
+    {
+      "round": 2,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 2.912920999999187
+    },
+    {
+      "round": 2,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 7.849636000000828
+    },
+    {
+      "round": 2,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 55.45801200000096
+    },
+    {
+      "round": 2,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 13.354116000000431
+    },
+    {
+      "round": 2,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 15.890669999998863
+    },
+    {
+      "round": 2,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 71.4185980000002
+    },
+    {
+      "round": 2,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.626100999999835
+    },
+    {
+      "round": 2,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 5.042383999998492
+    },
+    {
+      "round": 2,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 50.79109299999982
+    },
+    {
+      "round": 2,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 1.7058759999999893
+    },
+    {
+      "round": 2,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.054016000000047
+    },
+    {
+      "round": 2,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 39.2352520000004
+    },
+    {
+      "round": 2,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.9604639999997744
+    },
+    {
+      "round": 2,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 7.0501339999991615
+    },
+    {
+      "round": 2,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 52.41084799999953
+    },
+    {
+      "round": 2,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 2.6715279999989434
+    },
+    {
+      "round": 2,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 8.5944870000003
+    },
+    {
+      "round": 2,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 54.89690900000096
+    },
+    {
+      "round": 2,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 6.62340199999926
+    },
+    {
+      "round": 2,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 9.129471000000194
+    },
+    {
+      "round": 2,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 55.7206470000001
+    },
+    {
+      "round": 2,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.8435989999998128
+    },
+    {
+      "round": 2,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 3.1662820000001375
+    },
+    {
+      "round": 2,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 47.198137999999744
+    },
+    {
+      "round": 2,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 1.5553089999993972
+    },
+    {
+      "round": 2,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 1.3448130000015226
+    },
+    {
+      "round": 2,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 57.06065699999999
+    },
+    {
+      "round": 3,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 9.362656999999672
+    },
+    {
+      "round": 3,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.451599999998507
+    },
+    {
+      "round": 3,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 60.621423000000505
+    },
+    {
+      "round": 3,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 11.261789000000135
+    },
+    {
+      "round": 3,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 1.7167930000014167
+    },
+    {
+      "round": 3,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 57.46178599999985
+    },
+    {
+      "round": 3,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 16.891977000001134
+    },
+    {
+      "round": 3,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 10.773242999999638
+    },
+    {
+      "round": 3,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 72.08954699999958
+    },
+    {
+      "round": 3,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 4.700458999999682
+    },
+    {
+      "round": 3,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.3770570000015141
+    },
+    {
+      "round": 3,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 52.282875999999305
+    },
+    {
+      "round": 3,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.4017789999998058
+    },
+    {
+      "round": 3,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 1.0430990000004385
+    },
+    {
+      "round": 3,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 41.27668300000005
+    },
+    {
+      "round": 3,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 7.0029539999995905
+    },
+    {
+      "round": 3,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.452290000001085
+    },
+    {
+      "round": 3,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 58.92092999999841
+    },
+    {
+      "round": 3,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 9.924877999999808
+    },
+    {
+      "round": 3,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 2.062742000000071
+    },
+    {
+      "round": 3,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 69.41558499999883
+    },
+    {
+      "round": 3,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 12.425599999998667
+    },
+    {
+      "round": 3,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 6.917945000001055
+    },
+    {
+      "round": 3,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 66.3135199999997
+    },
+    {
+      "round": 3,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 5.253781999999774
+    },
+    {
+      "round": 3,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.37962100000004284
+    },
+    {
+      "round": 3,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 64.54123299999992
+    },
+    {
+      "round": 3,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 2.17021399999976
+    },
+    {
+      "round": 3,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 0.993624999999156
+    },
+    {
+      "round": 3,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 39.79172499999913
+    },
+    {
+      "round": 4,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.9344349999992119
+    },
+    {
+      "round": 4,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 9.07795299999998
+    },
+    {
+      "round": 4,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 51.85210899999947
+    },
+    {
+      "round": 4,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 2.786780999998882
+    },
+    {
+      "round": 4,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 8.187744999999268
+    },
+    {
+      "round": 4,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 57.59812200000124
+    },
+    {
+      "round": 4,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 12.23748599999999
+    },
+    {
+      "round": 4,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 17.42901399999937
+    },
+    {
+      "round": 4,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 80.3212769999991
+    },
+    {
+      "round": 4,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.6785700000000361
+    },
+    {
+      "round": 4,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 4.6044050000000425
+    },
+    {
+      "round": 4,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 53.78169100000014
+    },
+    {
+      "round": 4,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 1.7954399999998714
+    },
+    {
+      "round": 4,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.1208760000008624
+    },
+    {
+      "round": 4,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 42.31540999999925
+    },
+    {
+      "round": 4,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.6810949999999139
+    },
+    {
+      "round": 4,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 8.646545999999944
+    },
+    {
+      "round": 4,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 52.64171600000009
+    },
+    {
+      "round": 4,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 2.0662780000002385
+    },
+    {
+      "round": 4,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 8.479073000000426
+    },
+    {
+      "round": 4,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 56.70817799999895
+    },
+    {
+      "round": 4,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 6.639186000000336
+    },
+    {
+      "round": 4,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 9.40589700000055
+    },
+    {
+      "round": 4,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 56.665397999999186
+    },
+    {
+      "round": 4,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.737159000000247
+    },
+    {
+      "round": 4,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 2.625599000000875
+    },
+    {
+      "round": 4,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 45.458262000000104
+    },
+    {
+      "round": 4,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 1.6887900000001537
+    },
+    {
+      "round": 4,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 1.0600240000003396
+    },
+    {
+      "round": 4,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 40.308876999999484
+    },
+    {
+      "round": 5,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 8.048335999999836
+    },
+    {
+      "round": 5,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.4043280000005325
+    },
+    {
+      "round": 5,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 49.105007000000114
+    },
+    {
+      "round": 5,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 7.896056999999928
+    },
+    {
+      "round": 5,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 1.8184550000005402
+    },
+    {
+      "round": 5,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 50.671988000000056
+    },
+    {
+      "round": 5,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 14.595221999999922
+    },
+    {
+      "round": 5,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 10.392391999999745
+    },
+    {
+      "round": 5,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 66.83038599999963
+    },
+    {
+      "round": 5,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 6.071232000000236
+    },
+    {
+      "round": 5,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.3280739999991056
+    },
+    {
+      "round": 5,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 44.62238499999876
+    },
+    {
+      "round": 5,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.3263850000003004
+    },
+    {
+      "round": 5,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 1.5328050000007352
+    },
+    {
+      "round": 5,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 42.53376399999979
+    },
+    {
+      "round": 5,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 7.3015009999999165
+    },
+    {
+      "round": 5,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.40564999999878637
+    },
+    {
+      "round": 5,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 58.7336690000011
+    },
+    {
+      "round": 5,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 14.41796500000055
+    },
+    {
+      "round": 5,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 38.11987500000032
+    },
+    {
+      "round": 5,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 65.7580539999999
+    },
+    {
+      "round": 5,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 9.603414999999586
+    },
+    {
+      "round": 5,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 6.283309999998892
+    },
+    {
+      "round": 5,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 60.43572399999903
+    },
+    {
+      "round": 5,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 3.061204000001453
+    },
+    {
+      "round": 5,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.3950440000007802
+    },
+    {
+      "round": 5,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 46.027218000001085
+    },
+    {
+      "round": 5,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 1.3305819999986852
+    },
+    {
+      "round": 5,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 0.9998439999999391
+    },
+    {
+      "round": 5,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 49.35779700000057
+    },
+    {
+      "round": 6,
+      "fixture": "3-discard",
+      "policy": "standard-controller",
+      "ms": 0.9762179999997898
+    },
+    {
+      "round": 6,
+      "fixture": "3-discard",
+      "policy": "planner-controller",
+      "ms": 7.924849999999424
+    },
+    {
+      "round": 6,
+      "fixture": "3-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 53.859983000000284
+    },
+    {
+      "round": 6,
+      "fixture": "3-main-early",
+      "policy": "standard-controller",
+      "ms": 2.0016410000007454
+    },
+    {
+      "round": 6,
+      "fixture": "3-main-early",
+      "policy": "planner-controller",
+      "ms": 11.400682999999844
+    },
+    {
+      "round": 6,
+      "fixture": "3-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 49.79297199999928
+    },
+    {
+      "round": 6,
+      "fixture": "3-main-late",
+      "policy": "standard-controller",
+      "ms": 11.175028000001475
+    },
+    {
+      "round": 6,
+      "fixture": "3-main-late",
+      "policy": "planner-controller",
+      "ms": 14.812149000001227
+    },
+    {
+      "round": 6,
+      "fixture": "3-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 62.96001499999875
+    },
+    {
+      "round": 6,
+      "fixture": "3-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.44725300000027346
+    },
+    {
+      "round": 6,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 4.702592999999979
+    },
+    {
+      "round": 6,
+      "fixture": "3-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 50.34627399999954
+    },
+    {
+      "round": 6,
+      "fixture": "3-setup",
+      "policy": "standard-controller",
+      "ms": 1.6700110000001587
+    },
+    {
+      "round": 6,
+      "fixture": "3-setup",
+      "policy": "planner-controller",
+      "ms": 1.0398940000013681
+    },
+    {
+      "round": 6,
+      "fixture": "3-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 42.951922000000195
+    },
+    {
+      "round": 6,
+      "fixture": "4-discard",
+      "policy": "standard-controller",
+      "ms": 0.9165479999992385
+    },
+    {
+      "round": 6,
+      "fixture": "4-discard",
+      "policy": "planner-controller",
+      "ms": 7.5437070000007225
+    },
+    {
+      "round": 6,
+      "fixture": "4-discard",
+      "policy": "planner-fresh-worker",
+      "ms": 51.98349600000074
+    },
+    {
+      "round": 6,
+      "fixture": "4-main-early",
+      "policy": "standard-controller",
+      "ms": 2.2944619999998395
+    },
+    {
+      "round": 6,
+      "fixture": "4-main-early",
+      "policy": "planner-controller",
+      "ms": 8.676551000000472
+    },
+    {
+      "round": 6,
+      "fixture": "4-main-early",
+      "policy": "planner-fresh-worker",
+      "ms": 61.96878900000047
+    },
+    {
+      "round": 6,
+      "fixture": "4-main-late",
+      "policy": "standard-controller",
+      "ms": 6.581218000001172
+    },
+    {
+      "round": 6,
+      "fixture": "4-main-late",
+      "policy": "planner-controller",
+      "ms": 10.037607000000207
+    },
+    {
+      "round": 6,
+      "fixture": "4-main-late",
+      "policy": "planner-fresh-worker",
+      "ms": 60.30402100000174
+    },
+    {
+      "round": 6,
+      "fixture": "4-offer-affordable",
+      "policy": "standard-controller",
+      "ms": 0.6924509999989823
+    },
+    {
+      "round": 6,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-controller",
+      "ms": 2.7317280000006576
+    },
+    {
+      "round": 6,
+      "fixture": "4-offer-affordable",
+      "policy": "planner-fresh-worker",
+      "ms": 44.77719799999977
+    },
+    {
+      "round": 6,
+      "fixture": "4-setup",
+      "policy": "standard-controller",
+      "ms": 1.6304420000014943
+    },
+    {
+      "round": 6,
+      "fixture": "4-setup",
+      "policy": "planner-controller",
+      "ms": 1.151121000000785
+    },
+    {
+      "round": 6,
+      "fixture": "4-setup",
+      "policy": "planner-fresh-worker",
+      "ms": 37.602420999999595
+    }
+  ]
+}

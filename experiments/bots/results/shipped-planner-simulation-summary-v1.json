@@ -1,0 +1,414 @@
+{
+  "schemaVersion": 1,
+  "sourceIdentity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+    "node": "v24.19.0",
+    "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5"
+  },
+  "note": "Complete descriptive run summaries. Decision timing is wall time inside concurrent Node simulation workers, including controller cloning/freezing, not matched-observation timing or physical app latency. Rotations are dependent seed blocks.",
+  "variants": {
+    "planner": {
+      "schemaVersion": 1,
+      "matches": 168,
+      "ended": 168,
+      "failed": 0,
+      "note": "Descriptive screening only; no confidence intervals or calibrated difficulty claims. Rotations/seats are correlated.",
+      "groups": [
+        {
+          "roster": "four-standard",
+          "playerCount": 4,
+          "profile": "counter-on",
+          "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+          "appearances": 48,
+          "wins": 19,
+          "failures": 0,
+          "winRate": 0.3958333333333333,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 4127,
+            "p50": 11.580418000012287,
+            "p95": 55.480816999974195,
+            "max": 114.02088399999775
+          }
+        },
+        {
+          "roster": "four-standard",
+          "playerCount": 4,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 144,
+          "wins": 29,
+          "failures": 0,
+          "winRate": 0.2013888888888889,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 14537,
+            "p50": 0.5376990000077058,
+            "p95": 9.559097999997903,
+            "max": 63.49869000000763
+          }
+        },
+        {
+          "roster": "three-mixed",
+          "playerCount": 3,
+          "profile": "baseline-easy",
+          "profileHash": "6e5f1e8196e66f60a40e8b028904f182268af6a1a8d64d42816bcd8b0080b929",
+          "appearances": 36,
+          "wins": 2,
+          "failures": 0,
+          "winRate": 0.05555555555555555,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 4360,
+            "p50": 0.4613740000058897,
+            "p95": 5.485828999982914,
+            "max": 68.40575899998657
+          }
+        },
+        {
+          "roster": "three-mixed",
+          "playerCount": 3,
+          "profile": "counter-on",
+          "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+          "appearances": 36,
+          "wins": 22,
+          "failures": 0,
+          "winRate": 0.6111111111111112,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 3943,
+            "p50": 9.381560000008903,
+            "p95": 47.09665300001507,
+            "max": 103.66962800000329
+          }
+        },
+        {
+          "roster": "three-mixed",
+          "playerCount": 3,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 36,
+          "wins": 12,
+          "failures": 0,
+          "winRate": 0.3333333333333333,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 4463,
+            "p50": 0.4602620000077877,
+            "p95": 6.067936000006739,
+            "max": 80.3284730000014
+          }
+        },
+        {
+          "roster": "three-standard",
+          "playerCount": 3,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 72,
+          "wins": 21,
+          "failures": 0,
+          "winRate": 0.2916666666666667,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 8994,
+            "p50": 0.5659509999968577,
+            "p95": 14.570997000002535,
+            "max": 133.19804999999906
+          }
+        },
+        {
+          "roster": "three-standard",
+          "playerCount": 3,
+          "profile": "counter-on",
+          "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+          "appearances": 36,
+          "wins": 15,
+          "failures": 0,
+          "winRate": 0.4166666666666667,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 3758,
+            "p50": 21.20691799999622,
+            "p95": 72.35774700000184,
+            "max": 149.1026380000003
+          }
+        },
+        {
+          "roster": "four-mixed",
+          "playerCount": 4,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 96,
+          "wins": 20,
+          "failures": 0,
+          "winRate": 0.20833333333333334,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 9645,
+            "p50": 0.5066420000221115,
+            "p95": 5.573131999990437,
+            "max": 46.1244810000062
+          }
+        },
+        {
+          "roster": "four-mixed",
+          "playerCount": 4,
+          "profile": "baseline-easy",
+          "profileHash": "6e5f1e8196e66f60a40e8b028904f182268af6a1a8d64d42816bcd8b0080b929",
+          "appearances": 48,
+          "wins": 4,
+          "failures": 0,
+          "winRate": 0.08333333333333333,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 4734,
+            "p50": 0.5007729999779258,
+            "p95": 4.473369000013918,
+            "max": 35.19651799998246
+          }
+        },
+        {
+          "roster": "four-mixed",
+          "playerCount": 4,
+          "profile": "counter-on",
+          "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+          "appearances": 48,
+          "wins": 24,
+          "failures": 0,
+          "winRate": 0.5,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 4290,
+            "p50": 7.3925490000110585,
+            "p95": 22.58413300002576,
+            "max": 134.0585119999887
+          }
+        }
+      ]
+    },
+    "standard": {
+      "schemaVersion": 1,
+      "matches": 168,
+      "ended": 168,
+      "failed": 0,
+      "note": "Descriptive screening only; no confidence intervals or calibrated difficulty claims. Rotations/seats are correlated.",
+      "groups": [
+        {
+          "roster": "four-standard",
+          "playerCount": 4,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 144,
+          "wins": 33,
+          "failures": 0,
+          "winRate": 0.22916666666666666,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 15230,
+            "p50": 0.59786000000895,
+            "p95": 11.507790000003297,
+            "max": 79.48181199999817
+          }
+        },
+        {
+          "roster": "four-standard",
+          "playerCount": 4,
+          "profile": "benchmark-standard-control",
+          "profileHash": "6185620771954519168dc422ded5934ae76e4cff74871adb60485eb57e96833a",
+          "appearances": 48,
+          "wins": 15,
+          "failures": 0,
+          "winRate": 0.3125,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 5133,
+            "p50": 0.593061999999918,
+            "p95": 12.43218999999226,
+            "max": 88.96375200001057
+          }
+        },
+        {
+          "roster": "four-mixed",
+          "playerCount": 4,
+          "profile": "baseline-easy",
+          "profileHash": "6e5f1e8196e66f60a40e8b028904f182268af6a1a8d64d42816bcd8b0080b929",
+          "appearances": 48,
+          "wins": 8,
+          "failures": 0,
+          "winRate": 0.16666666666666666,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 5222,
+            "p50": 0.5211330000020098,
+            "p95": 7.466720999975223,
+            "max": 59.410757000005106
+          }
+        },
+        {
+          "roster": "four-mixed",
+          "playerCount": 4,
+          "profile": "benchmark-standard-control",
+          "profileHash": "6185620771954519168dc422ded5934ae76e4cff74871adb60485eb57e96833a",
+          "appearances": 48,
+          "wins": 18,
+          "failures": 0,
+          "winRate": 0.375,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 5494,
+            "p50": 0.5298570000159089,
+            "p95": 8.988550000009127,
+            "max": 62.42683000001125
+          }
+        },
+        {
+          "roster": "four-mixed",
+          "playerCount": 4,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 96,
+          "wins": 22,
+          "failures": 0,
+          "winRate": 0.22916666666666666,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 10757,
+            "p50": 0.535665000003064,
+            "p95": 8.684192000015173,
+            "max": 84.72152799999458
+          }
+        },
+        {
+          "roster": "three-mixed",
+          "playerCount": 3,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 36,
+          "wins": 13,
+          "failures": 0,
+          "winRate": 0.3611111111111111,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 4978,
+            "p50": 0.5099579999950947,
+            "p95": 8.408116000005975,
+            "max": 69.41496100000222
+          }
+        },
+        {
+          "roster": "three-mixed",
+          "playerCount": 3,
+          "profile": "baseline-easy",
+          "profileHash": "6e5f1e8196e66f60a40e8b028904f182268af6a1a8d64d42816bcd8b0080b929",
+          "appearances": 36,
+          "wins": 7,
+          "failures": 0,
+          "winRate": 0.19444444444444445,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 4574,
+            "p50": 0.494883999999729,
+            "p95": 7.594331999993301,
+            "max": 62.86327500001062
+          }
+        },
+        {
+          "roster": "three-mixed",
+          "playerCount": 3,
+          "profile": "benchmark-standard-control",
+          "profileHash": "6185620771954519168dc422ded5934ae76e4cff74871adb60485eb57e96833a",
+          "appearances": 36,
+          "wins": 16,
+          "failures": 0,
+          "winRate": 0.4444444444444444,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 4929,
+            "p50": 0.49627699999837205,
+            "p95": 8.73056200001156,
+            "max": 69.32350500000757
+          }
+        },
+        {
+          "roster": "three-standard",
+          "playerCount": 3,
+          "profile": "baseline-standard",
+          "profileHash": "ae4e8d0e48a54aa84326ff616b0ef3826b6df4a5d276c5ffa96d6b5a1393156c",
+          "appearances": 72,
+          "wins": 24,
+          "failures": 0,
+          "winRate": 0.3333333333333333,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 9549,
+            "p50": 0.5397309999971185,
+            "p95": 18.07666000000006,
+            "max": 100.55692199999976
+          }
+        },
+        {
+          "roster": "three-standard",
+          "playerCount": 3,
+          "profile": "benchmark-standard-control",
+          "profileHash": "6185620771954519168dc422ded5934ae76e4cff74871adb60485eb57e96833a",
+          "appearances": 36,
+          "wins": 12,
+          "failures": 0,
+          "winRate": 0.3333333333333333,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 4825,
+            "p50": 0.550228000000061,
+            "p95": 18.015348000000813,
+            "max": 147.8055650000024
+          }
+        }
+      ]
+    },
+    "selfplay": {
+      "schemaVersion": 1,
+      "matches": 14,
+      "ended": 14,
+      "failed": 0,
+      "note": "Descriptive screening only; no confidence intervals or calibrated difficulty claims. Rotations/seats are correlated.",
+      "groups": [
+        {
+          "roster": "four-planner",
+          "playerCount": 4,
+          "profile": "counter-on",
+          "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+          "appearances": 32,
+          "wins": 8,
+          "failures": 0,
+          "winRate": 0.25,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 3000,
+            "p50": 17.2309580000001,
+            "p95": 66.58203599999979,
+            "max": 142.69813499999873
+          }
+        },
+        {
+          "roster": "three-planner",
+          "playerCount": 3,
+          "profile": "counter-on",
+          "profileHash": "bd7e1e1bb9c665657ecd3d326f8b34862ef89c204f1d4ccd1f9a414acb3d151a",
+          "appearances": 18,
+          "wins": 6,
+          "failures": 0,
+          "winRate": 0.3333333333333333,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 2045,
+            "p50": 18.863124999999854,
+            "p95": 71.76212200000009,
+            "max": 213.52592699999968
+          }
+        }
+      ]
+    }
+  }
+}

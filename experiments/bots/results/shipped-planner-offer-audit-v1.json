@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 1,
+  "note": "Aggregate synthetic ledger audit. Includes off-turn counters; incoming counters are outgoing replacements, not declines. Recipient affordability is post-hoc audit evidence, never proposer input. Different trajectories and recipient benefit prevent causal win claims from conversion.",
+  "variants": {
+    "planner": {
+      "schemaVersion": 1,
+      "focalProfile": "counter-on",
+      "sourceIdentity": {
+        "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+        "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+        "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+        "node": "v24.19.0",
+        "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5"
+      },
+      "auditIdentity": {
+        "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+        "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+        "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+        "node": "v24.19.0",
+        "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5",
+        "auditSourceSha256": "9de27374c8bb3ceb0c7a9a673d6c9ba002c8d489e87ff9ce8d5f396087531e4c"
+      },
+      "note": "Offline synthetic replay. Opponent affordability uses each recipient\u2019s own authorized view for post-hoc diagnosis only, never proposer input. Build-unlock and subsequent-investment metrics concern the active focal turn, are proxies and do not establish causal benefit. All original final-state hashes verified.",
+      "groups": [
+        {
+          "roster": "four-mixed",
+          "matches": 48,
+          "offers": 870,
+          "resolved": 870,
+          "unresolved": 0,
+          "accepted": 311,
+          "acceptanceRate": 0.35747126436781607,
+          "noRecipientCouldAfford": 295,
+          "ownTurns": 818,
+          "offersPerOwnTurn": 1.0635696821515892,
+          "acceptedTradeTurns": 261,
+          "acceptedTradeTurnsWithSubsequentInvestment": 105,
+          "acceptedTradesUnlockingInvestment": 101,
+          "byRatio": {
+            "1:1": {
+              "offers": 735,
+              "accepted": 252,
+              "noRecipientCouldAfford": 238,
+              "acceptanceRate": 0.34285714285714286
+            },
+            "2:1": {
+              "offers": 135,
+              "accepted": 59,
+              "noRecipientCouldAfford": 57,
+              "acceptanceRate": 0.43703703703703706
+            }
+          },
+          "incoming": {
+            "responses": 399,
+            "accepted": 46,
+            "declined": 353,
+            "unaffordableDeclines": 270
+          },
+          "completedWithPeerAtLeast8PublicVp": 0
+        },
+        {
+          "roster": "four-standard",
+          "matches": 48,
+          "offers": 803,
+          "resolved": 803,
+          "unresolved": 0,
+          "accepted": 254,
+          "acceptanceRate": 0.3163138231631382,
+          "noRecipientCouldAfford": 237,
+          "ownTurns": 806,
+          "offersPerOwnTurn": 0.9962779156327544,
+          "acceptedTradeTurns": 226,
+          "acceptedTradeTurnsWithSubsequentInvestment": 93,
+          "acceptedTradesUnlockingInvestment": 98,
+          "byRatio": {
+            "1:1": {
+              "offers": 682,
+              "accepted": 205,
+              "noRecipientCouldAfford": 190,
+              "acceptanceRate": 0.30058651026392963
+            },
+            "2:1": {
+              "offers": 121,
+              "accepted": 49,
+              "noRecipientCouldAfford": 47,
+              "acceptanceRate": 0.4049586776859504
+            }
+          },
+          "incoming": {
+            "responses": 462,
+            "accepted": 47,
+            "declined": 415,
+            "unaffordableDeclines": 332
+          },
+          "completedWithPeerAtLeast8PublicVp": 1
+        },
+        {
+          "roster": "three-mixed",
+          "matches": 36,
+          "offers": 833,
+          "resolved": 833,
+          "unresolved": 0,
+          "accepted": 211,
+          "acceptanceRate": 0.2533013205282113,
+          "noRecipientCouldAfford": 367,
+          "ownTurns": 796,
+          "offersPerOwnTurn": 1.0464824120603016,
+          "acceptedTradeTurns": 171,
+          "acceptedTradeTurnsWithSubsequentInvestment": 65,
+          "acceptedTradesUnlockingInvestment": 76,
+          "byRatio": {
+            "1:1": {
+              "offers": 698,
+              "accepted": 170,
+              "noRecipientCouldAfford": 291,
+              "acceptanceRate": 0.24355300859598855
+            },
+            "2:1": {
+              "offers": 135,
+              "accepted": 41,
+              "noRecipientCouldAfford": 76,
+              "acceptanceRate": 0.3037037037037037
+            }
+          },
+          "incoming": {
+            "responses": 477,
+            "accepted": 46,
+            "declined": 431,
+            "unaffordableDeclines": 344
+          },
+          "completedWithPeerAtLeast8PublicVp": 4
+        },
+        {
+          "roster": "three-standard",
+          "matches": 36,
+          "offers": 837,
+          "resolved": 837,
+          "unresolved": 0,
+          "accepted": 182,
+          "acceptanceRate": 0.2174432497013142,
+          "noRecipientCouldAfford": 362,
+          "ownTurns": 782,
+          "offersPerOwnTurn": 1.0703324808184143,
+          "acceptedTradeTurns": 160,
+          "acceptedTradeTurnsWithSubsequentInvestment": 69,
+          "acceptedTradesUnlockingInvestment": 75,
+          "byRatio": {
+            "1:1": {
+              "offers": 709,
+              "accepted": 143,
+              "noRecipientCouldAfford": 304,
+              "acceptanceRate": 0.2016925246826516
+            },
+            "2:1": {
+              "offers": 128,
+              "accepted": 39,
+              "noRecipientCouldAfford": 58,
+              "acceptanceRate": 0.3046875
+            }
+          },
+          "incoming": {
+            "responses": 404,
+            "accepted": 47,
+            "declined": 357,
+            "unaffordableDeclines": 276
+          },
+          "completedWithPeerAtLeast8PublicVp": 3
+        }
+      ]
+    },
+    "standard": {
+      "schemaVersion": 1,
+      "focalProfile": "benchmark-standard-control",
+      "sourceIdentity": {
+        "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+        "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+        "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+        "node": "v24.19.0",
+        "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5"
+      },
+      "auditIdentity": {
+        "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+        "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+        "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+        "node": "v24.19.0",
+        "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5",
+        "auditSourceSha256": "9de27374c8bb3ceb0c7a9a673d6c9ba002c8d489e87ff9ce8d5f396087531e4c"
+      },
+      "note": "Offline synthetic replay. Opponent affordability uses each recipient\u2019s own authorized view for post-hoc diagnosis only, never proposer input. Build-unlock and subsequent-investment metrics concern the active focal turn, are proxies and do not establish causal benefit. All original final-state hashes verified.",
+      "groups": [
+        {
+          "roster": "four-mixed",
+          "matches": 48,
+          "offers": 736,
+          "resolved": 736,
+          "unresolved": 0,
+          "accepted": 92,
+          "acceptanceRate": 0.125,
+          "noRecipientCouldAfford": 394,
+          "ownTurns": 974,
+          "offersPerOwnTurn": 0.75564681724846,
+          "acceptedTradeTurns": 92,
+          "acceptedTradeTurnsWithSubsequentInvestment": 67,
+          "acceptedTradesUnlockingInvestment": 67,
+          "byRatio": {
+            "1:1": {
+              "offers": 736,
+              "accepted": 92,
+              "noRecipientCouldAfford": 394,
+              "acceptanceRate": 0.125
+            }
+          },
+          "incoming": {
+            "responses": 739,
+            "accepted": 75,
+            "declined": 664,
+            "unaffordableDeclines": 393
+          },
+          "completedWithPeerAtLeast8PublicVp": 3
+        },
+        {
+          "roster": "four-standard",
+          "matches": 48,
+          "offers": 693,
+          "resolved": 693,
+          "unresolved": 0,
+          "accepted": 58,
+          "acceptanceRate": 0.0836940836940837,
+          "noRecipientCouldAfford": 378,
+          "ownTurns": 910,
+          "offersPerOwnTurn": 0.7615384615384615,
+          "acceptedTradeTurns": 58,
+          "acceptedTradeTurnsWithSubsequentInvestment": 41,
+          "acceptedTradesUnlockingInvestment": 41,
+          "byRatio": {
+            "1:1": {
+              "offers": 693,
+              "accepted": 58,
+              "noRecipientCouldAfford": 378,
+              "acceptanceRate": 0.0836940836940837
+            }
+          },
+          "incoming": {
+            "responses": 673,
+            "accepted": 75,
+            "declined": 598,
+            "unaffordableDeclines": 371
+          },
+          "completedWithPeerAtLeast8PublicVp": 3
+        },
+        {
+          "roster": "three-mixed",
+          "matches": 36,
+          "offers": 692,
+          "resolved": 692,
+          "unresolved": 0,
+          "accepted": 85,
+          "acceptanceRate": 0.12283236994219653,
+          "noRecipientCouldAfford": 410,
+          "ownTurns": 934,
+          "offersPerOwnTurn": 0.7408993576017131,
+          "acceptedTradeTurns": 85,
+          "acceptedTradeTurnsWithSubsequentInvestment": 62,
+          "acceptedTradesUnlockingInvestment": 62,
+          "byRatio": {
+            "1:1": {
+              "offers": 692,
+              "accepted": 85,
+              "noRecipientCouldAfford": 410,
+              "acceptanceRate": 0.12283236994219653
+            }
+          },
+          "incoming": {
+            "responses": 768,
+            "accepted": 70,
+            "declined": 698,
+            "unaffordableDeclines": 453
+          },
+          "completedWithPeerAtLeast8PublicVp": 6
+        },
+        {
+          "roster": "three-standard",
+          "matches": 36,
+          "offers": 710,
+          "resolved": 710,
+          "unresolved": 0,
+          "accepted": 75,
+          "acceptanceRate": 0.1056338028169014,
+          "noRecipientCouldAfford": 403,
+          "ownTurns": 910,
+          "offersPerOwnTurn": 0.7802197802197802,
+          "acceptedTradeTurns": 75,
+          "acceptedTradeTurnsWithSubsequentInvestment": 59,
+          "acceptedTradesUnlockingInvestment": 59,
+          "byRatio": {
+            "1:1": {
+              "offers": 710,
+              "accepted": 75,
+              "noRecipientCouldAfford": 403,
+              "acceptanceRate": 0.1056338028169014
+            }
+          },
+          "incoming": {
+            "responses": 666,
+            "accepted": 63,
+            "declined": 603,
+            "unaffordableDeclines": 367
+          },
+          "completedWithPeerAtLeast8PublicVp": 5
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "sourceIdentity": {
+    "rules": "e0345277823ccab19c0140f4d63ed6725e30b5261f45a70a01c3b399176d883d",
+    "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+    "code": "7f9ba362f2b49667e81b1706920b779dc0c0062e300d9ee08a9aafae3b730483",
+    "node": "v24.19.0",
+    "commit": "e2a9967ce815484c9e7c4e8efde33b246daf7de5"
+  },
+  "note": "Synthetic all-policy self-play stress/completion check, not a win-rate comparison. Every actor retains separately scoped goal memory. Full policy/action/plan/state hashes and separate authoritative command replay verified.",
+  "groups": [
+    {
+      "roster": "four-planner",
+      "matches": 8,
+      "ended": 8,
+      "failed": 0,
+      "policyReplays": 8,
+      "authoritativeReplays": 8,
+      "actions": 3000
+    },
+    {
+      "roster": "three-planner",
+      "matches": 6,
+      "ended": 6,
+      "failed": 0,
+      "policyReplays": 6,
+      "authoritativeReplays": 6,
+      "actions": 2045
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "shipped-planner-selfplay-v1",
+  "split": "test",
+  "gameSeeds": [
+    6007,
+    6101
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "counter-on": "counter-on.json"
+  },
+  "rosters": [
+    {
+      "id": "three-planner",
+      "profiles": [
+        "counter-on",
+        "counter-on",
+        "counter-on"
+      ]
+    },
+    {
+      "id": "four-planner",
+      "profiles": [
+        "counter-on",
+        "counter-on",
+        "counter-on",
+        "counter-on"
+      ]
+    }
+  ]
+}
