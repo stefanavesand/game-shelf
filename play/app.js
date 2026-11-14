@@ -1,3 +1,5 @@
+import {recentGames} from './presentation/recent-games.js';
+import {createCountPresentation} from './presentation/counts.js';
 import {scenarioPicker} from './presentation/scenarios.js';
 import {automaticSteal} from './presentation/forced-action.js';
 import {resourceHand,developmentCards,showHelp,showScores,refreshScores} from './presentation/panels.js';
@@ -27,6 +29,8 @@ const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[],accountBusy=false,updateReloadPending=false;
 const googleAuth=createGoogleAuth(),motion=createGameMotion(),movePacer=createMovePacer();
+const counts=createCountPresentation({onChange:()=>{render();schedule();}});
+const botBudget=()=>counts.pending()?0:movePacer.takeBudget(packet);
 const activity=createActivity({principal:()=>googleAuth.profile()?.id||''}),activityScroll=createActivityScroll();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
@@ -38,7 +42,7 @@ const solo=()=>client.isLocal()||(packet?.status!=='waiting'&&packet?.members?.f
 const player=id=>view()?.state.players.players.find(p=>p.id===id);
 const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Player';
 const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
-const blocked=()=>updateReloadPending||busy||accountBusy||packet?.pendingRandom||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
+const blocked=()=>updateReloadPending||busy||accountBusy||counts.pending()||packet?.pendingRandom||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
@@ -65,7 +69,7 @@ function recovery(){
   return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${oldLocal?'<p class="error-help">Reloading cannot change a saved game’s engine. Abandonment keeps the saved snapshot and leaves your player identity intact.</p>':permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${oldLocal?button('Review saved games','home','primary',busy):error?.code==='UPDATE_PENDING'?button('Return home','apply-update','primary',busy):error?.code==='UNSUPPORTED_VERSION'?(button('Reload app','reload-app','primary',busy)+(pending?button('Resolve move','refresh','',true):'')):button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
 }
 function title(){if(packet?.pendingRandom)return ['Rolling dice…','Waiting for the host to record the result. Keep this game open.'];return turnTitle({view:view(),pending:saved?.pending,mode,unavailable:unavailableIncomingOffer(view()),incoming:incoming(),name});}
-function resourcesPanel(){return resourceHand(view());}
+function resourcesPanel(){return resourceHand(counts.view()||view());}
 function cardsPanel(){return developmentCards(view(),{disabled:busy||(!navigator.onLine&&!client.isLocal())});}
 function selectSpatial(){
   const v=view();if(!v)return [];
@@ -91,9 +95,10 @@ function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.off
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
  const v=view(),[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
- return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
+ return gameScreen({view:counts.view()||v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(counts.view()||v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
 }
 function render(){
+  counts.observe(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});
   const focused=document.activeElement?.id,feedPosition=activityScroll.capture();
   document.body.classList.toggle('table-screen',screen==='table'&&!!view()&&!!googleAuth.profile());
   const hasAccount=!!googleAuth.profile();$('room').hidden=false;$('room').disabled=updateReloadPending;$('help').disabled=updateReloadPending;document.querySelector('.header-turn').textContent=screen==='table'&&view()?title()[0]:'';
@@ -104,9 +109,10 @@ function render(){
   let html='';
   if(!hasAccount){screen='home';html=`<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Let’s play.</h1>${accountPanel()}</section>`;}
   else if(screen==='home'){
-    const games=[...knownGames];
+    let games=[...knownGames];
     if(saved?.roomId&&!games.some(g=>g.roomId===saved.roomId))games.unshift({roomId:saved.roomId,status:packet?.status||'playing',players:packet?.members?.map(m=>m.name)||[],mode:packet?(solo()?'solo':'friends'):null,botLevel:packet?.botPolicy?'planner':packet?.members?.find(m=>m.kind==='bot')?.level||null});
-    html=`${recovery()}<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Catan</h1><p class="muted">Continue a saved game or start a new one.</p><div class="home-actions">${button('New game','create','primary',blocked())}${button('Join a game','join','',blocked())}</div><section class="saved-games" aria-label="Saved games"><h2>Your games</h2>${games.length?games.map(g=>`<article class="saved-game"><div><h3>${esc(g.players.join(' · ')||'Saved game')}</h3><p>${g.mode?`${g.mode==='solo'?'Solo':'Online'} · ${g.playerCount||3} players`:'Open to check players and bot level'}${g.scenario?' · '+esc(g.scenario):''}${g.botLevel?' · '+(g.botLevel==='planner'?'Planner (experimental)':g.botLevel==='easy'?'Easy':'Standard'):''}</p><small>${g.status==='waiting'?'Waiting in lobby':g.status==='ended'?'Finished':'In progress'} · ${esc(g.roomId.slice(0,8))}</small></div><div class="saved-game-actions">${button(g.status==='ended'?'View result':'Resume game',`resume-game:${g.roomId}`,'',blocked())}${button('Abandon game',`abandon-game:${g.roomId}`,'quiet',busy||!!saved?.pending)}</div></article>`).join(''):'<p class="muted">No saved games yet. Choose New game to get started.</p>'}<p class="safe-hint">Games opened in this browser appear here. Keep its data to retain your player identity. Solo games work offline. Games with a friend require internet.</p></section>${accountPanel()}</section>`;
+    games=recentGames(games,saved?.roomId);
+    html=`${recovery()}<section class="home-screen"><p class="eyebrow">Game Shelf</p><h1>Catan</h1><p class="muted">Continue a saved game or start a new one.</p><div class="home-actions">${button('New game','create','primary',blocked())}${button('Join a game','join','',blocked())}</div><section class="saved-games" aria-label="Saved games"><h2>Your games</h2>${games.length?games.map(g=>`<article class="saved-game"><div><h3 title="${esc(g.players.join(' · ')||'Saved game')}">${esc(g.players.join(' · ')||'Saved game')}</h3><p>${g.mode?`${g.mode==='solo'?'Solo':'Online'} · ${g.playerCount||3} players`:'Open to check players and bot level'}${g.scenario?' · '+esc(g.scenario):''}${g.botLevel?' · '+(g.botLevel==='planner'?'Planner (experimental)':g.botLevel==='easy'?'Easy':'Standard'):''} · ${g.status==='waiting'?'Waiting in lobby':g.status==='ended'?'Finished':'In progress'}</p></div><div class="saved-game-actions">${button(g.status==='ended'?'View result':'Resume game',`resume-game:${g.roomId}`,'',blocked())}<button type="button" class="quiet saved-game-remove" data-action="abandon-game:${esc(g.roomId)}" aria-label="Abandon game" title="Abandon game" ${busy||saved?.pending?'disabled':''}>×</button></div></article>`).join(''):'<p class="muted">No saved games yet. Choose New game to get started.</p>'}<p class="safe-hint">Games opened in this browser appear here. Keep its data to retain your player identity. Solo games work offline. Games with a friend require internet.</p></section>${accountPanel()}</section>`;
   }
   else if(['create','join'].includes(screen))html=`${recovery()}<section class="form-card">${button('← Back','home','back-link')}<p class="eyebrow">Catan</p><h1>${screen==='create'?'New game':'Join a game'}</h1><p class="muted">${screen==='create'?(formDraft.gameMode==='solo'?'Play offline against bots. Saved on this device.':'Choose the game size, invite friends, then start. Bots fill any empty seats.'):'Join the lobby before the host starts the game.'}</p><form id="entry-form"><div class="form-fields">${screen==='create'?`${scenarioPicker(formDraft.scenario)}<label for="player-count">Game size</label><select id="player-count"><option value="3" ${formDraft.playerCount===3?'selected':''}>3 players</option><option value="4" ${formDraft.playerCount===4?'selected':''}>4 players</option></select><label for="game-mode">Play mode</label><select id="game-mode"><option value="friends" ${formDraft.gameMode==='friends'?'selected':''}>Online · invite friends</option><option value="solo" ${formDraft.gameMode==='solo'?'selected':''}>Solo offline · play against bots</option></select><label for="bot-level">Bot level</label><select id="bot-level"><option value="standard" ${formDraft.level==='standard'?'selected':''}>Standard · resource priorities</option><option value="easy" ${formDraft.level==='easy'?'selected':''}>Easy · more varied choices</option>${formDraft.gameMode==='solo'?`<option value="planner" ${formDraft.level==='planner'?'selected':''}>Planner (experimental) · builds, trades &amp; cards</option>`:''}</select>`:`<label for="room-id">Room ID</label><input id="room-id" value="${esc(formDraft.room??invitedRoom()??'')}" autocomplete="off"><label for="invite-token">Invitation link or token</label><input id="invite-token" value="${esc(invitationToken||'')}" required autocomplete="off">`}</div><button class="primary" type="submit" ${blocked()||(!navigator.onLine&&(screen==='join'||formDraft.gameMode!=='solo'))?'disabled':''}>${screen==='create'?(formDraft.gameMode==='solo'?'Start solo game':'Create game'):'Join game'}</button></form><p class="safe-hint">${saved?.persistent===false&&client.isLocal()?'Persistent storage was not granted. Your browser may remove local saves.':'Local games stay on this device. Clearing browser data removes saves and identity.'}</p></section>`;
   else if(packet?.status==='waiting'&&packet.lobby)html=recovery()+renderLobby();
@@ -120,7 +126,7 @@ function render(){
 
   activityScroll.restore(feedPosition);
   if(sheet.open&&view()&&$('sheet-body').querySelector('.score-detail'))refreshScores(view());
-  motion.present(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});
+  const completion=motion.present(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});if(completion)counts.completeOn(packet,completion);
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
   if($('sidebar').open)renderMenu();
   if(notice&&screen==='table'&&view())announce(notice);
@@ -148,7 +154,7 @@ function schedule(){
  if(botSince&&Date.now()-botSince>60000)return;
  if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){
   const watchingBot=packet?.view&&actingPlayers(packet.view).some(id=>packet.view.seats.find(s=>s.id===id)?.kind==='bot');
-  const interval=packet?.botWorkPending&&!saved?.pending&&!error?Math.max(50,movePacer.remaining(packet)):watchingBot&&movePacer.recentlyChanged()?1500:client.capabilities.pollIntervalMs;
+  const interval=packet?.botWorkPending&&!saved?.pending&&!error?Math.max(50,movePacer.remaining(packet),counts.remaining()):watchingBot&&movePacer.recentlyChanged()?1500:client.capabilities.pollIntervalMs;
   timer=setTimeout(()=>sync(),Math.min(2147483647,Math.max(interval,(saved?.retryAt||0)-Date.now())));
  }
 }
@@ -178,11 +184,11 @@ async function runSync(op,args={},options={}){
     let operationResult;
     if(op){const result=operationResult=op==='resume'?await client.resume(args.roomId,{botBudget:0}):await client.execute(op,args,{...options,botBudget:0});if(op==='resume'&&!result.ok){notice=result.error.message;ready=true;error=null;return;}apply(result);if(result?.ok){screen='table';history.replaceState(null,'',location.pathname+'#game');}}
     const recoveringEntry=['create','join'].includes(saved?.pending?.body.op);
-    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh({botBudget:movePacer.takeBudget(packet)});apply(latest);await observeTrades(view(),outgoing);
+    const latest=operationResult?.ok&&client.capabilities.commandReturnsCurrentState?operationResult:await client.refresh({botBudget:botBudget()});apply(latest);await observeTrades(view(),outgoing);
     if(saved?.pending&&latest?.ok)saved=(await client.inspect()).state;
     if(!saved?.pending)await resolveUnavailableOffers(view,async offerId=>{
      const declined=await client.execute('command',{roomId:packet.roomId,expectedRevision:packet.revision,action:{type:'TRADE_DECLINE',offerId}},{botBudget:0});apply(declined);
-     if(!declined?.ok||!client.capabilities.commandReturnsCurrentState)apply(await client.refresh({botBudget:movePacer.takeBudget(packet)}));
+     if(!declined?.ok||!client.capabilities.commandReturnsCurrentState)apply(await client.refresh({botBudget:botBudget()}));
      await observeTrades(view());return !!declined?.ok;
     });
     const steal=automaticSteal(view());
@@ -417,7 +423,7 @@ document.addEventListener('input',e=>{if(e.target.id==='room-id')formDraft.room=
 $('help').onclick=()=>helpPanel();$('refresh').onclick=()=>{if(googleAuth.profile())sync();};$('room').onclick=()=>showMenu();
 window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;formDraft.room=invitedRoom();if(saved?.pending){notice='Resolve your current move before joining another game.';render();}else setScreen('join');}else if(location.hash==='#home')dispatch('home');});
 window.addEventListener('offline',()=>{clearTimeout(timer);if(offlineAllowed()){error=null;render();schedule();return;}ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
-window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);motion.reset();movePacer.reset();}else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
+window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);motion.reset();counts.reset();movePacer.reset();}else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
 async function boot(){
   if(isGoogleReturn(location.href)){const href=location.href;history.replaceState(null,'',location.pathname+'#home');accountBusy=true;notice='Completing Google sign-in…';render();try{await changeAccount(()=>googleAuth.finish(href,path=>history.replaceState(null,'',path)));notice='Signed in with Google.';}catch(e){notice=e.message||'Google sign-in could not be completed. Please try again.';}finally{accountBusy=false;}}
   invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;

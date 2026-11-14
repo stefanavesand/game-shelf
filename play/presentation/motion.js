@@ -39,6 +39,7 @@ export function createGameMotion({reduced=()=>matchMedia('(prefers-reduced-motio
    if(event.robber){const a=center(event.robber.from),b=center(event.robber.to);animate(document.querySelector('[data-motion-robber]'),[{transform:`translate(${a.x-b.x}px,${a.y-b.y}px)`,opacity:.45},{transform:'translate(0,0)',opacity:1}],{delay:200,duration:timing.pieceMs});}
    if(event.card)animate(player(event.actorId),[{filter:'brightness(1)'},{filter:'brightness(1.3)',offset:.5},{filter:'brightness(1)'}],{delay:300,duration:600});
    later(()=>{if(!caption.isConnected)return;detail.textContent=event.awards.length?event.awards.map(a=>`${player(a.playerId)?.querySelector('strong')?.textContent||'Player'} · ${a.name}`).join(' · '):costLabel(event.cost);},850);
+   return Promise.allSettled(animations.map(animation=>animation.finished));
 
   }
  };

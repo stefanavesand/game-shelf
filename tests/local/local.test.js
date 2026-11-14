@@ -59,3 +59,7 @@ test('a human move commits before bots, which resume one saved step at a time',a
  let baseline=prior;const batch=createLocalClient({storage:{load:async()=>structuredClone(baseline),save:async v=>{baseline=structuredClone(v);}},locks});const expected=await batch.execute('command',{roomId:p.roomId,expectedRevision:before,action:{type:'END_TURN'}});
  while((await c.inspect()).packet.revision<expected.revision)await c.refresh({botBudget:1});assert.deepEqual(data.games[p.roomId].state,baseline.games[p.roomId].state);
 });
+
+test('last-played metadata survives reopening and a no-op refresh does not reorder games',async()=>{
+ let data={schemaVersion:1,local:false,current:null,games:{}},time=10,n=0;const storage={load:async()=>structuredClone(data),save:async v=>{data=structuredClone(v);}},options={storage,locks,seed:()=>37,id:()=> 'recent-'+(++n),now:()=>time};let client=createLocalClient(options),a=await client.execute('create',{name:'A'},{botBudget:0});time=20;await client.execute('create',{name:'B'},{botBudget:0});time=30;await client.resume(a.roomId,{botBudget:0});time=40;client=createLocalClient(options);await client.refresh({botBudget:0});const games=await client.games();assert.equal(games.find(g=>g.roomId===a.roomId).lastPlayedAt,30);assert.equal(games.find(g=>g.roomId!==a.roomId).lastPlayedAt,20);
+});
