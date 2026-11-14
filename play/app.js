@@ -134,6 +134,7 @@ function render(){
   if(sheet.open&&sheet.dataset.trade)updateTradeStatus();
   if(screen==='table'&&ready&&!busy&&!saved?.pending&&incoming()&&canSupplyOffer(view())&&!reply.open&&lastIncomingOffer!==`${view().id}:${view().you}:${view().offer.id}`)showReplyOffer(view().offer);
   if(reply.open){if(reply.dataset.offerId!==view()?.offer?.id||!incoming())reply.close();else for(const el of reply.querySelectorAll('button[data-action]'))el.disabled=blocked();}
+  window.dispatchEvent(new Event('game-shelf-ui-state'));
 }
 function apply(next){
   if(!next)return;

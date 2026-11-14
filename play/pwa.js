@@ -70,7 +70,14 @@ export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onRelo
   window.addEventListener('focus',()=>{discover();automaticUpdate();});
   window.addEventListener('online',()=>{discover();automaticUpdate();});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){discover();automaticUpdate();}});
-  startTimers();discover();automaticUpdate();
+  // Wake waiting updates when session work finishes or another window returns
+  // home. Foreground/online events may arrive while the session is still busy.
+  const idleChannel=typeof BroadcastChannel==='function'?new BroadcastChannel('game-shelf-update-idle'):null;
+  if(idleChannel)idleChannel.onmessage=()=>automaticUpdate();
+  let wasIdle=false;
+  const uiState=()=>{const idle=isIdle();if(idle&&!wasIdle){idleChannel?.postMessage({idle:true});automaticUpdate();}wasIdle=idle;};
+  window.addEventListener('game-shelf-ui-state',uiState);
+  startTimers();discover();uiState();
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(registration.active&&navigator.serviceWorker.controller&&self.OFFLINE_VERSION!==undefined)ask(registration.active,'INFO').then(info=>{if(info.version!==self.OFFLINE_VERSION){pendingReload=info;show('Updating app…');onReloadPending();automaticUpdate();}else check();});});
  }catch{
   show('Offline package unavailable · retrying automatically');const controller=new AbortController();
