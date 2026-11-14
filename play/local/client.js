@@ -1,3 +1,5 @@
+import {scenarioName} from '../catan/rules/scenarios.js';
+import {makeScenario} from '../core/scenario.js';
 import {randomEffects} from '../core/random-effects.js';
 import {createPlannerRunner} from '../bots/client.js';
 import {PLANNER_POLICY,supportedPolicy} from '../bots/contract.js';
@@ -27,13 +29,13 @@ export function createLocalClient({planner=createPlannerRunner(),storage=createL
   isLocal:()=>local,
   selectOnline:()=>lock(async()=>{const lib=await load();lib.local=false;await storage.save(lib);local=false;}),
   inspect:()=>lock(async()=>{const lib=await load(),g=lib.games[lib.current];if(local&&g)await verify(g);return {state:{schemaVersion:1,roomId:local?lib.current:null,pending:null,persistent:lib.persistent},principalId:'local',packet:local&&g?packet(g):null};}),
-  games:()=>lock(async()=>Object.values((await load()).games).filter(g=>!g.abandoned).map(g=>({roomId:g.state.snapshot.id,status:g.state.snapshot.state.game.phase==='ended'?'ended':'playing',players:g.state.snapshot.seats.map(s=>s.name),mode:'solo',playerCount:g.state.snapshot.seats.length,botLevel:g.botPolicy?'planner':g.state.snapshot.seats[1].level,local:true,compatible:g.artifact===CATAN_ARTIFACT.compatibilityId}))),
+  games:()=>lock(async()=>Object.values((await load()).games).filter(g=>!g.abandoned).map(g=>({roomId:g.state.snapshot.id,status:g.state.snapshot.state.game.phase==='ended'?'ended':'playing',players:g.state.snapshot.seats.map(s=>s.name),mode:'solo',scenario:scenarioName(g.state.snapshot.state),playerCount:g.state.snapshot.seats.length,botLevel:g.botPolicy?'planner':g.state.snapshot.seats[1].level,local:true,compatible:g.artifact===CATAN_ARTIFACT.compatibilityId}))),
   resume:(roomId,options={})=>lock(async()=>{const lib=await load(),g=lib.games[roomId];if(!g||g.abandoned)return null;await verify(g);lib.current=roomId;lib.local=true;await storage.save(lib);local=true;await bots(lib,g,options.botBudget);return packet(g);}),
   refresh:(options={})=>lock(async()=>{const lib=await load(),g=lib.games[lib.current];if(!local||!g)return null;await verify(g);await bots(lib,g,options.botBudget);return packet(g);}),
   execute:(op,args={},options={})=>lock(async()=>{
    const lib=await load();
    if(op==='create'){
-    const roomId=id(),config=catanConfig([{id:'p1',name:(args.name||'Player').slice(0,30)}],{solo:true,level:args.botLevel==='planner'?'standard':args.botLevel||'standard',seed:seed(),diceMode:'host-random-v1',playerCount:args.playerCount??3}),state=module.initialize(config,{gameId:roomId});
+    const roomId=id(),config=catanConfig([{id:'p1',name:(args.name||'Player').slice(0,30)}],{solo:true,level:args.botLevel==='planner'?'standard':args.botLevel||'standard',seed:seed(),diceMode:'host-random-v1',scenario:makeScenario(args.scenario||'classic'),playerCount:args.playerCount??3}),state=module.initialize(config,{gameId:roomId});
     try{lib.persistent=globalThis.navigator?.storage?.persist?await navigator.storage.persist():false;}catch{lib.persistent=false;}
     const g={artifact:CATAN_ARTIFACT.compatibilityId,state,hash:await digest(state),...(args.botLevel==='planner'?{botPolicy:PLANNER_POLICY,botMemory:{},botMemoryHash:await digest({})}:{})};lib.games[roomId]=g;lib.current=roomId;lib.local=true;await storage.save(lib);local=true;await bots(lib,g,options.botBudget);return packet(g);
    }

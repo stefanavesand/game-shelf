@@ -2,7 +2,7 @@
 export const CATAN_ARTIFACT = Object.freeze({
   "schemaVersion": 1,
   "rulesVersion": "2.1.0",
-  "releaseVersion": "0.12.0",
+  "releaseVersion": "0.13.0",
   "breaking": false,
   "compatibilityId": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
   "files": [
@@ -12,7 +12,7 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/catan/module.js",
-      "sha256": "ab0ac26543df4b2641e5b6bf28ac653a6d6184098897de1b5b9c677ca515a9a6"
+      "sha256": "7cb733d3341464cf6e8f1df1167a11198d967644521a6b657ef7637b0f1c6576"
     },
     {
       "path": "play/catan/rules/board.js",
@@ -47,12 +47,16 @@ export const CATAN_ARTIFACT = Object.freeze({
       "sha256": "73a189d16d9ca3da60213587d4b91d91024d44100361339297fe1b43075b9e77"
     },
     {
+      "path": "play/catan/rules/scenarios.js",
+      "sha256": "8e9cb688ea0cb3405f318ed13fbc037f19fa2630d9ff3b872d0d4be1bf047d79"
+    },
+    {
       "path": "play/catan/rules/scoring.js",
       "sha256": "2a5e3c068a7b6621f8fbf6975c6d3059dd7fc1e359d1e252bef3ad99a33fa3f6"
     },
     {
       "path": "play/catan/rules/session.js",
-      "sha256": "aef3eb1576da797e28a720b4ceb03806a33a1630fdb456ecff64811f9c746edc"
+      "sha256": "dd77615addb517ffc6e4124686fe32cda209a8c9a4c7590bf3b19a1bb179d681"
     },
     {
       "path": "play/catan/rules/setup.js",
@@ -71,5 +75,5 @@ export const CATAN_ARTIFACT = Object.freeze({
       "sha256": "747f9076c7a79b7e067643fb0f644de3261991cf70313284a8085f26cbc4a345"
     }
   ],
-  "digest": "de2ab4e76591f2a75c96a314677e59dab37bc9e00a0912f8925f856140e27ed5"
+  "digest": "c756b3ffd4a991a2a687215eaf7417bbdc5110ebbb26878425ce97e282f338cc"
 });

@@ -1,5 +1,9 @@
 # Private MVP requirements — agreed product baseline
 
+## Scenario selection — owner-approved extension
+
+New games offer Classic (fixed beginner layout, initial default) or Random Island (normal base-game inventories, randomized terrain/tokens/port types, no adjacent 6/8). Both support three/four seats, Solo and online, and normal base rules. The host persists the final layout; saved games never reroll. A small original preview and English description explain the choice. Extra scenario rules are deferred. See [scenario design and verification](SCENARIOS.md). This supersedes the fixed-map restriction for new games only.
+
 ## Fixed responsive game viewport — 2026-11-07
 
 The owner approved the same no-page-scroll game design for phone and iPad: compact player row, a board with bottom actions in portrait/right actions in landscape, left overlay sidebar, fitted dialogs and explicit paging for longer content. Rule/session behavior remains unchanged. See [UI architecture and verification](RESPONSIVE_UI.md). This supersedes the earlier long-page game layout.

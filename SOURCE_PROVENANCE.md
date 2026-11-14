@@ -165,3 +165,7 @@ The owner authorized publishing the original development-investment/robber polic
 ## Recorded WebCrypto dice
 
 Original WebCrypto adapter, pure recorded-effects validation, generic relay proposal/resolution handling and regression/browser scenarios were written for this repository. No external implementation, dependency or asset was imported. Existing seeded setup/theft and seeded simulations remain; only new-game dice use the host's recorded random outcomes. See [recorded dice](docs/RANDOM_DICE.md).
+
+## Original scenario selection
+
+The Classic/Random Island catalog, bounded constrained generator/validator, WebCrypto adapter, original SVG thumbnails, English descriptions and tests were authored for this repository. No commercial scenario implementation, screenshot artwork or description was imported. Existing board/port geometry and original production artwork are reused with their prior provenance intact. See [scenario design](docs/SCENARIOS.md).

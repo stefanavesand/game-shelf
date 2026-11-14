@@ -1,5 +1,9 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
+## Scenario selection — owner-approved extension
+
+New games offer Classic (fixed beginner layout, initial default) or Random Island (normal base-game inventories, randomized terrain/tokens/port types, no adjacent 6/8). Both support three/four seats, Solo and online, and normal base rules. The host persists the final layout; saved games never reroll. A small original preview and English description explain the choice. Extra scenario rules are deferred. See [scenario design and verification](docs/SCENARIOS.md). This supersedes the fixed-map restriction for new games only.
+
 ## Automatic updates — owner decision 2026-11-07
 
 App maintenance requires no manual check, update button or confirmation. Remove the header update arrow and connection dot; show readable, read-only update status in the sidebar. Download, repair and retry in the foreground automatically, then activate on idle Home after saved-game/pending-command checks and idle acknowledgements from other open app windows. This supersedes earlier manual/breaking-update approval descriptions; incompatible saved games must never be discarded automatically.
