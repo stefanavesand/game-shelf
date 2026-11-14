@@ -46,7 +46,7 @@ const incoming=()=>pendingRecipients(view()?.offer).includes(view()?.you);
 const recipientName=id=>id==='all'?'All':name(id);
 function currentTradeResult(v=view()){return tradeStartRevision===null||!v?null:[...(v.trades||[])].reverse().find(t=>t.from===v.you&&t.revision>=tradeStartRevision);}
 function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&currentTradeResult()?.status==='accepted')tradeDraft=null;tradeStartRevision=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus({preventScroll:true});else if(opener?.id)$(opener.id)?.focus({preventScroll:true});}
-function openSheet(title,body){overlays.closeDrawer();reply.close();sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)overlays.show(sheet);(sheet.querySelector('input:not([readonly]),select,button:not(#close-sheet):not(:disabled)')||$('close-sheet')).focus();}
+function openSheet(title,body){overlays.closeDrawer();reply.close();sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)overlays.show(sheet);$('sheet-title').tabIndex=-1;$('sheet-title').focus({preventScroll:true});}
 const tradePages=createTradePages(sheet);
 const overlays=createOverlays({sheet,reply,drawer:$('sidebar'),closeSheet});
 $('close-sheet').onclick=closeSheet;
