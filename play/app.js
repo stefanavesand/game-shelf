@@ -42,7 +42,7 @@ const solo=()=>client.isLocal()||(packet?.status!=='waiting'&&packet?.members?.f
 const player=id=>view()?.state.players.players.find(p=>p.id===id);
 const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Player';
 const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
-const blocked=()=>updateReloadPending||busy||accountBusy||counts.pending()||packet?.pendingRandom||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
+const blocked=()=>updateReloadPending||busy||accountBusy||packet?.pendingRandom||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
