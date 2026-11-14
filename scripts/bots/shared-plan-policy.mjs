@@ -1,3 +1,4 @@
+import {stage,afterGoal,handEconomy,adjustedGain,affordableWinningGoal} from './strategy-model.mjs';
 // Original adaptive goal policy. Uses public topology and the bot's own hand only.
 import {botDecision as baseline} from './baselines/heuristic-1.1.0.js';
 import {siteProduction,acquisitionRolls,preview} from './planner-policy.mjs';
@@ -9,6 +10,7 @@ import {RESOURCES,COSTS,applyEconomy} from '../../play/catan/rules/economy.js';
 import {applyTurn} from '../../play/catan/rules/turn.js';
 import {catanChoices} from '../../play/catan/rules/session.js';
 import {score} from '../../play/catan/rules/scoring.js';
+const goalCache=new WeakMap();
 const compare=(a,b)=>a<b?-1:a>b?1:0;
 const own=(state,id)=>state.players.players.find(p=>p.id===id);
 const sum=o=>Object.values(o).reduce((n,v)=>n+v,0);
@@ -39,9 +41,12 @@ function goalGain(state,goal,p){return goal.kind==='development'?p.developmentVa
 function etaDiscount(state,id,p){const peers=state.players.players.filter(q=>q.id!==id),highest=Math.max(0,...peers.map(q=>q.victoryPoints));return p.etaPenalty*(1+p.urgentEtaWeight*Math.max(0,highest-p.urgentPublicVp+1));}
 export function handValue(state,id,goal,p,knownEta=undefined){
  const stock=own(state,id).resources,eta=knownEta??acquisitionRolls(state,id,goal.cost,p.horizonRolls),completion=1-RESOURCES.reduce((n,r)=>n+Math.max(0,goal.cost[r]-stock[r]),0)/Math.max(1,sum(goal.cost));
- return (Number.isFinite(eta)?goal.gain/(1+etaDiscount(state,id,p)*eta):0)+p.readinessWeight*completion+p.reserveWeight*sum(stock)-p.routePenalty*goal.route.length;
+ const finish=p.enableStageStrategy&&stage(state,id,p)==='finish';
+ return (Number.isFinite(eta)?goal.gain/(1+etaDiscount(state,id,p)*(finish?p.finishEtaScale:1)*eta):0)+p.readinessWeight*completion+p.reserveWeight*sum(stock)-p.routePenalty*goal.route.length+handEconomy(state,id,goal,p);
 }
-export function generateGoals(view,p){
+export function generateGoals(view,p,{lookahead=true}={}){
+ const cacheable=lookahead&&p.enableBuildLookahead;
+ if(cacheable&&goalCache.get(view.state)?.has(p))return goalCache.get(view.state).get(p);
  const state=view.state,id=view.you,player=own(state,id),goals=[],graph=routes(state,id,p),costCache=new Map(),roadCard=catanChoices(state,id,null).some(a=>a.type==='PLAY_ROAD_BUILDING');
  const add=goal=>{goal.gain=goalGain(state,goal,p);goal.missing=bundle(Object.fromEntries(RESOURCES.map(r=>[r,Math.max(0,goal.cost[r]-player.resources[r])])));const costKey=JSON.stringify(goal.cost);if(!costCache.has(costKey))costCache.set(costKey,acquisitionRolls(state,id,goal.cost,p.horizonRolls));goal.eta=costCache.get(costKey);goal.value=handValue(state,id,goal,p,goal.eta);goals.push(goal);};
  if(player.citiesRemaining>0)for(const b of state.board.buildings.filter(b=>b.playerId===id&&b.type==='settlement'))add({key:keyFor('city',b.vertex),kind:'city',vertex:b.vertex,route:[],cost:bundle(COSTS.city)});
@@ -54,7 +59,21 @@ export function generateGoals(view,p){
   add({key:keyFor('settlement',vertex),kind:'settlement',vertex,route,usesRoadCard,cost:bundle(Object.fromEntries(RESOURCES.map(r=>[r,(COSTS.settlement[r]||0)+paid*(COSTS.road[r]||0)])))});
  }
  if(state.game.developmentDeckCount>0)add({key:'development|'+player.developmentCards.length,kind:'development',route:[],cost:bundle(COSTS.development)});
- goals.sort((a,b)=>b.value-a.value||compare(a.key,b.key));return {goals,graph};
+ const strategic=p.enableBuildLookahead||p.enableSiteCompetition||p.enableResourceEconomy||p.enableStageStrategy;
+ if(strategic){
+  const peers=p.enableSiteCompetition?state.players.players.filter(q=>q.id!==id).map(q=>routes(state,q.id,p)):[];
+  for(const goal of goals){const adjustment=adjustedGain(state,id,goal,p,peers);Object.assign(goal,adjustment);goal.value=handValue(state,id,goal,p,goal.eta);}
+ }
+ goals.sort((a,b)=>b.value-a.value||compare(a.key,b.key));
+ if(lookahead&&p.enableBuildLookahead){
+  for(const goal of goals.filter(g=>g.kind!=='development').slice(0,p.maxLookaheadGoals)){
+   if(affordableWinningGoal(state,id,goal)){goal.followUp=null;continue;}
+   const next=afterGoal(state,id,goal),successor=generateGoals({...view,state:next},{...p,enableBuildLookahead:0},{lookahead:false}).goals.find(g=>g.kind!=='development');
+   if(successor){const combinedEta=goal.eta+successor.eta,bonus=Number.isFinite(combinedEta)?p.lookaheadWeight*successor.gain/(1+p.etaPenalty*combinedEta):0;goal.value+=bonus;goal.followUp={key:successor.key,eta:Number.isFinite(successor.eta)?successor.eta:null,bonus};}
+  }
+  goals.sort((a,b)=>b.value-a.value||compare(a.key,b.key));
+ }
+ const result={goals,graph};if(cacheable){if(!goalCache.has(state))goalCache.set(state,new WeakMap());goalCache.get(state).set(p,result);}return result;
 }
 function completed(state,id,key){
  for(const b of state.board.buildings.filter(b=>b.playerId===id))if(key===keyFor('settlement',b.vertex)||b.type==='city'&&key===keyFor('city',b.vertex))return true;

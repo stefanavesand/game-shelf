@@ -23,3 +23,5 @@ play/bots/policies/
 play/bots/profile.js
 
 play/bots/legacy-profile.js
+
+play/bots/previous-profile.js

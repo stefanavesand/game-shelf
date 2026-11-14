@@ -1,0 +1,1388 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "strategic-planner-0.1.0",
+  "workingTreeRun": true,
+  "note": "Synthetic deterministic games. Identity includes exact policy source hashes; commit is the pre-change HEAD because execution preceded the implementation commit. Small correlated cohorts do not establish a difficulty rating. No tuning between train and validation.",
+  "screen": {
+    "identity": {
+      "rules": "c756b3ffd4a991a2a687215eaf7417bbdc5110ebbb26878425ce97e282f338cc",
+      "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+      "code": "5536a9d2ff3397f1681dc6e1511a54cb3ca4811a5e1b2463931c8e45318c94ed",
+      "node": "v24.19.0",
+      "commit": "a3ce922e66ddbc88f2ab1e292b0685f6e3089429"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "strategy-screen-v1",
+      "split": "train",
+      "gameSeeds": [
+        37,
+        91
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "strategy-on": "strategy-on.json",
+        "purchase-on": "purchase-on.json"
+      },
+      "rosters": [
+        {
+          "id": "three-versus-previous",
+          "profiles": [
+            "strategy-on",
+            "purchase-on",
+            "purchase-on"
+          ]
+        },
+        {
+          "id": "four-versus-previous",
+          "profiles": [
+            "strategy-on",
+            "purchase-on",
+            "purchase-on",
+            "purchase-on"
+          ]
+        }
+      ]
+    },
+    "profiles": {
+      "strategy-on": {
+        "schemaVersion": 1,
+        "id": "strategy-on",
+        "policyVersion": "strategic-planner-0.1.0",
+        "featureSchemaVersion": 1,
+        "level": "standard",
+        "parameters": {
+          "maxRouteLength": 2,
+          "maxGraphNodes": 96,
+          "horizonRolls": 24,
+          "productionWeight": 0.08,
+          "etaPenalty": 0.1,
+          "readinessWeight": 0.2,
+          "routePenalty": 0.05,
+          "switchMargin": 0.15,
+          "developmentValue": 0.35,
+          "reserveWeight": 0.005,
+          "cardUseThreshold": 0.05,
+          "maxDiscardCandidates": 24,
+          "urgentPublicVp": 8,
+          "urgentEtaWeight": 0.5,
+          "discardRiskWeight": 0.08,
+          "tradeMinGain": 0.01,
+          "tradeMaxGive": 2,
+          "tradeOffersPerTurn": 1,
+          "tradeCooldownOwnTurns": 1,
+          "tradeProposalDiscount": 0.75,
+          "tradeLeaderPenalty": 0.2,
+          "tradeLeaderVp": 7,
+          "enableCounterOffers": 1,
+          "enableRobberValuation": 1,
+          "enableKnightTiming": 1,
+          "robberExpectedRolls": 4,
+          "robberOwnProductionWeight": 2,
+          "robberThreatWeight": 1.5,
+          "robberThreatVp": 7,
+          "robberPlanResourceWeight": 1,
+          "robberStealValue": 0.05,
+          "knightArmyProgressWeight": 0.25,
+          "knightHoldValue": 0.04,
+          "knightMinGain": 0.02,
+          "knightOtherCardWeight": 1,
+          "enablePurchaseValuation": 1,
+          "purchaseVpValue": 1,
+          "purchaseLateVpWeight": 0.5,
+          "purchaseKnightValue": 0.4,
+          "purchaseArmyWeight": 0.6,
+          "purchaseRoadValue": 0.6,
+          "purchaseResourceValue": 0.5,
+          "purchaseMonopolyDiscount": 0.5,
+          "purchaseDelayDiscount": 0.8,
+          "purchaseQueuePenalty": 0.5,
+          "purchaseMinValue": 0.05,
+          "enableBuildLookahead": 1,
+          "enableSiteCompetition": 1,
+          "enableResourceEconomy": 1,
+          "enableStageStrategy": 1,
+          "maxLookaheadGoals": 3,
+          "lookaheadWeight": 0.25,
+          "raceRiskWeight": 0.45,
+          "raceUrgencyWeight": 0.12,
+          "balanceWeight": 0.12,
+          "portWeight": 0.2,
+          "surplusWeight": 0.015,
+          "earlyProductionScale": 1.3,
+          "lateProductionScale": 0.3,
+          "finishEtaScale": 1.5
+        }
+      },
+      "purchase-on": {
+        "schemaVersion": 1,
+        "id": "purchase-on",
+        "policyVersion": "development-investment-0.1.0",
+        "featureSchemaVersion": 1,
+        "level": "standard",
+        "parameters": {
+          "maxRouteLength": 2,
+          "maxGraphNodes": 96,
+          "horizonRolls": 24,
+          "productionWeight": 0.08,
+          "etaPenalty": 0.1,
+          "readinessWeight": 0.2,
+          "routePenalty": 0.05,
+          "switchMargin": 0.15,
+          "developmentValue": 0.35,
+          "reserveWeight": 0.005,
+          "cardUseThreshold": 0.05,
+          "maxDiscardCandidates": 24,
+          "urgentPublicVp": 8,
+          "urgentEtaWeight": 0.5,
+          "discardRiskWeight": 0.08,
+          "tradeMinGain": 0.01,
+          "tradeMaxGive": 2,
+          "tradeOffersPerTurn": 1,
+          "tradeCooldownOwnTurns": 1,
+          "tradeProposalDiscount": 0.75,
+          "tradeLeaderPenalty": 0.2,
+          "tradeLeaderVp": 7,
+          "enableCounterOffers": 1,
+          "enableRobberValuation": 1,
+          "enableKnightTiming": 1,
+          "robberExpectedRolls": 4,
+          "robberOwnProductionWeight": 2,
+          "robberThreatWeight": 1.5,
+          "robberThreatVp": 7,
+          "robberPlanResourceWeight": 1,
+          "robberStealValue": 0.05,
+          "knightArmyProgressWeight": 0.25,
+          "knightHoldValue": 0.04,
+          "knightMinGain": 0.02,
+          "knightOtherCardWeight": 1,
+          "enablePurchaseValuation": 1,
+          "purchaseVpValue": 1,
+          "purchaseLateVpWeight": 0.5,
+          "purchaseKnightValue": 0.4,
+          "purchaseArmyWeight": 0.6,
+          "purchaseRoadValue": 0.6,
+          "purchaseResourceValue": 0.5,
+          "purchaseMonopolyDiscount": 0.5,
+          "purchaseDelayDiscount": 0.8,
+          "purchaseQueuePenalty": 0.5,
+          "purchaseMinValue": 0.05
+        }
+      }
+    },
+    "summary": {
+      "schemaVersion": 1,
+      "matches": 14,
+      "ended": 14,
+      "failed": 0,
+      "note": "Descriptive screening only; no confidence intervals or calibrated difficulty claims. Rotations/seats are correlated.",
+      "groups": [
+        {
+          "roster": "four-versus-previous",
+          "playerCount": 4,
+          "profile": "purchase-on",
+          "profileHash": "4b33acfcfd0fdb7b4f1b2723d62da5a1e510889d5214e6c0b50202aada738873",
+          "appearances": 24,
+          "wins": 5,
+          "failures": 0,
+          "winRate": 0.20833333333333334,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 2477,
+            "p50": 10.319772999995621,
+            "p95": 47.49794100000145,
+            "max": 111.15415799999755
+          }
+        },
+        {
+          "roster": "four-versus-previous",
+          "playerCount": 4,
+          "profile": "strategy-on",
+          "profileHash": "8bea05ae04462377c0b9a4ef8379c1052a8b30edda6b4a0b6c2b1ceae39a2da5",
+          "appearances": 8,
+          "wins": 3,
+          "failures": 0,
+          "winRate": 0.375,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 819,
+            "p50": 54.84015999999974,
+            "p95": 96.5381769999949,
+            "max": 177.1742349999986
+          }
+        },
+        {
+          "roster": "three-versus-previous",
+          "playerCount": 3,
+          "profile": "strategy-on",
+          "profileHash": "8bea05ae04462377c0b9a4ef8379c1052a8b30edda6b4a0b6c2b1ceae39a2da5",
+          "appearances": 6,
+          "wins": 2,
+          "failures": 0,
+          "winRate": 0.3333333333333333,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 686,
+            "p50": 63.03415699999823,
+            "p95": 105.28520600000047,
+            "max": 306.8756820000003
+          }
+        },
+        {
+          "roster": "three-versus-previous",
+          "playerCount": 3,
+          "profile": "purchase-on",
+          "profileHash": "4b33acfcfd0fdb7b4f1b2723d62da5a1e510889d5214e6c0b50202aada738873",
+          "appearances": 12,
+          "wins": 4,
+          "failures": 0,
+          "winRate": 0.3333333333333333,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 1401,
+            "p50": 10.909288999999262,
+            "p95": 47.49954899999989,
+            "max": 105.76062499999989
+          }
+        }
+      ]
+    },
+    "matches": [
+      {
+        "matchId": "020d5d92074a19529bb020556788465e4a70dc25598e9308ceaa66cc203e38a0",
+        "caseId": "58f67ee60d8065b3cfb5ce5d",
+        "gameSeed": 91,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 3,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 390,
+        "traceHash": "03f1bcad5ac5e22d40888f660bf9d45f1ee0815cfb882d9142edb5cc4c3f2d6f",
+        "finalStateHash": "9ea4b72ef164f1b2f027b7b7ebfbdddb52378347f523fb284762dcc270502838",
+        "planTraceHash": "8cd943ef662af53f677f385af9079b31aab5eab696736891577ba7b1f738ac74"
+      },
+      {
+        "matchId": "13a285e71897172f899283ffe41b470de45156a9e10365e8cceaede981915637",
+        "caseId": "d3c29ddd8c25cf0b926be617",
+        "gameSeed": 37,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 3,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 396,
+        "traceHash": "9cc14239fd27a63ca0438ceb23122f9b217ec3635a403df6e343bed9e3dbbaf0",
+        "finalStateHash": "f73793fb22c9a177bab4b2cab5d48e06ef58a0f645821f05adb6bb0d10455c05",
+        "planTraceHash": "6d72c0d2c24cdb9cac7c8a3b3c114ea5fd2f1044508e500ce37414e2f5ecb718"
+      },
+      {
+        "matchId": "19794edaa3f1ab2bb5839aa4e6f248c6b408b5f578a0460dc773aaadb78d6330",
+        "caseId": "41890d228a9d946f9e985ab1",
+        "gameSeed": 91,
+        "rotation": 3,
+        "status": "ended",
+        "winnerSeat": 3,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 437,
+        "traceHash": "09d609ac37d160f3024bd5b74d8dfd9caa3b09cf8ca3ff8880d3574c2d085e1d",
+        "finalStateHash": "566d93a11b2d4c89d43e74470ba5ac8ba7934d4b9fc6bbac6fa602435b447ef1",
+        "planTraceHash": "90a7b9ddddc8474bf4e0ebb36cac3a0f24e973e54671737786aad91a3e9afa71"
+      },
+      {
+        "matchId": "20d6c81d4b9443252aeef3cb4c463b388bc9389503b4a67be993f6f09bdb19c3",
+        "caseId": "e626f81de8ef068a28cdd809",
+        "gameSeed": 91,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 1,
+        "playerCount": 4,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 418,
+        "traceHash": "f07e9bb0163135982f27679fc9fc173a2f7a899e0905fabbf1d825c59058cc5a",
+        "finalStateHash": "3c84dc89f3e396b9a6b51261e2fcb07a1fe97def550d6fbbcad0c4f89ad9f696",
+        "planTraceHash": "0ad4396b23ff126dda6cd0702586c840758f344a92b83679d0b9256f1ea96293"
+      },
+      {
+        "matchId": "24b40db7b458107de1a08f87df0aa8bc8b41f1963627382a83c1b3aa74a598f2",
+        "caseId": "37b68852ff9ebd6f05dd880b",
+        "gameSeed": 37,
+        "rotation": 3,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 505,
+        "traceHash": "f44bda99db18590fe083fd70376f594d67d08df0868a76cef73fdf5ab01ff36a",
+        "finalStateHash": "01b592d0aef6fc55081e98ae54191c1eaf1a9e6f16abe3cdb9e287acec804a83",
+        "planTraceHash": "cedf2521aabdb307b053a7244e73ece59ff1ef38ab03fb47fc33d91fdbd67760"
+      },
+      {
+        "matchId": "2c7d7e279a303e5df4bed8e60d3690453ba300a8f2e29a602a704962c442be14",
+        "caseId": "c6a34d79c06c225e0f81bd49",
+        "gameSeed": 37,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 4,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 327,
+        "traceHash": "35ec5efa25bba85b3178f4a62846a81c7f04a0dd9ed32581f732c2fc484e1af2",
+        "finalStateHash": "d07ac398b86eea27b3beac6cdbc3e8a693c23b56cbf28ea6e05d591dcd084b0c",
+        "planTraceHash": "a70ec8d46d52e8343a9f5fec4d455a134fc92aaa2a680805f325382f8ddb1fe6"
+      },
+      {
+        "matchId": "42721bc7af38100da1b4f2d9315430d8db2039fc43f06f61c8b9a60787508a91",
+        "caseId": "5e06f7ef9e9c21dfdb788146",
+        "gameSeed": 91,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 269,
+        "traceHash": "d7860779dc21fea572fc49fe0c19f0d11331b4b1d44790c233d909915b613de5",
+        "finalStateHash": "be6933ab1947863a053a004c2551bebd502ac93afab66b598c1684de2bd9b6d1",
+        "planTraceHash": "4ae5d55705b5a40cc2aa4ef2fd00a97a78b9e9732dfcb0c3f5fc2e0ef8e502a6"
+      },
+      {
+        "matchId": "502483649c4bce9454b3bea3add41999bd374462a8ba9e78f89d3ab88dc6965c",
+        "caseId": "2a4c5e064c0bb3daa142bcd7",
+        "gameSeed": 91,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 3,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 384,
+        "traceHash": "c5a90d17342d452976f65f63bbbcd462b2e88fb9318caa74716586e416c6d1cc",
+        "finalStateHash": "db63b84c298a62d8451771784499689b6afbffa0cb096e1186d3a6b1422e5026",
+        "planTraceHash": "2d30f709cf9913bdf147238492755db3ee0d5e7d1683e9cfcba8b88e356818c7"
+      },
+      {
+        "matchId": "a249fda4089c54e6a437a3e852116ca58cad3873717a1a2dc1712b9b3d11dbb4",
+        "caseId": "90bdc70a9ad208413305aea0",
+        "gameSeed": 91,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 300,
+        "traceHash": "5078fef89c7d4c0d1e850fb60b0e72968c3056e34cef30a5edcfa536e8737dc0",
+        "finalStateHash": "3d0f900e7b0776739ae4d0f717b377a04cec802a9b2d949db9ea6d85768cdd46",
+        "planTraceHash": "a773f824de51294c7ad69b71dda4b738a06490f51ea1344f987f885deecc81de"
+      },
+      {
+        "matchId": "bc354fe2b4be29cbc533f669ba9816441287997940de587124faf2a75ac1a52c",
+        "caseId": "f58274b26df90bc8258a320b",
+        "gameSeed": 37,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 350,
+        "traceHash": "456f11fecb761e44c5657afce2375b2d295b55067cc55da9abb8cb0e9f915cae",
+        "finalStateHash": "3d0802a8a675ad7f9740983e296c97dbbc6c297119c0b23ff6b0bce2a2970b95",
+        "planTraceHash": "b9854a10b622e41ab5a128c4ec51c1967f0c49526a2946ea3849e3d2e68a0163"
+      },
+      {
+        "matchId": "d6baeee2ba4d8835fe5a1cc8e0189f6defb9aa8069f987419a39ebc530ed240b",
+        "caseId": "852a338f916f9eed2a249bac",
+        "gameSeed": 91,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 3,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 430,
+        "traceHash": "bb8129936871083ffa4ac5d023b5dec65442a3d59c40e9007e44c6dc729723f3",
+        "finalStateHash": "80379f0b925ba30e7981a40b158fbaeac95db6a04b3e9d06d21ed6389daf3e58",
+        "planTraceHash": "ce024b08159009457da6c70588589e03b149a4645ef3ec24dc2c879e400727ed"
+      },
+      {
+        "matchId": "f301a397951120a1ee0dc69e20a7277c9fa4800d95fcda3d7c347750ceac2269",
+        "caseId": "550ee8d9bf4694e19742aead",
+        "gameSeed": 37,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 347,
+        "traceHash": "0c389179f76ea91ebf1134023697698e2ff520ea0bedab25930b1799aa4d253a",
+        "finalStateHash": "2a9e91fb1d44221adf22b820a5330100bf81dd3ad92beabd2f17668a0e2d336c",
+        "planTraceHash": "77b4085ce6b4054d647902f928ed13474aad804e93db117c729a0a7727767e68"
+      },
+      {
+        "matchId": "f4d5ab0d99fc9eb8f5f6d741bd26a2fe0fe8ddf884aea99dcd9840b5f21e6658",
+        "caseId": "49d352f3d870a9020e529f44",
+        "gameSeed": 37,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 439,
+        "traceHash": "26e5a03d45cb4bf532c68df993bf4681fb7b8d9334e02cc1c628b4d6d7581134",
+        "finalStateHash": "97cd04b46eea5a9e9e9582f32c534b1d86dd61bcc1141b41a4324c619fc929a5",
+        "planTraceHash": "f28f9f23bc7983465dee4467c23d005cf26fbe8cadab99672349a1386412bd39"
+      },
+      {
+        "matchId": "fb4c5cce314881a753f4de69595925ff1ec51053987442a3ee36d5cdf6939bc8",
+        "caseId": "a3dcc8d4c2d9d05bfc657675",
+        "gameSeed": 37,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 391,
+        "traceHash": "87dd9bb0e4818d0bfa0d2010b08015253a2fedff2d7dbc0fae26bac572ea40c7",
+        "finalStateHash": "5b24914e8694293bd563ed4092f957b1655141dd64169a6370137191f9ad50ed",
+        "planTraceHash": "77493b064dc9d6a9b68264f7cd502481029d539129a11c97f450a0f7ef977c55"
+      }
+    ]
+  },
+  "validation": {
+    "identity": {
+      "rules": "c756b3ffd4a991a2a687215eaf7417bbdc5110ebbb26878425ce97e282f338cc",
+      "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+      "code": "5536a9d2ff3397f1681dc6e1511a54cb3ca4811a5e1b2463931c8e45318c94ed",
+      "node": "v24.19.0",
+      "commit": "a3ce922e66ddbc88f2ab1e292b0685f6e3089429"
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "id": "strategy-validation-v1",
+      "split": "validation",
+      "gameSeeds": [
+        1009,
+        2017
+      ],
+      "decisionSeed": 92831,
+      "repeats": 1,
+      "maxActions": 2500,
+      "matchTimeoutMs": 120000,
+      "profiles": {
+        "strategy-on": "strategy-on.json",
+        "purchase-on": "purchase-on.json"
+      },
+      "rosters": [
+        {
+          "id": "three-versus-previous",
+          "profiles": [
+            "strategy-on",
+            "purchase-on",
+            "purchase-on"
+          ]
+        },
+        {
+          "id": "four-versus-previous",
+          "profiles": [
+            "strategy-on",
+            "purchase-on",
+            "purchase-on",
+            "purchase-on"
+          ]
+        }
+      ]
+    },
+    "profiles": {
+      "strategy-on": {
+        "schemaVersion": 1,
+        "id": "strategy-on",
+        "policyVersion": "strategic-planner-0.1.0",
+        "featureSchemaVersion": 1,
+        "level": "standard",
+        "parameters": {
+          "maxRouteLength": 2,
+          "maxGraphNodes": 96,
+          "horizonRolls": 24,
+          "productionWeight": 0.08,
+          "etaPenalty": 0.1,
+          "readinessWeight": 0.2,
+          "routePenalty": 0.05,
+          "switchMargin": 0.15,
+          "developmentValue": 0.35,
+          "reserveWeight": 0.005,
+          "cardUseThreshold": 0.05,
+          "maxDiscardCandidates": 24,
+          "urgentPublicVp": 8,
+          "urgentEtaWeight": 0.5,
+          "discardRiskWeight": 0.08,
+          "tradeMinGain": 0.01,
+          "tradeMaxGive": 2,
+          "tradeOffersPerTurn": 1,
+          "tradeCooldownOwnTurns": 1,
+          "tradeProposalDiscount": 0.75,
+          "tradeLeaderPenalty": 0.2,
+          "tradeLeaderVp": 7,
+          "enableCounterOffers": 1,
+          "enableRobberValuation": 1,
+          "enableKnightTiming": 1,
+          "robberExpectedRolls": 4,
+          "robberOwnProductionWeight": 2,
+          "robberThreatWeight": 1.5,
+          "robberThreatVp": 7,
+          "robberPlanResourceWeight": 1,
+          "robberStealValue": 0.05,
+          "knightArmyProgressWeight": 0.25,
+          "knightHoldValue": 0.04,
+          "knightMinGain": 0.02,
+          "knightOtherCardWeight": 1,
+          "enablePurchaseValuation": 1,
+          "purchaseVpValue": 1,
+          "purchaseLateVpWeight": 0.5,
+          "purchaseKnightValue": 0.4,
+          "purchaseArmyWeight": 0.6,
+          "purchaseRoadValue": 0.6,
+          "purchaseResourceValue": 0.5,
+          "purchaseMonopolyDiscount": 0.5,
+          "purchaseDelayDiscount": 0.8,
+          "purchaseQueuePenalty": 0.5,
+          "purchaseMinValue": 0.05,
+          "enableBuildLookahead": 1,
+          "enableSiteCompetition": 1,
+          "enableResourceEconomy": 1,
+          "enableStageStrategy": 1,
+          "maxLookaheadGoals": 3,
+          "lookaheadWeight": 0.25,
+          "raceRiskWeight": 0.45,
+          "raceUrgencyWeight": 0.12,
+          "balanceWeight": 0.12,
+          "portWeight": 0.2,
+          "surplusWeight": 0.015,
+          "earlyProductionScale": 1.3,
+          "lateProductionScale": 0.3,
+          "finishEtaScale": 1.5
+        }
+      },
+      "purchase-on": {
+        "schemaVersion": 1,
+        "id": "purchase-on",
+        "policyVersion": "development-investment-0.1.0",
+        "featureSchemaVersion": 1,
+        "level": "standard",
+        "parameters": {
+          "maxRouteLength": 2,
+          "maxGraphNodes": 96,
+          "horizonRolls": 24,
+          "productionWeight": 0.08,
+          "etaPenalty": 0.1,
+          "readinessWeight": 0.2,
+          "routePenalty": 0.05,
+          "switchMargin": 0.15,
+          "developmentValue": 0.35,
+          "reserveWeight": 0.005,
+          "cardUseThreshold": 0.05,
+          "maxDiscardCandidates": 24,
+          "urgentPublicVp": 8,
+          "urgentEtaWeight": 0.5,
+          "discardRiskWeight": 0.08,
+          "tradeMinGain": 0.01,
+          "tradeMaxGive": 2,
+          "tradeOffersPerTurn": 1,
+          "tradeCooldownOwnTurns": 1,
+          "tradeProposalDiscount": 0.75,
+          "tradeLeaderPenalty": 0.2,
+          "tradeLeaderVp": 7,
+          "enableCounterOffers": 1,
+          "enableRobberValuation": 1,
+          "enableKnightTiming": 1,
+          "robberExpectedRolls": 4,
+          "robberOwnProductionWeight": 2,
+          "robberThreatWeight": 1.5,
+          "robberThreatVp": 7,
+          "robberPlanResourceWeight": 1,
+          "robberStealValue": 0.05,
+          "knightArmyProgressWeight": 0.25,
+          "knightHoldValue": 0.04,
+          "knightMinGain": 0.02,
+          "knightOtherCardWeight": 1,
+          "enablePurchaseValuation": 1,
+          "purchaseVpValue": 1,
+          "purchaseLateVpWeight": 0.5,
+          "purchaseKnightValue": 0.4,
+          "purchaseArmyWeight": 0.6,
+          "purchaseRoadValue": 0.6,
+          "purchaseResourceValue": 0.5,
+          "purchaseMonopolyDiscount": 0.5,
+          "purchaseDelayDiscount": 0.8,
+          "purchaseQueuePenalty": 0.5,
+          "purchaseMinValue": 0.05
+        }
+      }
+    },
+    "summary": {
+      "schemaVersion": 1,
+      "matches": 14,
+      "ended": 14,
+      "failed": 0,
+      "note": "Descriptive screening only; no confidence intervals or calibrated difficulty claims. Rotations/seats are correlated.",
+      "groups": [
+        {
+          "roster": "three-versus-previous",
+          "playerCount": 3,
+          "profile": "purchase-on",
+          "profileHash": "4b33acfcfd0fdb7b4f1b2723d62da5a1e510889d5214e6c0b50202aada738873",
+          "appearances": 12,
+          "wins": 0,
+          "failures": 0,
+          "winRate": 0,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 1348,
+            "p50": 9.952009999999973,
+            "p95": 23.235490000000027,
+            "max": 51.99473999999998
+          }
+        },
+        {
+          "roster": "three-versus-previous",
+          "playerCount": 3,
+          "profile": "strategy-on",
+          "profileHash": "8bea05ae04462377c0b9a4ef8379c1052a8b30edda6b4a0b6c2b1ceae39a2da5",
+          "appearances": 6,
+          "wins": 6,
+          "failures": 0,
+          "winRate": 1,
+          "equalPolicyReference": 0.3333333333333333,
+          "decisionMs": {
+            "samples": 684,
+            "p50": 40.295092000000295,
+            "p95": 68.52588100000139,
+            "max": 130.47735199999988
+          }
+        },
+        {
+          "roster": "four-versus-previous",
+          "playerCount": 4,
+          "profile": "purchase-on",
+          "profileHash": "4b33acfcfd0fdb7b4f1b2723d62da5a1e510889d5214e6c0b50202aada738873",
+          "appearances": 24,
+          "wins": 6,
+          "failures": 0,
+          "winRate": 0.25,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 2211,
+            "p50": 8.979146000001492,
+            "p95": 21.853361999994377,
+            "max": 48.796029000001
+          }
+        },
+        {
+          "roster": "four-versus-previous",
+          "playerCount": 4,
+          "profile": "strategy-on",
+          "profileHash": "8bea05ae04462377c0b9a4ef8379c1052a8b30edda6b4a0b6c2b1ceae39a2da5",
+          "appearances": 8,
+          "wins": 2,
+          "failures": 0,
+          "winRate": 0.25,
+          "equalPolicyReference": 0.25,
+          "decisionMs": {
+            "samples": 698,
+            "p50": 33.12834199999634,
+            "p95": 58.12561199999982,
+            "max": 90.13222600000154
+          }
+        }
+      ]
+    },
+    "matches": [
+      {
+        "matchId": "0f5b509be08d291cbb9dc2ae9a40d580ae1549598ee5e932a01a0ace0dfaa8ea",
+        "caseId": "279b02c4b637a55691a38771",
+        "gameSeed": 1009,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 1,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 315,
+        "traceHash": "2432b0363da66ab2fe8072ce721d08329236efe012595223985abaf1ec619afc",
+        "finalStateHash": "a905ba6fc12ed4774a3931ed8937d59f3aece28648a54dccf057b7b21947ec4c",
+        "planTraceHash": "60397fef08e7d02d49ddf706a998c0053df111cb70043d6130442c25648e4ae4"
+      },
+      {
+        "matchId": "1340a98f978073bb68e54eb55303aa81418ffde3eee05378d087a39da8de8e1b",
+        "caseId": "3e1d650484eefe035ef05be1",
+        "gameSeed": 2017,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 1,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 302,
+        "traceHash": "908aa1e4ecd289d51b5423532bb2f47b70908ecc8eda1cf8330c9162b58f581e",
+        "finalStateHash": "6065684a0d3e65487bb8b07ed8ba02b5bf51310c2b5e738911d21bb75bc224bb",
+        "planTraceHash": "73aba08f7f2c19afcd89d570bacb441a690205fb68820a144f8ee8ec0264dae6"
+      },
+      {
+        "matchId": "24a97ea92ba2320cd08490b392d79fc36e0954ec95ba9a29f1cbf1fc27c0ef65",
+        "caseId": "8daa6f2ff88ca296008cb5e0",
+        "gameSeed": 2017,
+        "rotation": 3,
+        "status": "ended",
+        "winnerSeat": 1,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 351,
+        "traceHash": "01203ba6a1e11808f30b89ac1de730edfe12949464b612f5826956c8b94c45dc",
+        "finalStateHash": "6ca2bca874d9c1ab8ab0a6dde7b72ab29c5e2860dd6062b2fe96012e75e52ac8",
+        "planTraceHash": "49917aff57c84da418c33ba6074dc0fc4f60923a1d8b35d426d9d783c372dcf7"
+      },
+      {
+        "matchId": "4f45807c7c4096f3b0557491d0ac9b945c493673c8f2c8c93608a8468080d1c8",
+        "caseId": "7b4cac8b6eb5e77001e5bd1e",
+        "gameSeed": 1009,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 4,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 382,
+        "traceHash": "81e514a34659efbcd8e59f31ea8eab4775952b4b05a6ed4bc9876db4268f36be",
+        "finalStateHash": "3101ad8aa09bad4c229d8c72512b723ea6ce66d29f7e8123b0c21d35737362f7",
+        "planTraceHash": "15a5df0407cbdac21eb8dcd4437086d4abbcb77b40e01e3dee45bbc62fb40c8a"
+      },
+      {
+        "matchId": "6fc12efbd96476dc7f2e0c980199a123afe14c10c0a5ad4b6247d4fd7686937f",
+        "caseId": "d3f6546b1932bbe84c4847bb",
+        "gameSeed": 2017,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 397,
+        "traceHash": "1ee5e3a9f718b2f2c7fced02491ef67ef9cc5ee03a938e509bfbd08938713766",
+        "finalStateHash": "cc67f04413ecb4a6ac197af10fd62ea017e28f8de3cf333cb40b6d37365bf841",
+        "planTraceHash": "929ac98c4c1bc24b142274956983e8e1c89d53b8b83ee40df926fa4cc4dd42f9"
+      },
+      {
+        "matchId": "77618c2e9b5b274578c3b58eba3dea942e2efebe452c9eac8bcc98dc23bec127",
+        "caseId": "3c6c44e201c31265404ca652",
+        "gameSeed": 1009,
+        "rotation": 3,
+        "status": "ended",
+        "winnerSeat": 3,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 348,
+        "traceHash": "51a2038dca0b775f656296e088d8b05564caa5cf98ffbbc8fbf9a12a831e8990",
+        "finalStateHash": "b6080205c40d033bd4ac25a1b711b743c3d135fad1e6433c5945fbb3bf88ee8e",
+        "planTraceHash": "c2d02dcebd1fc217b42dda4718504fdc3a7e948291167227879c53bc7aa8a3e2"
+      },
+      {
+        "matchId": "783488489b65a4e2d4c8fbd60700bac2750ca34e47ff71cb0e39152fb77e55ee",
+        "caseId": "a8acf01451e4e9a553905f00",
+        "gameSeed": 2017,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 3,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 364,
+        "traceHash": "e7ed4f84eca7d52e5d2aa35b99d4f0e9a065684ebf06691aee36002dc7d8ff90",
+        "finalStateHash": "8c5a7a58e64e45d0ada6dbb314ddceb1665993adcc917d44e4dc2838897a2fb9",
+        "planTraceHash": "f33295fed9454f7ea9a200af1d701024261511a6a983e362aa27bed1a983d61c"
+      },
+      {
+        "matchId": "af6b0681d27104895799323c8f4eab95d57a87a42d7d522c09df59656a0cd822",
+        "caseId": "db2e9259755eb80384a7833f",
+        "gameSeed": 1009,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 397,
+        "traceHash": "8db4f92d6baeff7266d126c6c1e2d775d7e6e72b1dda3883f24c7bedbb1cbfb4",
+        "finalStateHash": "672d190eeb350937cff4db2481bb76aa36c9f870c58dd4962c70ba3d1a258c0a",
+        "planTraceHash": "31910fa2717f207aa79f1483c52ac49fcacd9deb8388f12ce8ec7acaf76c2ce2"
+      },
+      {
+        "matchId": "b0993b2f3e8ca20c795aaca6ad5ce44fb9f6debebf86f18dc63e3c5448f94a31",
+        "caseId": "9ea26c366781e9bd83c6161f",
+        "gameSeed": 1009,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 3,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 270,
+        "traceHash": "aa0d3447a2fa68c408e875cddad53c0f19568b9ccdb6b8a7e1c91e06124f9589",
+        "finalStateHash": "ebf9d1aea25e0a2b1f783c6c96f6ff8d48f42ee42e7f9b162747c18270a634f3",
+        "planTraceHash": "7a902f00edb5851030b40cd107afbb1bbb7ef9bc81266843a573dea6837fb5a3"
+      },
+      {
+        "matchId": "b103ec787a0123ab4d26e31f8ed2dcffd4bb92fa9d256524ce6c2eb364641880",
+        "caseId": "5890b595a5b122324b2e02a6",
+        "gameSeed": 2017,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 0,
+        "playerCount": 3,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 406,
+        "traceHash": "ce0756d28d7f6af284d8b27c84e4d8404e0c5911d27c7acb59b7a2504ea604b7",
+        "finalStateHash": "eee1c61b1f546f89c9d977e6b281321fe428e0f20d764792eafc6de62e398d60",
+        "planTraceHash": "c2e3024a7ee214ff5e438e139ce1d0180f2f85149f6df57b24d18b5b56f37fad"
+      },
+      {
+        "matchId": "c72ef6eafc64b4df95e89fe7955cf531b43ad33f91d4ef3ee963f70c773429ff",
+        "caseId": "22142f8646702d4718313be8",
+        "gameSeed": 1009,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 332,
+        "traceHash": "420ec648094770c31c25008c5fc08c3a91faa72a38f3fa89f14d329cdc623a71",
+        "finalStateHash": "fb023a4bbe59259eb320c7651be3a39c0466d6d86878f5a4731ce10911b8698b",
+        "planTraceHash": "3ddae0e19f9fe00ba70b367a1fb2f230826f2eee595134e8e5386441cbd3995b"
+      },
+      {
+        "matchId": "d94c6a40fbcfa7aaf49cbdbcb100d760974d495f7ec0a7cd41a3d7cc9807a003",
+        "caseId": "70bc71ee414058411d6d81a3",
+        "gameSeed": 1009,
+        "rotation": 2,
+        "status": "ended",
+        "winnerSeat": 1,
+        "playerCount": 4,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on",
+          "purchase-on"
+        ],
+        "steps": 362,
+        "traceHash": "bf2097c2be44eaefcc441da4546e4b294f2b37e7066b98a47f57a47a056e1c54",
+        "finalStateHash": "21bb6adcb5a7219e1edc9d86f46aefe9a12aab9ccc0b8acdbcc507d85faf8cfc",
+        "planTraceHash": "9b0b7713c6534c061e69970236d4d9288b07629cf3d4340b6c1c30ff7a866a48"
+      },
+      {
+        "matchId": "e0d818a5634635d989f3146adeded782abe93cf61ab41ed62625320e00893558",
+        "caseId": "b771bed8a617c906fdc9d6c7",
+        "gameSeed": 2017,
+        "rotation": 0,
+        "status": "ended",
+        "winnerSeat": 1,
+        "playerCount": 4,
+        "profileIds": [
+          "strategy-on",
+          "purchase-on",
+          "purchase-on",
+          "purchase-on"
+        ],
+        "steps": 308,
+        "traceHash": "805ba8d4ef30f14953fc23a8f2f9c026bb9037aa1f0aa20adbaa06b20a79400b",
+        "finalStateHash": "527f6dfcbb858acdf72833a2ac77876a94bcca1f115c8937c483630b8674fe13",
+        "planTraceHash": "2b8482fc21c9d8502347b0931fb257aa227dbc46600ef7f66458931b9caf9887"
+      },
+      {
+        "matchId": "f1a4470671799ae07a18f16934e878a947590e0feeee7f3473fa5e87ce583821",
+        "caseId": "3e4db143cdbf91b569f51035",
+        "gameSeed": 2017,
+        "rotation": 1,
+        "status": "ended",
+        "winnerSeat": 2,
+        "playerCount": 3,
+        "profileIds": [
+          "purchase-on",
+          "purchase-on",
+          "strategy-on"
+        ],
+        "steps": 407,
+        "traceHash": "e6f068c2ac43268f178664d55ec540a82a63fcac8932fbebff0406d591b2aade",
+        "finalStateHash": "4bc13ee65949eb0247dd7a92ece5c93f8484de9530261c4e7ba190982a31df45",
+        "planTraceHash": "ac25be7c8482f87938d726d8c3d40f1a325aebba17a5d29d33eb164db6ccc5bb"
+      }
+    ]
+  },
+  "gateOffControls": [
+    {
+      "count": 3,
+      "ended": true,
+      "offParity": true,
+      "steps": 405,
+      "traceHash": "d6343dec48cc6c4b9a3a591a81f68fac4bb6dbc2cec00a1b33c29787b0e4744b"
+    },
+    {
+      "count": 4,
+      "ended": true,
+      "offParity": true,
+      "steps": 371,
+      "traceHash": "4cafab8768151b50c9a3c706c4e6dbda08681dc90cfa75ffa25a2810205b0ab1"
+    }
+  ],
+  "runtime": {
+    "schemaVersion": 1,
+    "sourceIdentity": {
+      "rules": "c756b3ffd4a991a2a687215eaf7417bbdc5110ebbb26878425ce97e282f338cc",
+      "compatibility": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+      "code": "5536a9d2ff3397f1681dc6e1511a54cb3ca4811a5e1b2463931c8e45318c94ed",
+      "node": "v24.19.0",
+      "commit": "a3ce922e66ddbc88f2ab1e292b0685f6e3089429"
+    },
+    "benchmarkSourceSha256": "a8b20f615334566adefd8291afad476fdcde97b2625726c754a3b59d7455280f",
+    "release": "0.14.0",
+    "profileHash": "8bea05ae04462377c0b9a4ef8379c1052a8b30edda6b4a0b6c2b1ceae39a2da5",
+    "policyVersion": "strategic-planner-0.1.0",
+    "fixtureHash": "c29bd42df8d802c8bd2fd3e658bbca2a3e2fe7e20b8288865a07aafaf9246caf",
+    "host": {
+      "platform": "linux",
+      "arch": "x64",
+      "node": "v24.19.0"
+    },
+    "warmupRounds": 1,
+    "measuredRounds": 1,
+    "parity": true,
+    "memory": {
+      "measured": false,
+      "reason": "No incremental heap/device memory measurement."
+    },
+    "note": "Synthetic authorized Solo observations, including retained per-seat plan envelopes. Controllers clone/freeze observations; timing is host wall time, not CPU cycles. Fresh-worker timing uses the real shipped worker via a Node worker-thread shim including startup/import/postMessage overhead, not browser/Safari or physical iPad latency. Repeated fixtures are not independent positions or worst-case bounds. Frozen Standard is a controller baseline, not worker startup.",
+    "runtimeSourceHashes": {
+      "client.js": "e2afba62ac872d64c13751cb42859e36460d58bc96c6c93a5c22e037f8bb3ed4",
+      "contract.js": "e8ca58669e537ef28ebba88870a16e39abd271093e16d3194b3187d29c369d7d",
+      "worker.js": "26f66c8baf022ddbcc715504ea7c897ee02db8b430923993da80f3225fef1473",
+      "profile.js": "9bf38032b828f7fe7c6e7d8f202efe648372ed24ff854e989b08eecb47f85be1",
+      "previous-profile.js": "b7d13ebc54d25ecab3a3ef06ed516948633ef307bcc1a05aa4cc7b05a32b17f4",
+      "legacy-profile.js": "3e6a2e016bc3ec6a8324271a85782e534e8e0083842a2e0a8611fd63b6d965f7",
+      "policies/strategy-model.js": "63fe781ca29683a9ae6dbee23bf2c7fa24b49f73c3559cb6a131239312c6c8c2",
+      "policies/purchase-policy.js": "7da37213ff50b8234ae19144b421248bb03c63da60c701667f10ff9c636cd009",
+      "policies/robber-policy.js": "e607a9358623e2c725f31b61ea99da52159bd8c38ef99087c7992c0bedf069f7",
+      "policies/planner-policy.js": "c029e4082a578da80defb19c785712a2abab06d0bd2b202b253ca564816dd7ce",
+      "policies/resource-policy.js": "d582bfaa612f9681fd3e13ba630aba591f79eea05f2d2f721b2412b21c1b7ca5",
+      "policies/trade-policy.js": "699ac1e0472d8dded5f7eeeaef6703a13ae8f9bf90e40d844dc78f2daf62dd92",
+      "policies/shared-plan-policy.js": "06efa32f225839adfbda9c8d980e0cbc61c3d4ac7285fd96911278b268903250",
+      "policies/build-trade-policy.js": "79932b35a43955f4b20b1e78f9b455c3ae38aba9ad8c8386e4972d97c404ad87",
+      "policies/build-trade-components.js": "50195335ab492e8980805bfd918d9903655f1de691f934eb5b0db71b3057a09a",
+      "policies/baselines/heuristic-1.1.0.js": "be5488888400335b85388c088272abe357f465e8a4fe437ee91ae656a008bcde"
+    },
+    "fixtures": [
+      {
+        "id": "3-discard",
+        "phase": "discard",
+        "turn": 6,
+        "choices": 1,
+        "handCards": 8,
+        "selectedAction": "DISCARD_RESOURCES",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "3-main-early",
+        "phase": "main",
+        "turn": 10,
+        "choices": 9,
+        "handCards": 5,
+        "selectedAction": "BUILD_ROAD",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "3-main-late",
+        "phase": "main",
+        "turn": 49,
+        "choices": 21,
+        "handCards": 11,
+        "selectedAction": "BANK_TRADE",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "3-offer-affordable",
+        "phase": "main",
+        "turn": 7,
+        "choices": 2,
+        "handCards": 5,
+        "selectedAction": "TRADE_OFFER",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "3-setup",
+        "phase": "setup-settlement-1",
+        "turn": 0,
+        "choices": 54,
+        "handCards": 0,
+        "selectedAction": "PLACE_SETTLEMENT",
+        "hasRetainedGoal": false
+      },
+      {
+        "id": "4-discard",
+        "phase": "discard",
+        "turn": 61,
+        "choices": 1,
+        "handCards": 10,
+        "selectedAction": "DISCARD_RESOURCES",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "4-main-early",
+        "phase": "main",
+        "turn": 10,
+        "choices": 13,
+        "handCards": 11,
+        "selectedAction": "TRADE_OFFER",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "4-main-late",
+        "phase": "main",
+        "turn": 64,
+        "choices": 32,
+        "handCards": 7,
+        "selectedAction": "PLAY_YEAR_OF_PLENTY",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "4-offer-affordable",
+        "phase": "main",
+        "turn": 7,
+        "choices": 2,
+        "handCards": 2,
+        "selectedAction": "TRADE_OFFER",
+        "hasRetainedGoal": true
+      },
+      {
+        "id": "4-setup",
+        "phase": "setup-settlement-1",
+        "turn": 0,
+        "choices": 54,
+        "handCards": 0,
+        "selectedAction": "PLACE_SETTLEMENT",
+        "hasRetainedGoal": false
+      }
+    ],
+    "statistics": {
+      "standard-controller": {
+        "samples": 10,
+        "p50": 1.0504000000000815,
+        "p95": 8.671113000000332,
+        "max": 8.671113000000332
+      },
+      "planner-controller": {
+        "samples": 10,
+        "p50": 34.47255299999961,
+        "p95": 43.72589199999857,
+        "max": 43.72589199999857
+      },
+      "planner-fresh-worker": {
+        "samples": 10,
+        "p50": 85.42425300000104,
+        "p95": 98.3101459999998,
+        "max": 98.3101459999998
+      }
+    },
+    "samples": [
+      {
+        "round": 0,
+        "fixture": "3-discard",
+        "policy": "standard-controller",
+        "ms": 0.5187700000024051
+      },
+      {
+        "round": 0,
+        "fixture": "3-discard",
+        "policy": "planner-controller",
+        "ms": 43.72589199999857
+      },
+      {
+        "round": 0,
+        "fixture": "3-discard",
+        "policy": "planner-fresh-worker",
+        "ms": 98.3101459999998
+      },
+      {
+        "round": 0,
+        "fixture": "3-main-early",
+        "policy": "standard-controller",
+        "ms": 6.3506820000002335
+      },
+      {
+        "round": 0,
+        "fixture": "3-main-early",
+        "policy": "planner-controller",
+        "ms": 34.47255299999961
+      },
+      {
+        "round": 0,
+        "fixture": "3-main-early",
+        "policy": "planner-fresh-worker",
+        "ms": 85.42425300000104
+      },
+      {
+        "round": 0,
+        "fixture": "3-main-late",
+        "policy": "standard-controller",
+        "ms": 8.671113000000332
+      },
+      {
+        "round": 0,
+        "fixture": "3-main-late",
+        "policy": "planner-controller",
+        "ms": 39.64710700000069
+      },
+      {
+        "round": 0,
+        "fixture": "3-main-late",
+        "policy": "planner-fresh-worker",
+        "ms": 91.51045899999735
+      },
+      {
+        "round": 0,
+        "fixture": "3-offer-affordable",
+        "policy": "standard-controller",
+        "ms": 0.6214250000011816
+      },
+      {
+        "round": 0,
+        "fixture": "3-offer-affordable",
+        "policy": "planner-controller",
+        "ms": 39.894107000000076
+      },
+      {
+        "round": 0,
+        "fixture": "3-offer-affordable",
+        "policy": "planner-fresh-worker",
+        "ms": 92.4326860000001
+      },
+      {
+        "round": 0,
+        "fixture": "3-setup",
+        "policy": "standard-controller",
+        "ms": 1.0504000000000815
+      },
+      {
+        "round": 0,
+        "fixture": "3-setup",
+        "policy": "planner-controller",
+        "ms": 1.649571999998443
+      },
+      {
+        "round": 0,
+        "fixture": "3-setup",
+        "policy": "planner-fresh-worker",
+        "ms": 53.85274500000014
+      },
+      {
+        "round": 0,
+        "fixture": "4-discard",
+        "policy": "standard-controller",
+        "ms": 0.7936730000001262
+      },
+      {
+        "round": 0,
+        "fixture": "4-discard",
+        "policy": "planner-controller",
+        "ms": 8.986166000002413
+      },
+      {
+        "round": 0,
+        "fixture": "4-discard",
+        "policy": "planner-fresh-worker",
+        "ms": 54.8362240000024
+      },
+      {
+        "round": 0,
+        "fixture": "4-main-early",
+        "policy": "standard-controller",
+        "ms": 6.321187999998074
+      },
+      {
+        "round": 0,
+        "fixture": "4-main-early",
+        "policy": "planner-controller",
+        "ms": 41.04625099999976
+      },
+      {
+        "round": 0,
+        "fixture": "4-main-early",
+        "policy": "planner-fresh-worker",
+        "ms": 96.22317699999985
+      },
+      {
+        "round": 0,
+        "fixture": "4-main-late",
+        "policy": "standard-controller",
+        "ms": 0.8555470000028436
+      },
+      {
+        "round": 0,
+        "fixture": "4-main-late",
+        "policy": "planner-controller",
+        "ms": 18.00362099999984
+      },
+      {
+        "round": 0,
+        "fixture": "4-main-late",
+        "policy": "planner-fresh-worker",
+        "ms": 74.7728709999974
+      },
+      {
+        "round": 0,
+        "fixture": "4-offer-affordable",
+        "policy": "standard-controller",
+        "ms": 0.7994330000001355
+      },
+      {
+        "round": 0,
+        "fixture": "4-offer-affordable",
+        "policy": "planner-controller",
+        "ms": 20.161777000001166
+      },
+      {
+        "round": 0,
+        "fixture": "4-offer-affordable",
+        "policy": "planner-fresh-worker",
+        "ms": 74.78113500000109
+      },
+      {
+        "round": 0,
+        "fixture": "4-setup",
+        "policy": "standard-controller",
+        "ms": 1.2673270000013872
+      },
+      {
+        "round": 0,
+        "fixture": "4-setup",
+        "policy": "planner-controller",
+        "ms": 2.276343999998062
+      },
+      {
+        "round": 0,
+        "fixture": "4-setup",
+        "policy": "planner-fresh-worker",
+        "ms": 46.11112499999945
+      }
+    ]
+  },
+  "replayedMatchIds": [
+    "020d5d92074a19529bb020556788465e4a70dc25598e9308ceaa66cc203e38a0",
+    "13a285e71897172f899283ffe41b470de45156a9e10365e8cceaede981915637",
+    "0f5b509be08d291cbb9dc2ae9a40d580ae1549598ee5e932a01a0ace0dfaa8ea",
+    "24a97ea92ba2320cd08490b392d79fc36e0954ec95ba9a29f1cbf1fc27c0ef65"
+  ]
+}

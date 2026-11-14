@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "strategy-screen-v1",
+  "split": "train",
+  "gameSeeds": [
+    37,
+    91
+  ],
+  "decisionSeed": 92831,
+  "repeats": 1,
+  "workers": 2,
+  "maxActions": 2500,
+  "matchTimeoutMs": 120000,
+  "profiles": {
+    "strategy-on": "strategy-on.json",
+    "purchase-on": "purchase-on.json"
+  },
+  "rosters": [
+    {
+      "id": "three-versus-previous",
+      "profiles": [
+        "strategy-on",
+        "purchase-on",
+        "purchase-on"
+      ]
+    },
+    {
+      "id": "four-versus-previous",
+      "profiles": [
+        "strategy-on",
+        "purchase-on",
+        "purchase-on",
+        "purchase-on"
+      ]
+    }
+  ]
+}

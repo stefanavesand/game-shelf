@@ -48,6 +48,8 @@ test('the actual generated worker matches the tested policy and returns scoped m
  const actual=await runner.decide(v,null),expected=await planner.decide(v,null);assert.deepEqual(actual,expected);assert.equal(terminated,1);validateMemory(actual.memory,v,profileHash);module.apply(state,'p1',{actor,action:actual.action},{},{coordinatorId:'p1'});
  const {profile:old,profileHash:oldHash}=await import('../../play/bots/legacy-profile.js'),{decision:oldDecision}=await import('../../scripts/bots/build-trade-components.mjs');
  const legacy=await runner.decide(v,null,'build-trade-0.2.0');assert.deepEqual(legacy.action,oldDecision(v,old.parameters,0).action);validateMemory(legacy.memory,v,oldHash,'build-trade-0.2.0');assert.deepEqual((await runner.decide(v,legacy.memory)).action,legacy.action);
+ const {profile:prior,profileHash:priorHash}=await import('../../play/bots/previous-profile.js');
+ const priorResult=await runner.decide(v,null,'development-investment-0.1.0');assert.deepEqual(priorResult.action,decision(v,prior.parameters,0).action);validateMemory(priorResult.memory,v,priorHash,'development-investment-0.1.0');assert.deepEqual((await runner.decide(v,priorResult.memory)).action,priorResult.action);
  f.data.games[p.roomId].botPolicy='build-trade-0.2.0';assert.equal((await c.inspect()).packet.botPolicy,'build-trade-0.2.0');
 });
 

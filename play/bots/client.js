@@ -1,8 +1,8 @@
-import {validateMemory,PLANNER_POLICY,LEGACY_POLICY,supportedPolicy} from './contract.js';
+import {validateMemory,PLANNER_POLICY,PREVIOUS_POLICY,LEGACY_POLICY,supportedPolicy} from './contract.js';
 export function createPlannerRunner({workerFactory=()=>new Worker(new URL('./worker.js',import.meta.url),{type:'module'}),timeoutMs=5000}={}){
  return {async decide(view,memory=null,policy=memory?.policyVersion||PLANNER_POLICY){
   if(!supportedPolicy(policy))throw Error('Unsupported bot policy.');
-  const {profileHash}=await (policy===LEGACY_POLICY?import('./legacy-profile.js'):import('./profile.js'));validateMemory(memory,view,profileHash,policy);
+  const {profileHash}=await (policy===LEGACY_POLICY?import('./legacy-profile.js'):policy===PREVIOUS_POLICY?import('./previous-profile.js'):import('./profile.js'));validateMemory(memory,view,profileHash,policy);
   if(!view.choices.length||view.choices.length>256||JSON.stringify(view).length>131072)throw Error('Bot observation exceeds its work budget.');
   return new Promise((resolve,reject)=>{let worker,timer,done=false;
    const finish=(error,result)=>{if(done)return;done=true;clearTimeout(timer);worker?.terminate();error?reject(error):resolve(result);};
