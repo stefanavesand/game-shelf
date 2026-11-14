@@ -37,7 +37,7 @@ const solo=()=>client.isLocal()||(packet?.status!=='waiting'&&packet?.members?.f
 const player=id=>view()?.state.players.players.find(p=>p.id===id);
 const name=id=>player(id)?.name||packet?.members?.find(s=>s.id===id)?.name||'Player';
 const offlineAllowed=()=>client.isLocal()||['home','create'].includes(screen);
-const blocked=()=>updateReloadPending||busy||accountBusy||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
+const blocked=()=>updateReloadPending||busy||accountBusy||packet?.pendingRandom||!ready||!!saved?.pending||(!navigator.onLine&&!offlineAllowed())||!!(saved?.retryAt>Date.now());
 const count=id=>player(id)?.resourceCount||0;
 const offerRecipients=o=>o?(o.recipients||[o.to]):[];
 const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
@@ -55,6 +55,7 @@ function staleModal(){if(modalChanged()){closeSheet();notice='The game changed w
 function setScreen(next){screen=next;history.replaceState(null,'',`${location.pathname}#${next==='table'?'game':next}${next==='join'&&uuid(invitedRoom())?'?room='+invitedRoom()+(invitationToken?'&invite='+encodeURIComponent(invitationToken):''):''}`);render();$('app').focus({preventScroll:true});}
 function money(bundle){return bundleLabel(bundle).replaceAll('lumber','wood');}
 function recovery(){
+  if(!error&&packet?.pendingRandom&&navigator.onLine&&screen==='table')return '';
   if(!error&&!saved?.pending&&(navigator.onLine||offlineAllowed()))return '';
   const permanent=error&&['AUTH_REQUIRED','UNSUPPORTED_VERSION','UPDATE_PENDING','SESSION_EXPIRED','UNSUPPORTED_BROWSER'].includes(error.code),pending=!!saved?.pending;
   const oldLocal=error?.code==='UNSUPPORTED_VERSION'&&knownGames.some(g=>g.local&&g.compatible===false);
@@ -62,7 +63,7 @@ function recovery(){
   const text=oldLocal?'This saved game uses an older engine. It is still stored on this device. Abandon it below to start a new game.':!navigator.onLine?'Internet play is paused. Reconnect to check the game before making a move.':error?.message||(pending?'Your move is waiting for confirmation. We’ll resolve it before sending another.':'Check the connection to continue.');
   return `<section class="recovery" role="status"><div><h2>${title}</h2><p>${esc(text)}</p>${oldLocal?'<p class="error-help">Reloading cannot change a saved game’s engine. Abandonment keeps the saved snapshot and leaves your player identity intact.</p>':permanent?'<p class="error-help">Keep the original installation and saved data. Returning to this room requires its original player identity.</p>':''}</div>${oldLocal?button('Review saved games','home','primary',busy):error?.code==='UPDATE_PENDING'?button('Return home','apply-update','primary',busy):error?.code==='UNSUPPORTED_VERSION'?(button('Reload app','reload-app','primary',busy)+(pending?button('Resolve move','refresh','',true):'')):button(pending?'Resolve move':'Reconnect','refresh','',busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now()||permanent)}</section>`;
 }
-function title(){return turnTitle({view:view(),pending:saved?.pending,mode,unavailable:unavailableIncomingOffer(view()),incoming:incoming(),name});}
+function title(){if(packet?.pendingRandom)return ['Rolling dice…','Waiting for the host to record the result. Keep this game open.'];return turnTitle({view:view(),pending:saved?.pending,mode,unavailable:unavailableIncomingOffer(view()),incoming:incoming(),name});}
 function resourcesPanel(){return resourceHand(view());}
 function cardsPanel(){return developmentCards(view(),{disabled:busy||(!navigator.onLine&&!client.isLocal())});}
 function selectSpatial(){
@@ -89,13 +90,13 @@ function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.off
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
  const v=view(),[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
- return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:busy||!!saved?.pending,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
+ return gameScreen({view:v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
 }
 function render(){
   const focused=document.activeElement?.id,feedPosition=activityScroll.capture();
   document.body.classList.toggle('table-screen',screen==='table'&&!!view()&&!!googleAuth.profile());
   const hasAccount=!!googleAuth.profile();$('room').hidden=false;$('room').disabled=updateReloadPending;$('help').disabled=updateReloadPending;document.querySelector('.header-turn').textContent=screen==='table'&&view()?title()[0]:'';
-  const refreshDisabled=updateReloadPending||busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now(),connection=client.isLocal()?(busy?'Saving…':'Local · saved'):!navigator.onLine?'Offline':busy?'Checking game…':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
+  const refreshDisabled=updateReloadPending||busy||(!navigator.onLine&&!offlineAllowed())||(saved?.retryAt||0)>Date.now(),connection=client.isLocal()?(busy?'Saving…':'Local · saved'):!navigator.onLine?'Offline':busy?'Checking game…':packet?.pendingRandom?'Waiting for host':saved?.pending?'Move unresolved':ready?'Up to date':'Reconnect';
   if($('refresh').disabled!==refreshDisabled)$('refresh').disabled=refreshDisabled;
   $('refresh').classList.toggle('paused',(!navigator.onLine&&!client.isLocal())||!!error);
   if($('connection').textContent!==connection)$('connection').textContent=connection;
@@ -168,7 +169,7 @@ async function observeTrades(v,outgoing){
 async function runSync(op,args={},options={}){
   clearTimeout(timer);
   if(!navigator.onLine&&!offlineAllowed()){ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your saved data is still here.',{retryable:true});render();return;}
-  const background=!op&&ready&&!error&&!saved?.pending&&!!packet;
+  const background=!op&&ready&&!error&&(!saved?.pending||packet?.pendingRandom)&&!!packet;
   if(!background){busy=true;ready=false;error=null;render();}
   try{
     const outgoing=op==='command'&&args.action?.type==='TRADE_OFFER'?{revision:args.expectedRevision+1,from:packet.you,to:args.action.to,give:args.action.give,receive:args.action.receive}:null;

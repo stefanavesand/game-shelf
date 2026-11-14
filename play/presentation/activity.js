@@ -9,7 +9,7 @@ function cleanEntries(raw){if(!Array.isArray(raw))return [];return raw.filter(e=
  const roll=e.roll&&[e.roll.die1,e.roll.die2].every(n=>Number.isInteger(n)&&n>=1&&n<=6)&&e.roll.total===e.roll.die1+e.roll.die2?{die1:e.roll.die1,die2:e.roll.die2,total:e.roll.total}:undefined;
  return {revision:e.revision,actor:String(e.actor||'').slice(0,100),color:colors[e.color]?e.color:'red',message:e.message.slice(0,500),action:String(e.action||'').slice(0,60),roll,gains:bundle(e.gains),scores:Array.isArray(e.scores)?e.scores.filter(n=>Number.isInteger(n)&&n>0&&n<=10):[],awards:Array.isArray(e.awards)?e.awards.filter(a=>['Longest Road','Largest Army'].includes(a)):[],trade:e.trade?{give:bundle(e.trade.give),receive:bundle(e.trade.receive)}:undefined};
  });}
-export function activityEntry(view,h){const p=view.state.players.players.find(p=>p.id===h.playerId);return {revision:h.revision,actor:h.playerId,color:p?.color||'red',message:moveSummary({...view,state:{...view.state,game:{...view.state.game,lastRoll:null}}},h),action:h.message};}
+export function activityEntry(view,h){const p=view.state.players.players.find(p=>p.id===h.playerId);return {revision:h.revision,actor:h.playerId,color:p?.color||'red',message:moveSummary({...view,state:{...view.state,game:{...view.state.game,lastRoll:null}}},h),action:h.message,...(Array.isArray(h.dice)&&h.dice.length===2?{roll:{die1:h.dice[0],die2:h.dice[1],total:h.dice[0]+h.dice[1]}}:{})};}
 export function mergeActivity(entries,before,after){
  const v=after?.view;if(!v)return entries;
  const map=new Map(cleanEntries(entries).map(e=>[e.revision,e]));

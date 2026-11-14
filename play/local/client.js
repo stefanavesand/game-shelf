@@ -1,3 +1,4 @@
+import {randomEffects} from '../core/random-effects.js';
 import {createPlannerRunner} from '../bots/client.js';
 import {PLANNER_POLICY,supportedPolicy} from '../bots/contract.js';
 import {createCatanModule,catanConfig} from '../catan/module.js';
@@ -13,14 +14,14 @@ export function createLocalStorage({indexedDB=globalThis.indexedDB,owner=()=>nul
  async function record(value){try{const d=await db();return await new Promise((resolve,reject)=>{const tx=d.transaction('records',value?'readwrite':'readonly'),s=tx.objectStore('records'),r=value?s.put(value,'account:'+owner()):s.get('account:'+owner());let result;r.onsuccess=()=>{result=r.result;};tx.oncomplete=()=>resolve(value??result??blank());tx.onabort=tx.onerror=()=>reject(failure());});}catch{throw failure();}}
  return {load:()=>record(),save:value=>record(clone(value))};
 }
-export function createLocalClient({planner=createPlannerRunner(),storage=createLocalStorage(),locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),seed=()=>{const n=new Uint32Array(1);do{crypto.getRandomValues(n);}while(!n[0]);return n[0];}}={}){
+export function createLocalClient({planner=createPlannerRunner(),storage=createLocalStorage(),locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),effects=randomEffects,seed=()=>{const n=new Uint32Array(1);do{crypto.getRandomValues(n);}while(!n[0]);return n[0];}}={}){
  const lock=work=>locked('game-shelf-local-solo',work,locks);let local=false;
  async function load(){const lib=await storage.load();if(lib.schemaVersion!==1)throw new PlayError('UNSUPPORTED_VERSION','This local save needs a compatible app.');local=lib.local;return lib;}
  async function verify(game){if((game.botPolicy!==undefined||game.botMemory!==undefined)&&(!supportedPolicy(game.botPolicy)||await digest(game.botMemory||{})!==game.botMemoryHash))throw new PlayError('UNSUPPORTED_VERSION','This saved bot plan needs its original policy. The last saved move is preserved.');if(game.artifact!==CATAN_ARTIFACT.compatibilityId)throw new PlayError('UNSUPPORTED_VERSION','This game needs its original engine version.');if(await digest(game.state)!==game.hash)throw new PlayError('STORAGE_FAILURE','The saved game failed its integrity check.');}
  async function commit(lib,game,next,memory){game.state=next;game.hash=await digest(next);if(memory){game.botMemory=memory;game.botMemoryHash=await digest(memory);}await storage.save(lib);}
  async function bots(lib,game,budget=8){for(let i=0;i<Math.min(8,budget);i++){let command=module.nextBot(game.state);if(!command)return;let memories;
    if(game.botPolicy){let result;try{result=await planner.decide(module.view(game.state,command.actor),game.botMemory?.[command.actor]||null,game.botPolicy);}catch(error){throw new PlayError('BOT_FAILURE',error.message);}command={actor:command.actor,action:result.action};memories={...game.botMemory,[command.actor]:result.memory};}
-   await commit(lib,game,module.apply(game.state,'p1',command,{}, {coordinatorId:'p1'}),memories);}}
+   await commit(lib,game,module.apply(game.state,'p1',command,effects(game.state,command), {coordinatorId:'p1'}),memories);}}
  function packet(game){const s=game.state.snapshot;return {ok:true,apiVersion:1,roomId:s.id,you:'p1',status:s.state.game.phase==='ended'?'ended':'playing',revision:s.revision,members:s.seats,view:module.view(game.state,'p1'),local:true,botPolicy:game.botPolicy||null,botWorkPending:module.hasBotWork(game.state)};}
  return {
   isLocal:()=>local,
@@ -32,13 +33,13 @@ export function createLocalClient({planner=createPlannerRunner(),storage=createL
   execute:(op,args={},options={})=>lock(async()=>{
    const lib=await load();
    if(op==='create'){
-    const roomId=id(),config=catanConfig([{id:'p1',name:(args.name||'Player').slice(0,30)}],{solo:true,level:args.botLevel==='planner'?'standard':args.botLevel||'standard',seed:seed(),playerCount:args.playerCount??3}),state=module.initialize(config,{gameId:roomId});
+    const roomId=id(),config=catanConfig([{id:'p1',name:(args.name||'Player').slice(0,30)}],{solo:true,level:args.botLevel==='planner'?'standard':args.botLevel||'standard',seed:seed(),diceMode:'host-random-v1',playerCount:args.playerCount??3}),state=module.initialize(config,{gameId:roomId});
     try{lib.persistent=globalThis.navigator?.storage?.persist?await navigator.storage.persist():false;}catch{lib.persistent=false;}
     const g={artifact:CATAN_ARTIFACT.compatibilityId,state,hash:await digest(state),...(args.botLevel==='planner'?{botPolicy:PLANNER_POLICY,botMemory:{},botMemoryHash:await digest({})}:{})};lib.games[roomId]=g;lib.current=roomId;lib.local=true;await storage.save(lib);local=true;await bots(lib,g,options.botBudget);return packet(g);
    }
    const g=lib.games[lib.current];if(!g||args.roomId!==lib.current)throw new PlayError('PROTOCOL_ERROR','Choose a saved local game.');await verify(g);
    if(args.expectedRevision!==g.state.snapshot.revision)return {ok:false,apiVersion:1,error:{code:'revision_conflict',message:'The game changed. Review your action again.'}};
-   let next;try{next=module.apply(g.state,'p1',{actor:'p1',action:args.action},{},{coordinatorId:'p1'});}catch(error){if(!(error instanceof RuleRejection))throw new PlayError('GAME_ERROR','The rule engine failed. The last saved move is preserved.');return {ok:false,apiVersion:1,error:{code:'rule_rejected',message:error.message}};}
+   let next;try{next=module.apply(g.state,'p1',{actor:'p1',action:args.action},effects(g.state,{actor:'p1',action:args.action}),{coordinatorId:'p1'});}catch(error){if(!(error instanceof RuleRejection))throw new PlayError('GAME_ERROR','The rule engine failed. The last saved move is preserved.');return {ok:false,apiVersion:1,error:{code:'rule_rejected',message:error.message}};}
    await commit(lib,g,next);await bots(lib,g,options.botBudget);return packet(g);
   }),
   abandon:roomId=>lock(async()=>{const lib=await load(),g=lib.games[roomId];if(!g)throw new PlayError('PROTOCOL_ERROR','Choose a saved game.');g.abandoned=true;if(lib.current===roomId){lib.current=null;lib.local=false;}await storage.save(lib);local=lib.local;}),

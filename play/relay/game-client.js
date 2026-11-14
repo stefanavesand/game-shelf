@@ -1,3 +1,4 @@
+import {randomEffects} from '../core/random-effects.js';
 import {createIdentity} from '../core/identity.js';
 import {PlayError,locked} from '../core/errors.js';
 import {createRelayTransport} from './transport.js';
@@ -8,6 +9,7 @@ import {createRelayClient} from './client.js';
 import {createCatanModule,catanConfig} from '../catan/module.js';
 import {CATAN_ARTIFACT} from '../catan/artifact.js';
 const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
+const pendingRoll=record=>Object.values(record?.game?.randomRequests||{}).some(r=>!r.superseded&&r.baseGameRevision===record.game.revision&&!Object.hasOwn(record.game.seen,r.intentId));
 export function createOnlineGameClient({auth=createIdentity(),store=createRelayStore({name:'game-shelf-online-catan-v1'}),transport=createRelayTransport({endpoint:'https://stefan-game-shelf.lovable.app/api/public/relay/v1',identity:options=>auth.identity(options)}),id=()=>crypto.randomUUID()}={}){
  let principal=null;
  const newSeed=()=>{const n=new Uint32Array(1);do{crypto.getRandomValues(n);}while(!n[0]);return n[0];};
@@ -26,7 +28,7 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
   if(!index.current)return null;const room=index.rooms[index.current];
   if(network){const {result}=await transport.request({protocolVersion:1,op:'channel.read',channelId:index.current},index.principalId);Object.assign(room,result);await save(index);}
   if(!room?.creatorId)return null;
-  const replica=createRelayClient({principalId:index.principalId,channelId:index.current,creatorId:room.creatorId,members:room.members.map(m=>m.playerId),module,store,transport});return {replica,room};
+  const replica=createRelayClient({principalId:index.principalId,channelId:index.current,creatorId:room.creatorId,members:room.members.map(m=>m.playerId),module,store,transport,createEffects:randomEffects});return {replica,room};
  }
  function packet(index,room,record){
   if(record?.halt)throw new PlayError('GAME_HALTED','The players computed different results. This game has stopped.');
@@ -35,17 +37,17 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
   if(!record?.game){const config=catanConfig(humans,{...settings,level:settings.level});return {ok:true,apiVersion:1,roomId:index.current,status:'waiting',you:index.principalId,revision:0,members:config.seats,view:null,inviteToken:room.inviteToken,lobby:{playerCount:settings.playerCount,creatorId:room.creatorId,canStart:index.principalId===room.creatorId,full:!humans.some(h=>h.id===index.principalId),openSeats:settings.playerCount-humans.length}};}
   const state=record.game.state;
   if(!state.snapshot.seats.some(s=>s.id===index.principalId))return {ok:true,apiVersion:1,roomId:index.current,status:'waiting',you:index.principalId,revision:0,members:state.snapshot.seats,view:null,lobby:{playerCount:state.snapshot.seats.length,creatorId:room.creatorId,canStart:false,full:true,started:true,openSeats:0}};
-  return {ok:true,apiVersion:1,roomId:index.current,status:state.snapshot.state.game.phase==='ended'?'ended':'playing',you:index.principalId,revision:record.game.revision,members:state.snapshot.seats,view:module.view(state,index.principalId),inviteToken:room.inviteToken,botWorkPending:index.principalId===room.creatorId&&module.hasBotWork(state)};
+  return {ok:true,apiVersion:1,roomId:index.current,status:state.snapshot.state.game.phase==='ended'?'ended':'playing',you:index.principalId,revision:record.game.revision,pendingRandom:pendingRoll(record),members:state.snapshot.seats,view:module.view(state,index.principalId),inviteToken:room.inviteToken,botWorkPending:index.principalId===room.creatorId&&module.hasBotWork(state)};
  }
  async function start(index,replica,room){
   if(room.creatorId!==index.principalId)throw new PlayError('NOT_CREATOR','Only the host can start this game.');
   let record=await replica.sync();if(record.game)return record;
   const options=record.lobby||{playerCount:room.playerCount||3,level:room.botLevel||'standard',seed:room.seed||newSeed()};
   const humans=orderedMembers(room).slice(0,options.playerCount).map((m,i)=>({id:m.playerId,name:m.displayName||`Player ${i+1}`}));
-  try{return await replica.begin(catanConfig(humans,options));}catch(error){if(error.code!=='NOT_CREATOR')throw error;record=await replica.sync();if(!record.game)throw error;return record;}
+  try{return await replica.begin(catanConfig(humans,{...options,diceMode:'host-random-v1'}));}catch(error){if(error.code!=='NOT_CREATOR')throw error;record=await replica.sync();if(!record.game)throw error;return record;}
  }
  async function progress(index,replica,room,record,options={}){
-  record??=await replica.sync();
+  if(!record){const before=(await replica.state()).game?.revision;record=await replica.sync();if(record.game&&record.game.revision!==before)return packet(index,room,record);}
   if(!record.game&&room.creatorId===index.principalId){
    if(room.manualStart&&!record.lobby)record=await replica.configure({playerCount:room.playerCount||3,level:room.botLevel||'standard',seed:room.seed||newSeed()});
    // Older waiting rooms retain their original auto-start behavior.
@@ -61,7 +63,7 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
  function translate(error){if(error instanceof PlayError)return error;return new PlayError(error.code==='AUTH_REQUIRED'?'AUTH_REQUIRED':['UNSUPPORTED_ENGINE','UNSUPPORTED_PROTOCOL'].includes(error.code)?'UNSUPPORTED_VERSION':error.code||'NETWORK_UNAVAILABLE',error.message,{retryable:!!error.retryable,retryAfterMs:error.retryAfterMs||0});}
  const client={
   capabilities:{pollIntervalMs:5000,requiresInternet:true},
-  async inspect(){const p=saved();if(!p)return {state:{schemaVersion:1,roomId:null,pending:null},packet:null,principalId:null};const index=await read(p),bound=await binding(index,false),record=bound?await bound.replica.state():null;return {state:{schemaVersion:1,roomId:index.current||null,pending:index.intent?{body:{op:index.intent.op},principalId:p}:record?.outbox.length?{body:{op:'command'},principalId:p}:null,retryAt:record?.retryAt||0},principalId:p,packet:bound?packet(index,bound.room,record):null};},
+  async inspect(){const p=saved();if(!p)return {state:{schemaVersion:1,roomId:null,pending:null},packet:null,principalId:null};const index=await read(p),bound=await binding(index,false),record=bound?await bound.replica.state():null;return {state:{schemaVersion:1,roomId:index.current||null,pending:index.intent?{body:{op:index.intent.op},principalId:p}:(record?.outbox.length||pendingRoll(record))?{body:{op:'command'},principalId:p}:null,retryAt:record?.retryAt||0},principalId:p,packet:bound?packet(index,bound.room,record):null};},
   async games(){const p=saved();if(!p)return [];const index=await read(p),rows=[];for(const roomId of Object.keys(index.rooms)){if(index.rooms[roomId].abandoned)continue;const record=await store.load(p,roomId),snapshot=record.game?.state.snapshot;rows.push({roomId,status:snapshot?.state.game.phase==='ended'?'ended':snapshot?'playing':'waiting',players:snapshot?.seats.map(s=>s.name)||index.rooms[roomId].members?.map(s=>s.displayName||'Player')||[],mode:'friends',playerCount:snapshot?.seats.length||record.lobby?.playerCount||index.rooms[roomId].playerCount||3,botLevel:index.rooms[roomId].botLevel});}return rows;},
   async execute(op,args={},options={}){try{
    principal=(await auth.identity()).user.id;let index=await read(principal);
@@ -74,8 +76,8 @@ export function createOnlineGameClient({auth=createIdentity(),store=createRelayS
   }catch(error){if(error instanceof RuleRejection||error.code==='STALE_GAME')return {ok:false,apiVersion:1,error:{code:'rule_rejected',message:error.message}};throw translate(error);}},
   async refresh(options={}){try{return await refresh(options);}catch(error){throw translate(error);}},
   async resume(roomId,options={}){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId]||index.rooms[roomId].abandoned)return {ok:false,apiVersion:1,error:{code:'room_not_found',message:'This game is not available.'}};index.current=roomId;await save(index);return refresh(options);},
-  async abandon(roomId){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId])throw new PlayError('ROOM_SWITCH','Choose a saved game.');const record=await store.load(p,roomId);if(index.intent||record.outbox.length)throw new PlayError('PENDING_DELIVERY','Resolve the pending operation before abandoning this game.');index.rooms[roomId].abandoned=true;if(index.current===roomId)index.current=null;await save(index);},
-  async canUpdate(artifact){const p=saved();if(!p)return true;const index=await read(p);if(index.intent)return false;for(const room of Object.keys(index.rooms)){const record=await store.load(p,room);if(record.outbox.length||!index.rooms[room].abandoned&&record.game&&record.game.state.snapshot.state.game.phase!=='ended'&&record.game.moduleDigest!==artifact)return false;}return true;}
+  async abandon(roomId){const p=saved(),index=p?await read(p):null;if(!index?.rooms[roomId])throw new PlayError('ROOM_SWITCH','Choose a saved game.');const record=await store.load(p,roomId);if(index.intent||record.outbox.length||pendingRoll(record))throw new PlayError('PENDING_DELIVERY','Resolve the pending operation before abandoning this game.');index.rooms[roomId].abandoned=true;if(index.current===roomId)index.current=null;await save(index);},
+  async canUpdate(artifact){const p=saved();if(!p)return true;const index=await read(p);if(index.intent)return false;for(const room of Object.keys(index.rooms)){const record=await store.load(p,room);if(record.outbox.length||pendingRoll(record)||!index.rooms[room].abandoned&&record.game&&record.game.state.snapshot.state.game.phase!=='ended'&&record.game.moduleDigest!==artifact)return false;}return true;}
  };
  // Fence index changes, active commands and abandonment across app windows.
  return Object.fromEntries(Object.entries(client).map(([name,value])=>[name,typeof value==='function'? (...args)=>locked('game-shelf-online-catan-index',()=>value.apply(client,args)):value]));

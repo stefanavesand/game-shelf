@@ -16,6 +16,15 @@ export async function commandMessage(record,module,command,effects,intentId,cont
   const game=record.game,next=module.apply(clone(game.state),record.principalId,clone(command),clone(effects),context);
   return envelope('game.command',{gameId:game.id,intentId,baseGameRevision:game.revision,beforeHash:game.hash,command:clone(command),effects:clone(effects),resultHash:await digest(next)});
 }
+export function proposalMessage(record,module,command,intentId,context={}) {
+ invariant(record.game&&!record.halt,'NOT_PLAYING','Start a game before proposing a move.');
+ module.validateRequest(record.game.state,record.principalId,command,context);
+ return envelope('game.propose',{gameId:record.game.id,intentId,baseGameRevision:record.game.revision,beforeHash:record.game.hash,command:clone(command)});
+}
+export async function resolutionMessage(record,module,request,effects,context={}) {
+ const message=await commandMessage({...record,principalId:request.senderId},module,request.command,effects,request.intentId,context);
+ return envelope('game.resolve',{...message.payload,proposerId:request.senderId});
+}
 export async function applyMessage(saved,item,{module,creatorId,members}) {
   const record=clone(saved),notifications=[];
   invariant(members.includes(item.senderId),'INVALID_SENDER','A message came from outside this channel.');
@@ -40,9 +49,28 @@ export async function applyMessage(saved,item,{module,creatorId,members}) {
     record.game={id:p.gameId,revision:0,state,hash,moduleId:module.id,moduleVersion:module.version,moduleDigest:module.digest,hashes:{0:hash},seen:{},peerVerified:{}};
     if(hash!==p.resultHash)halt('initial_hash_mismatch');
     else notifications.push(envelope('game.verify',{gameId:p.gameId,revision:0,resultHash:hash}));
-  } else if(type==='game.command') {
+  } else if(type==='game.propose') {
+    const g=record.game;
+    invariant(g&&p.gameId===g.id&&typeof p.intentId==='string'&&Number.isSafeInteger(p.baseGameRevision),'INVALID_MESSAGE','Invalid proposal metadata.');
+    g.randomRequests??={};const fingerprint=canonical({sender:item.senderId,...p}),prior=g.randomRequests[p.intentId];
+    if(prior)invariant(prior.fingerprint===fingerprint,'INTENT_CONFLICT','Proposal ID was reused.');
+    else if(p.baseGameRevision===g.revision){
+      invariant(!Object.hasOwn(g.seen,p.intentId),'INTENT_CONFLICT','Proposal ID was already used by a command.');
+      invariant(p.beforeHash===g.hash,'STALE_GAME','Proposal state does not match.');
+      module.validateRequest(g.state,item.senderId,p.command,{coordinatorId:creatorId});
+      const superseded=Object.values(g.randomRequests).some(r=>r.baseGameRevision===g.revision&&!r.superseded);
+      Object.defineProperty(g.randomRequests,p.intentId,{value:{...clone(p),senderId:item.senderId,fingerprint,...(superseded?{superseded:true}:{})},enumerable:true,writable:true,configurable:true});
+    }
+  } else if(type==='game.command'||type==='game.resolve') {
     const g=record.game;
     invariant(g&&p.gameId===g.id&&typeof p.intentId==='string'&&Number.isSafeInteger(p.baseGameRevision),'INVALID_MESSAGE','Invalid game command metadata.');
+    invariant(type==='game.resolve'||!Object.hasOwn(g.randomRequests||{},p.intentId),'INTENT_CONFLICT','A proposal ID requires its host resolution.');
+    let actorSender=item.senderId;
+    if(type==='game.resolve'){
+      const request=g.randomRequests?.[p.intentId];
+      invariant(item.senderId===creatorId&&request&&!request.superseded&&p.proposerId===request.senderId&&p.baseGameRevision===request.baseGameRevision&&p.beforeHash===request.beforeHash&&canonical(p.command)===canonical(request.command),'INVALID_MESSAGE','Only the host may resolve the recorded proposal.');
+      actorSender=request.senderId;
+    }else invariant(!module.requiresCoordinator?.(g.state,p.command)||item.senderId===creatorId,'INVALID_MESSAGE','Random rolls must be resolved by the host.');
     // Re-enveloping the same intent after a transport CAS conflict must not apply twice.
     const fingerprint=canonical({sender:item.senderId,...p});
     if(Object.hasOwn(g.seen,p.intentId)) {
@@ -53,7 +81,7 @@ export async function applyMessage(saved,item,{module,creatorId,members}) {
         if(p.beforeHash!==g.hash)halt('base_hash_mismatch');
         else {
           try {
-            const next=module.apply(clone(g.state),item.senderId,clone(p.command),clone(p.effects),{coordinatorId:creatorId}),hash=await digest(next);
+            const next=module.apply(clone(g.state),actorSender,clone(p.command),clone(p.effects),{coordinatorId:creatorId}),hash=await digest(next);
             if(hash!==p.resultHash)halt('result_hash_mismatch');
             else {g.state=next;g.hash=hash;g.revision++;g.hashes[g.revision]=hash;notifications.push(envelope('game.verify',{gameId:g.id,revision:g.revision,resultHash:hash}));}
           } catch(error) {

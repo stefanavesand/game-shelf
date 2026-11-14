@@ -161,3 +161,7 @@ Original observation-only purchase valuation, registry, scenarios and experiment
 ## PWA development-investment playtest
 
 The owner authorized publishing the original development-investment/robber policy through the existing opt-in Solo Planner worker. The browser generator rewrites import paths/extensions only and includes both new purchase-on and legacy counter-on profiles for pinned saves. No additional dependency, third-party source or artwork is introduced. UI-only trade scheduling and sole-victim command automation leave authoritative rule randomness and legality unchanged.
+
+## Recorded WebCrypto dice
+
+Original WebCrypto adapter, pure recorded-effects validation, generic relay proposal/resolution handling and regression/browser scenarios were written for this repository. No external implementation, dependency or asset was imported. Existing seeded setup/theft and seeded simulations remain; only new-game dice use the host's recorded random outcomes. See [recorded dice](docs/RANDOM_DICE.md).

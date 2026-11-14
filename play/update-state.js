@@ -15,7 +15,7 @@ self.GameShelfUpdateState=(()=>{
   const libraries=await read('game-shelf-solo-v1','records',undefined,'accounts')||[];
   for(const local of libraries){if(local.schemaVersion!==1||!local.games||Array.isArray(local.games))return false;for(const g of Object.values(local.games)){if(g.abandoned)continue;const phase=g.state?.snapshot?.state?.game?.phase;if(typeof phase!=='string'||phase!=='ended'&&!ignoreEnginePins&&g.artifact!==engine)return false;}}
   const rows=await read('game-shelf-online-catan-v1','sessions',undefined,true)||[],indices=new Map(rows.filter(r=>r.channelId==='@index').map(r=>[r.principalId,r]));
-  for(const r of rows){if(r.schemaVersion!==1||!Array.isArray(r.outbox)||r.outbox.length||r.intent)return false;if(indices.get(r.principalId)?.rooms?.[r.channelId]?.abandoned)continue;if(r.game){const phase=r.game.state?.snapshot?.state?.game?.phase;if(typeof phase!=='string'||phase!=='ended'&&!ignoreEnginePins&&r.game.moduleDigest!==engine)return false;}}
+  for(const r of rows){if(r.schemaVersion!==1||!Array.isArray(r.outbox)||r.outbox.length||r.intent)return false;if(indices.get(r.principalId)?.rooms?.[r.channelId]?.abandoned)continue;if(r.game){if(Object.values(r.game.randomRequests||{}).some(p=>!p.superseded&&p.baseGameRevision===r.game.revision&&!Object.hasOwn(r.game.seen||{},p.intentId)))return false;const phase=r.game.state?.snapshot?.state?.game?.phase;if(typeof phase!=='string'||phase!=='ended'&&!ignoreEnginePins&&r.game.moduleDigest!==engine)return false;}}
   return true;
  }
  return {fence,setFence:value=>metadata(value),clearFence:version=>metadata(null,version),compatible};

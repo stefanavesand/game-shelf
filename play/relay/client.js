@@ -1,7 +1,7 @@
 import {clone,invariant,pendingRequest,validatePage,RelayError,digest} from './protocol.js';
-import {applyMessage,beginMessage,commandMessage,configureMessage} from './replica.js';
+import {applyMessage,beginMessage,commandMessage,configureMessage,proposalMessage,resolutionMessage} from './replica.js';
 import {validateRecord} from './store.js';
-export function createRelayClient({principalId,channelId,creatorId,members,module,store,transport,locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),now=Date.now,maxPages=20}={}) {
+export function createRelayClient({principalId,channelId,creatorId,members,module,store,transport,locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),now=Date.now,maxPages=20,createEffects=()=>({})}={}) {
   invariant(members.includes(principalId)&&members.includes(creatorId),'INVALID_MEMBERS','Invalid channel participant binding.');
   const key=`game-shelf-relay:${principalId}:${channelId}`;
   const locked=work=>{invariant(locks?.request,'UNSUPPORTED_BROWSER','This browser cannot coordinate app windows safely.');return locks.request(key,work);};
@@ -58,14 +58,20 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
     invariant(record.retryAt<=now(),'RETRY_COOLDOWN','Wait for the relay cooldown before trying again.');
     // Resolve an unknown delivery before changing its envelope or generating a replacement.
     if(record.outbox[0]?.request)record=await flush(record);
-    record=await catchUp(record);return flush(record);
+    if(record.outbox.length)record=await flush(record);
+    record=await catchUp(record);
+    if(principalId===creatorId&&record.game&&!record.halt){
+      const request=Object.values(record.game.randomRequests||{}).find(r=>!r.superseded&&r.baseGameRevision===record.game.revision&&!Object.hasOwn(record.game.seen,r.intentId));
+      if(request&&!record.outbox.some(p=>p.message.type==='game.resolve'&&p.message.payload.intentId===request.intentId)){enqueue(record,await resolutionMessage(record,module,request,createEffects(record.game.state,request.command),{coordinatorId:creatorId}));await save(record);}
+    }
+    return flush(record);
   }
   async function submit(messageFactory) {
     return locked(async()=>{
       let record=await syncWork();
       invariant(!record.halt,'GAME_HALTED','Game stopped because clients disagreed. Start a new game.');
       invariant(record.outbox.length===0,'PENDING_DELIVERY','Resolve pending messages before proposing another move.');
-      enqueue(record,await messageFactory(record));await save(record);return flush(record);
+      const message=await messageFactory(record);if(!message)return record;enqueue(record,message);await save(record);return flush(record);
     });
   }
   return {
@@ -75,7 +81,11 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
     begin:config=>submit(async record=>{invariant(principalId===creatorId&&!record.game,'NOT_CREATOR','Only the creator may start this game.');return beginMessage(module,config,id());}),
     command:(command,effects={},expected={})=>submit(record=>{
       invariant((expected.revision===undefined||expected.revision===record.game?.revision)&&(expected.hash===undefined||expected.hash===record.game?.hash),'STALE_GAME','The game changed. Review your action again.');
-      return commandMessage(record,module,command,effects,id(),{coordinatorId:creatorId});
+      const coordinated=module.requiresCoordinator?.(record.game?.state,command);
+      if(Object.values(record.game?.randomRequests||{}).some(r=>!r.superseded&&r.baseGameRevision===record.game.revision&&!Object.hasOwn(record.game.seen,r.intentId)))return null;
+      if(coordinated&&principalId!==creatorId)return proposalMessage(record,module,command,id(),{coordinatorId:creatorId});
+      if(coordinated)module.validateRequest(record.game.state,principalId,command,{coordinatorId:creatorId});
+      return commandMessage(record,module,command,coordinated?createEffects(record.game.state,command):effects,id(),{coordinatorId:creatorId});
     }),
     async haltStatus(){return (await load()).halt;}
   };

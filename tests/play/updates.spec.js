@@ -231,3 +231,13 @@ test('a damaged active offline package repairs automatically without an update a
   await f.page.clock.install();await f.page.clock.fastForward(61000);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));await expect(async()=>expect((await status(f.page)).ready).toBe(true)).toPass({timeout:15000});expect((await status(f.page)).version).toBe(f.server.version);
  }finally{await cleanup(f);}
 });
+
+test('a persisted roll request fences update activation until its host result is applied',async({browser})=>{
+ const f=await open(browser,{automatic:true});try{
+  const result=await f.page.evaluate(async()=>{
+   const {createRelayStore,emptyRecord}=await import('./relay/store.js'),store=createRelayStore({name:'game-shelf-online-catan-v1'}),record=emptyRecord('alice','pending-roll-fixture');
+   record.game={revision:7,moduleDigest:self.OFFLINE_ENGINE,state:{snapshot:{state:{game:{phase:'roll'}}}},seen:{},randomRequests:{request:{intentId:'request',baseGameRevision:7}}};await store.save(record);
+   const waiting=await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE);record.game.seen.request='resolved';await store.save(record);const resolved=await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE);await store.close();return {waiting,resolved};
+  });expect(result).toEqual({waiting:false,resolved:true});
+ }finally{await cleanup(f);}
+});

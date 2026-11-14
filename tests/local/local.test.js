@@ -1,6 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {createLocalClient} from '../../play/local/client.js';
+import {createLocalClient as createClient} from '../../play/local/client.js';
 import {botDecision,eligibleActors} from '../../play/catan/rules/index.js';
+import {recordedDice} from '../fixtures/recorded-dice.js';
+const createLocalClient=options=>createClient({effects:recordedDice,...options});
 let lib={schemaVersion:1,local:false,current:null,games:{}};const storage={load:async()=>structuredClone(lib),save:async v=>{lib=structuredClone(v);}},locks={request:(_key,work)=>work()};
 test('a full local solo game saves every move and resumes with no network/auth',async()=>{
  let client=createLocalClient({storage,locks,seed:()=>2026});let packet=await client.execute('create',{name:'Solo',botLevel:'standard'}),steps=0;

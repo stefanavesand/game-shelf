@@ -1,3 +1,4 @@
+import {recordedDice} from '../fixtures/recorded-dice.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {preparePlanner} from '../../scripts/bots/prepare-runtime.mjs';
@@ -10,7 +11,7 @@ import {validateMemory,PLANNER_POLICY} from '../../play/bots/contract.js';
 import {botDecision} from '../../play/catan/rules/index.js';
 const locks={request:(_key,f)=>f()},blank=()=>({schemaVersion:1,local:false,current:null,games:{}});
 const planner={async decide(view,memory){validateMemory(memory,view,profileHash);const d=decision(view,profile.parameters,0,memory?.data||null);return {action:d.action,memory:{schemaVersion:1,policyVersion:PLANNER_POLICY,profileHash,gameId:view.id,actor:view.you,engineVersion:view.engineVersion,lastRevision:view.revision,data:d.memory}};}};
-function fixture(options={}){let data=blank(),writes=0,fail=false;const storage={load:async()=>structuredClone(data),save:async d=>{if(fail)throw Error('quota');writes++;data=structuredClone(d);}};return {get data(){return data;},get writes(){return writes;},storage,fail:()=>{fail=true;},client:()=>createLocalClient({storage,planner,locks,seed:()=>37,id:()=> 'planner-local-test',...options})};}
+function fixture(options={}){let data=blank(),writes=0,fail=false;const storage={load:async()=>structuredClone(data),save:async d=>{if(fail)throw Error('quota');writes++;data=structuredClone(d);}};return {get data(){return data;},get writes(){return writes;},storage,fail:()=>{fail=true;},client:()=>createLocalClient({storage,planner,locks,effects:recordedDice,seed:()=>37,id:()=> 'planner-local-test',...options})};}
 async function humanStep(c,p){return p.view.choices.length?c.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:botDecision(p.view,'standard')},{botBudget:0}):c.refresh({botBudget:1});}
 test('full experimental Solo persists isolated plans, restores them and keeps packets private',async()=>{
  const f=fixture();let c=f.client(),p=await c.execute('create',{name:'Human',botLevel:'planner'},{botBudget:0}),n=0,reopened=false;
