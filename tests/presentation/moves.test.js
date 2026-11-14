@@ -70,3 +70,11 @@ test('actual animation completion overrides the clock estimate and an old comple
  const {createCountPresentation}=await import('../../play/presentation/counts.js'),{scenario}=await import('../fixtures/motion-scenarios.js'),{before,after}=scenario('roll');let time=0,finish,notified=0;const p=createCountPresentation({now:()=>time,reduced:()=>false,setTimer:()=>1,clearTimer:()=>{},onChange:()=>notified++});p.observe(before);p.observe(after);p.completeOn(after,new Promise(resolve=>finish=resolve));time=20000;p.observe(after);assert.equal(p.pending(),true);finish();await Promise.resolve();assert.equal(p.pending(),false);assert.equal(notified,1);assert.deepEqual(p.view(),after.view);
  let oldFinish;p.observe(before);p.observe(after);p.completeOn(after,new Promise(resolve=>oldFinish=resolve));const next={...after,roomId:'other'};p.observe(next);oldFinish();await Promise.resolve();assert.equal(p.view(),next.view);assert.equal(notified,1);
 });
+
+
+test('card presentation never holds back confirmed victory points',async()=>{
+ const {createCountPresentation}=await import('../../play/presentation/counts.js'),{scenario}=await import('../fixtures/motion-scenarios.js'),{before,after}=scenario('city');
+ const p=createCountPresentation({reduced:()=>false,setTimer:()=>1,clearTimer:()=>{}});p.observe(before);p.observe(after);
+ assert.equal(p.pending(),true);
+ for(const actual of after.view.state.players.players)assert.equal(p.view().state.players.players.find(x=>x.id===actual.id).victoryPoints,actual.victoryPoints);
+});

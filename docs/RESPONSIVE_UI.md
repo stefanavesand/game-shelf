@@ -83,3 +83,10 @@ Resource/development-card counters use a separate authorized presentation view u
 New local and online game metadata records `lastPlayedAt` on creation, resume and accepted interaction; local committed bot moves also count as game activity. No-op/background reads do not update it. This device-local metadata is outside deterministic game hashes and has no transport/schema migration. The Home list merges modes and sorts by descending activity, with current-room/reverse-insertion fallbacks for older entries without timestamps.
 
 Saved games use compact single-row controls, truncated participant names with the full text available, concise status/configuration and an accessible 44-pixel abandon icon. Abandonment still opens the existing confirmation dialog. The orange focus frame removal from 0.13.1 remains included; dialog opening focuses the heading, and keyboard controls retain a text cue rather than the shared orange outline.
+
+
+### Foreground recovery and score feedback — 0.13.3
+
+Foreground visibility/pageshow cancels suspended visual waits, establishes the latest counter baseline and restarts bot scheduling. Background wall time must not permanently stop polling after a minute on the same bot revision; the warning remains informational. No speculative move is committed on resume and existing in-flight sync is coalesced. The browser regression advances wall time two minutes across visibility changes during a bot placement, then requires its next saved road and human choices in both motion modes. Physical iOS suspension still needs device acceptance.
+
+Confirmed VP totals remain immediate, independently of delayed card counters. The score pulse starts immediately with a short signed VP marker; it no longer waits 650 ms. Unrelated third-party offers have no dead View trade button. Affordable incoming offers still open automatically and retain View offer for reopening after dismissal; one's own pending offer retains View your offer.

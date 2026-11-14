@@ -18,6 +18,13 @@ for(const reducedMotion of ['no-preference','reduce'])test(`bot placements are s
   await page.locator('#refresh').evaluate(b=>{b.click();b.click();});expect(await revision()).toBe(30);
   await expect(page.locator('.motion-caption')).toContainText('placed a settlement');expect(await revision()).toBe(31);
   const data=await page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {pieces:p.view.state.board.buildings.length,animations:document.getAnimations().length};});expect(data.pieces).toBe(1);if(reducedMotion==='reduce')expect(data.animations).toBe(0);else expect(data.animations).toBeGreaterThan(0);
+  // A phone can spend minutes suspended in another app. Resume must cancel
+  // visual waits and continue the saved bot decision, never hit a wall-time stop.
+  await page.evaluate(()=>{
+   Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));
+   const realNow=Date.now;Date.now=()=>realNow()+120000;
+   Object.defineProperty(document,'hidden',{configurable:true,get:()=>false});document.dispatchEvent(new Event('visibilitychange'));
+  });
   await page.getByRole('button',{name:'Open menu',exact:true}).click();await expect(page.locator('#sidebar')).toBeVisible();await page.getByRole('button',{name:'Close menu',exact:true}).click();
   await expect(page.locator('.motion-caption')).toContainText('placed a road');expect(await revision()).toBe(32);await expect(page.locator('#board [role=button]').first()).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight)).toBe(true);

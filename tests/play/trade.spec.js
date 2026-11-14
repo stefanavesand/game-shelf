@@ -58,3 +58,15 @@ for(const response of ['TRADE_ACCEPT','TRADE_DECLINE','COUNTER'])test(response==
   await page.locator('#trade-reply').getByRole('button',{name:response==='TRADE_ACCEPT'?'Accept':'Decline',exact:true}).click();await expect.poll(()=>backend.accepted).toBe(2);await expect(page.locator('#sheet')).not.toBeVisible();await expect(page.locator('#trade-reply')).not.toBeVisible();expect(backend.commands.at(-1).action).toEqual({type:response,offerId:'counter-offer'});
  }finally{await context.close();}
 });
+
+test('an offer between other players has no dead View trade action',async({browser})=>{
+ const {backend,context,page}=await start(browser);
+ try{
+  await page.getByRole('button',{name:'Close panel',exact:true}).click();
+  for(const p of Object.values(backend.current)){p.revision++;p.view.revision=p.revision;p.view.offer={id:'other-offer',from:'p2',to:'p3',recipients:['p3'],responses:{},give:bundle({ore:1}),receive:bundle({brick:1})};p.view.choices=[];}
+  await page.evaluate(()=>document.getElementById('refresh').click());
+  await expect(page.locator('.actor-status')).toContainText('responds to the trade');
+  await expect(page.getByRole('button',{name:'View trade',exact:true})).toHaveCount(0);
+  await expect(page.locator('#trade-reply')).not.toBeVisible();
+ }finally{await context.close();}
+});

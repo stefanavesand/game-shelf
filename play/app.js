@@ -95,7 +95,7 @@ function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.off
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
  const v=view(),[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
- return gameScreen({view:counts.view()||v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(counts.view()||v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&!(incoming()&&!canSupplyOffer(v))?button(incoming()?'View offer':v.offer.from===v.you?'View your offer':'View trade','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
+ return gameScreen({view:counts.view()||v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(counts.view()||v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&(incoming()&&canSupplyOffer(v)||v.offer.from===v.you)?button(incoming()?'View offer':'View your offer','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
 }
 function render(){
   counts.observe(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});
@@ -151,7 +151,6 @@ function schedule(){
  if(['home','create','join'].includes(screen)&&!saved?.pending)return;
  if(document.hidden||(!navigator.onLine&&!client.isLocal())||busy)return;
  if(error&&!error.retryable)return;
- if(botSince&&Date.now()-botSince>60000)return;
  if(saved?.pending||saved?.roomId||(saved?.retryAt||0)>Date.now()){
   const watchingBot=packet?.view&&actingPlayers(packet.view).some(id=>packet.view.seats.find(s=>s.id===id)?.kind==='bot');
   const interval=packet?.botWorkPending&&!saved?.pending&&!error?Math.max(50,movePacer.remaining(packet),counts.remaining()):watchingBot&&movePacer.recentlyChanged()?1500:client.capabilities.pollIntervalMs;
@@ -423,7 +422,13 @@ document.addEventListener('input',e=>{if(e.target.id==='room-id')formDraft.room=
 $('help').onclick=()=>helpPanel();$('refresh').onclick=()=>{if(googleAuth.profile())sync();};$('room').onclick=()=>showMenu();
 window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;formDraft.room=invitedRoom();if(saved?.pending){notice='Resolve your current move before joining another game.';render();}else setScreen('join');}else if(location.hash==='#home')dispatch('home');});
 window.addEventListener('offline',()=>{clearTimeout(timer);if(offlineAllowed()){error=null;render();schedule();return;}ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
-window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);motion.reset();counts.reset();movePacer.reset();}else sync();});window.addEventListener('pageshow',()=>{if(saved&&!busy)sync();});
+function resumeForeground(){
+ if(document.hidden)return;
+ // Suspended animations and background wall time must never strand bot work.
+ motion.reset();counts.reset();movePacer.reset();botSince=0;botRevision=-1;
+ render();return sync();
+}
+window.addEventListener('online',()=>sync());document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);motion.reset();counts.reset();movePacer.reset();}else resumeForeground();});window.addEventListener('pageshow',()=>{if(saved)resumeForeground();});
 async function boot(){
   if(isGoogleReturn(location.href)){const href=location.href;history.replaceState(null,'',location.pathname+'#home');accountBusy=true;notice='Completing Google sign-in…';render();try{await changeAccount(()=>googleAuth.finish(href,path=>history.replaceState(null,'',path)));notice='Signed in with Google.';}catch(e){notice=e.message||'Google sign-in could not be completed. Please try again.';}finally{accountBusy=false;}}
   invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;

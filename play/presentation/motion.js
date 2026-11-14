@@ -35,7 +35,11 @@ export function createGameMotion({reduced=()=>matchMedia('(prefers-reduced-motio
     if(delta.amount>0){const tile=v.state.board.tiles.find(t=>resourceFor[t.terrain]===delta.resource&&event.producing.includes(hexDisplayKey(t.coord))&&v.state.board.buildings.some(b=>b.playerId===v.you&&Math.abs(Math.hypot(vertexPoint(b.vertex).x-center(t.coord).x,vertexPoint(b.vertex).y-center(t.coord).y)-54)<1e-6));fly(delta.resource,delta.amount,tile?find('[data-motion-tile]',hexDisplayKey(tile.coord)):player(event.actorId),target,{delay:event.rolled?timing.diceMs+200:500});}
    }
    if(event.cost.length){const bank=caption.querySelector('.motion-bank');bank.hidden=false;event.cost.forEach((d,i)=>fly(d.resource,d.amount,player(event.actorId),bank,{negative:true,delay:500+i*70}));}else caption.querySelector('.motion-bank').hidden=true;
-   for(const score of event.scores)animate(player(score.playerId)?.querySelector('.player-points'),[{transform:'scale(1)'},{transform:'scale(1.5)',color:'#b57d27',offset:.5},{transform:'scale(1)'}],{delay:650,duration:700});
+   for(const score of event.scores){
+    const points=player(score.playerId)?.querySelector('.player-points');
+    animate(points,[{transform:'scale(1)'},{transform:'scale(1.25)',color:'#b57d27',offset:.4},{transform:'scale(1)'}],{duration:700});
+    if(points&&!reduced()){const delta=document.createElement('span');delta.className='motion-score-delta';delta.textContent=`${score.amount>0?'+':''}${score.amount} VP`;delta.setAttribute('aria-hidden','true');points.append(delta);floating.push(delta);animate(delta,[{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)',offset:.2},{opacity:0,transform:'translateY(-8px)'}],{duration:1000});later(()=>delta.remove(),1050);}
+   }
    if(event.robber){const a=center(event.robber.from),b=center(event.robber.to);animate(document.querySelector('[data-motion-robber]'),[{transform:`translate(${a.x-b.x}px,${a.y-b.y}px)`,opacity:.45},{transform:'translate(0,0)',opacity:1}],{delay:200,duration:timing.pieceMs});}
    if(event.card)animate(player(event.actorId),[{filter:'brightness(1)'},{filter:'brightness(1.3)',offset:.5},{filter:'brightness(1)'}],{delay:300,duration:600});
    later(()=>{if(!caption.isConnected)return;detail.textContent=event.awards.length?event.awards.map(a=>`${player(a.playerId)?.querySelector('strong')?.textContent||'Player'} · ${a.name}`).join(' · '):costLabel(event.cost);},850);

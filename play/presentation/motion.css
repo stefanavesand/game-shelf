@@ -5,3 +5,5 @@
 [data-motion-piece],[data-motion-robber]{transform-box:fill-box;transform-origin:center}
 .motion-resource-flight{position:fixed;z-index:20;width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:#fffaf0;box-shadow:0 2px 6px #193e3226;pointer-events:none;opacity:0}.motion-resource-flight svg{width:26px;height:26px}.motion-resource-flight span{position:absolute;right:-6px;bottom:-3px;background:#fffaf0;border-radius:5px;padding:1px 3px;font-size:11px;font-weight:700}
 @media(max-height:500px){.motion-caption{padding:5px 8px;bottom:5px}.motion-message{font-size:11px}.motion-detail{font-size:10px}}
+
+.player-points{position:relative}.motion-score-delta{position:absolute;right:0;top:100%;white-space:nowrap;font-size:11px;color:#855a16;pointer-events:none}
