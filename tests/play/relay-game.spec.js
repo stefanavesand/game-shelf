@@ -55,7 +55,12 @@ test('two emulated human seats and the ordinary bot finish a natural relay game'
     if(!result.ok){const fresh=await packet(pages[i]);if(fresh.revision!==packets[i].revision&&staleRetries<30){staleRetries++;moved=true;break;}throw Error('Human driver command rejected: '+result.error?.code+'; '+result.error?.message);}
     commands++;moved=true;break;
    }
-   if(commands>=25&&!reloaded){await guest.reload();await expect(guest.locator('#connection')).toHaveText('Up to date');reloaded=true;}
+   if(commands>=25&&!reloaded){
+    await guest.reload();await expect(guest.locator('#board')).toBeVisible();
+    // Reload can land on a persisted guest roll request. Service the host's
+    // coordinator protocol rather than waiting for its background UI timer.
+    await expect(async()=>{await packet(host);const restored=await packet(guest);expect(restored.pendingRandom).not.toBe(true);expect(restored.revision).toBeGreaterThanOrEqual(packets[1].revision);}).toPass({timeout:5000});reloaded=true;
+   }
    // An eligible ordinary bot is progressed by the creator's normal refresh path.
    if(!moved)expect(packets.some(p=>p.members.some(m=>m.kind==='bot'))).toBe(true);
   }
