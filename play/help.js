@@ -8,6 +8,7 @@ export const CARD_RULES={
 };
 export const ACTION_CARD_TIMING='You may play at most one action development card per turn, only on your turn. A card bought this turn cannot be played until a later turn. Playing a card costs no resources.';
 export const HELP_SECTIONS=[
+ ['Friendly robber','New games use Friendly robber by default. The robber cannot move to a tile touching an opponent with 2 or fewer visible victory points. This applies after rolling seven and playing a Knight. Normal robber removes this protection. Discarding after seven is unchanged.'],
  ['Goal and points','Reach ten points on your turn: settlements are worth 1, cities 2, Longest Road 2, Largest Army 2, and each private Victory Point card 1. Score breakdown explains your current total. Ties keep an existing award holder; Longest Road needs at least five roads and Largest Army at least three played Knights.'],
  ['Starting placements','Place a settlement and an adjacent road twice. The second round reverses the order. Only your second settlement grants starting resources, one per adjacent producing tile. Tap a highlighted board target, inspect it and confirm.'],
  ['Your turn and resources','Roll the dice once, then build, buy cards or trade, and end your turn. An eligible development card can also be played before rolling. Numbered tiles produce 1 resource per adjacent settlement or 2 per city, unless blocked by the robber. Bank shortages can prevent production.'],

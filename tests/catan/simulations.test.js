@@ -15,7 +15,7 @@ function invariants(state,label){
   assert.equal(p.roadsRemaining+s.state.board.roads.filter(r=>r.playerId===p.id).length,15,label+' roads');
  }
 }
-test('100 current-policy natural games finish across both levels and supported seat configurations',{timeout:180000},()=>{
+test('100 frozen-baseline natural games finish across both levels and supported seat configurations',{timeout:180000},()=>{
  let total=0,max=0;const groups=[];
  for(const solo of [false,true])for(const level of ['easy','standard']){
   let completed=0;
@@ -36,5 +36,5 @@ test('100 current-policy natural games finish across both levels and supported s
   }
   groups.push({solo,level,completed});
  }
- console.log('Current policy simulation summary:',JSON.stringify({policy:BOT_VERSION,artifact:CATAN_ARTIFACT.digest,groups,totalActions:total,maxActions:max}));
+ console.log('Frozen baseline simulation summary:',JSON.stringify({policy:BOT_VERSION,artifact:CATAN_ARTIFACT.digest,groups,totalActions:total,maxActions:max}));
 });

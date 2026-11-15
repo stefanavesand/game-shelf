@@ -1,7 +1,5 @@
 export const PLANNER_POLICY='strategic-planner-0.1.0';
-export const PREVIOUS_POLICY='development-investment-0.1.0';
-export const LEGACY_POLICY='build-trade-0.2.0';
-export const supportedPolicy=policy=>[PLANNER_POLICY,PREVIOUS_POLICY,LEGACY_POLICY].includes(policy);
+export const supportedPolicy=policy=>policy===PLANNER_POLICY;
 const keys=(v,names)=>v&&Object.keys(v).sort().join('|')===[...names].sort().join('|');
 export function validateMemory(memory,view,profileHash,policy=PLANNER_POLICY){
  if(memory===null)return;

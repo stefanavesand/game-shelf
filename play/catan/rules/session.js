@@ -16,12 +16,12 @@ const reject = (message) => { throw new CatanRuleError(message); };
 const empty = () => ({ brick: 0, lumber: 0, ore: 0, grain: 0, wool: 0 });
 const resourceFor = { hills: 'brick', forest: 'lumber', mountains: 'ore', fields: 'grain', pasture: 'wool' };
 const colors = ['red', 'blue', 'orange', 'green'];
-export function newCatan(id, seats, context, scenario) {
+export function newCatan(id, seats, context, scenario, friendlyRobber=false) {
     if (typeof id !== 'string' || !id.length || ![3, 4].includes(seats.length) || new Set(seats.map(s => s.id)).size !== seats.length)
         reject('Choose three or four distinct seats.');
     validateScenario(scenario);
     const players = seats.map((s, i) => {
-        if (!s.id || typeof s.name !== 'string' || s.name.length > 30 || !['human', 'bot'].includes(s.kind) || !['easy', 'standard'].includes(s.level))
+        if (!s.id || typeof s.name !== 'string' || s.name.length > 30 || !['human', 'bot'].includes(s.kind) || !['easy', 'standard', 'hard'].includes(s.level))
             reject('Invalid player configuration.');
         return createPlayer(s.id, s.name || `Player ${i + 1}`, colors[i], i === 0);
     });
@@ -33,7 +33,7 @@ export function newCatan(id, seats, context, scenario) {
     const tiles = scenarioTiles(scenario).map(t => ({ ...t, hasPirate: false, isFog: false }));
     const state = {
         game: { phase: 'setup-settlement-1', turn: 0, currentPlayerId: order[0], turnTimeRemaining: 0, turnStartedAt: context.now(), mode: 'base',
-            settings: { mode: 'base', playerCount: seats.length, victoryPoints: 10, turnTimer: 0, discardLimit: 7, map: scenario?'random-island':'beginner',...(scenario?{scenario:{id:scenario.id,version:scenario.version}}:{}), friendlyRobber: false, hideBankCards: false },
+            settings: { mode: 'base', playerCount: seats.length, victoryPoints: 10, turnTimer: 0, discardLimit: 7, map: scenario?'random-island':'beginner',...(scenario?{scenario:{id:scenario.id,version:scenario.version}}:{}), friendlyRobber, hideBankCards: false },
             lastRoll: null, longestRoad: null, largestArmy: null, developmentDeckCount: 25, bank: { brick: 19, lumber: 19, ore: 19, grain: 19, wool: 19 }, pendingDiscard: [], discardAmounts: {}, devCardPlayedThisTurn: false,
             progressDecks: null, barbarianPosition: 0, barbarianStrength: 0, totalKnightStrength: 0, winnerId: null, finalScores: null, setupPlayerIndex: 0, setupDirection: 'forward', roadBuildingRemaining: 0, yearOfPlentyRemaining: 0,
             setupState: { currentPlacementIndex: 0, lastPlacedSettlement: null, placementsComplete: false, playerPlacements: {} } },

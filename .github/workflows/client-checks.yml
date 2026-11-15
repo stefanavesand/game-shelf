@@ -13,7 +13,7 @@ jobs:
   checks:
     name: Check, test and package
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       GAME_SHELF_LIVE: '0'
       GAME_SHELF_SOLO_LIVE: '0'

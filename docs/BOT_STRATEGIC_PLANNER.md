@@ -1,5 +1,7 @@
 # Strategic Planner 0.1
 
+Superseded for current runtime selection by [0.15 levels and Friendly robber](BOT_LEVELS_AND_ROBBER.md). This document retains the 0.14 design and experimental evidence.
+
 Owner-requested improvements 1–4, release 0.14.0. This is a new experimental Planner policy for new Solo games, not a calibrated difficulty level. Standard/Easy and online bot selection retain their current implementations. Existing Solo saves keep their pinned `development-investment-0.1.0` or `build-trade-0.2.0` worker/profile and private goal memory.
 
 ## Design

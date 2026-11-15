@@ -143,8 +143,9 @@ export function template(id='heuristic-candidate',policyVersion='heuristic-param
 }
 export function validateProfile(input){
  keys(input,['schemaVersion','id','policyVersion','featureSchemaVersion','level','parameters'],'profile');
- if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['strategic-planner-0.1.0','development-investment-0.1.0','heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)||!['easy','standard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
- if(['strategic-planner-0.1.0','development-investment-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
+ if(input.schemaVersion!==1||input.featureSchemaVersion!==1||!['strategic-planner-0.1.0','development-investment-0.1.0','heuristic-1.1.0','heuristic-params-0.1.0','planner-0.1.0','trade-planner-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)||!['easy','standard','hard'].includes(input.level)||typeof input.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,63}$/.test(input.id))throw Error('Unsupported profile');
+ if(['development-investment-0.1.0','resource-heuristic-0.1.0','resource-heuristic-0.2.0','robber-knight-0.1.0','build-trade-0.2.0','build-trade-0.1.0','shared-plan-0.1.0'].includes(input.policyVersion)&&input.level!=='standard')throw Error('Resource experiment has no calibrated Easy profile');
+ if(input.level==='hard'&&input.policyVersion!=='strategic-planner-0.1.0')throw Error('Hard requires the strategic policy');
  const fields=policyRegistry(input.policyVersion),expected=Object.keys(fields);keys(input.parameters,expected,'parameters');
  for(const key of expected){const value=input.parameters[key],r=fields[key];if(r.type==='integer'&&!Number.isInteger(value))throw Error(`Invalid integer parameter: ${key}`);if(typeof value!=='number'||!Number.isFinite(value)||value<r.min||value>r.max)throw Error(`Invalid parameter: ${key}`);}
  if(Buffer.byteLength(canonical(input))>16384)throw Error('Profile too large');
@@ -152,7 +153,7 @@ export function validateProfile(input){
 }
 // Policy receives a cloned, frozen seat observation, never the authority snapshot.
 export function decide(view,profile,decisionSeed){
- if(['strategic-planner-0.1.0','development-investment-0.1.0','shared-plan-0.1.0','build-trade-0.1.0','build-trade-0.2.0','robber-knight-0.1.0'].includes(profile.policyVersion))return decideWithMemory(view,profile,decisionSeed).action;
+ if(['development-investment-0.1.0','shared-plan-0.1.0','build-trade-0.1.0','build-trade-0.2.0','robber-knight-0.1.0'].includes(profile.policyVersion))return decideWithMemory(view,profile,decisionSeed).action;
  const observation=freeze(structuredClone(view));
  return profile.policyVersion==='heuristic-1.1.0'?baseline(observation,profile.level):(profile.policyVersion==='resource-heuristic-0.2.0'?resourceComponents:profile.policyVersion==='resource-heuristic-0.1.0'?resourcePlanner:profile.policyVersion==='trade-planner-0.1.0'?tradePlanner:profile.policyVersion==='planner-0.1.0'?planner:parameterized)(observation,profile.level,profile.parameters,decisionSeed);
 }

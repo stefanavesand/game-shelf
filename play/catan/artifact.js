@@ -2,9 +2,9 @@
 export const CATAN_ARTIFACT = Object.freeze({
   "schemaVersion": 1,
   "rulesVersion": "2.1.0",
-  "releaseVersion": "0.14.0",
-  "breaking": false,
-  "compatibilityId": "3d9c1e3df5bd7a2781b0f5635e5c200092ab8e335ef35c2476591af43990c973",
+  "releaseVersion": "0.15.0",
+  "breaking": true,
+  "compatibilityId": "58d518a1db77c58e3058a48191fab7ea1162578e895cff43899b121be2d9ed7c",
   "files": [
     {
       "path": "play/catan/entropy.js",
@@ -12,7 +12,7 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/catan/module.js",
-      "sha256": "7cb733d3341464cf6e8f1df1167a11198d967644521a6b657ef7637b0f1c6576"
+      "sha256": "bc55b38df9857346e56d80aea3da97b553fade17487c3c6754f23ea76df2a91a"
     },
     {
       "path": "play/catan/rules/board.js",
@@ -56,7 +56,7 @@ export const CATAN_ARTIFACT = Object.freeze({
     },
     {
       "path": "play/catan/rules/session.js",
-      "sha256": "dd77615addb517ffc6e4124686fe32cda209a8c9a4c7590bf3b19a1bb179d681"
+      "sha256": "8b4b6b597edd12fa5b44f2636f763589e1ca1beb9694c8a0b4568961c9d9e5a7"
     },
     {
       "path": "play/catan/rules/setup.js",
@@ -75,5 +75,5 @@ export const CATAN_ARTIFACT = Object.freeze({
       "sha256": "747f9076c7a79b7e067643fb0f644de3261991cf70313284a8085f26cbc4a345"
     }
   ],
-  "digest": "c756b3ffd4a991a2a687215eaf7417bbdc5110ebbb26878425ce97e282f338cc"
+  "digest": "c3cda080d69163b36a4a45f6775b765bcbac99923f348edbacd2d9e450ebc25f"
 });

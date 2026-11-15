@@ -1,5 +1,9 @@
 # Private MVP requirements — agreed product baseline
 
+## Bot levels and robber rule — owner-approved 2026-11-15
+
+New Solo and online games offer Easy, Standard and Hard using the common strategic bot. Standard keeps the approved 0.14 profile. Friendly robber is the default new-game rule; Normal is optional. Friendly protects opponents with at most two visible VP from robber placement after seven or Knight. Choices are persisted with the game. Old experimental/runtime profiles are retired. See [design and verification](BOT_LEVELS_AND_ROBBER.md).
+
 ## Scenario selection — owner-approved extension
 
 New games offer Classic (fixed beginner layout, initial default) or Random Island (normal base-game inventories, randomized terrain/tokens/port types, no adjacent 6/8). Both support three/four seats, Solo and online, and normal base rules. The host persists the final layout; saved games never reroll. A small original preview and English description explain the choice. Extra scenario rules are deferred. See [scenario design and verification](SCENARIOS.md). This supersedes the fixed-map restriction for new games only.

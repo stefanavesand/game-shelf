@@ -173,3 +173,7 @@ The Classic/Random Island catalog, bounded constrained generator/validator, WebC
 ## Strategic Planner 0.1 — 2026-11-14
 
 The strategy estimates in `scripts/bots/strategy-model.mjs` and gated extensions to the existing shared-plan policy are original repository code. No external solver, Monte Carlo library, new dependency or third-party artwork is imported. The existing frozen baseline's attribution and MIT notice remain unchanged. Runtime generation explicitly includes the new module and three version-pinned profiles; benchmark reports use synthetic game observations only. See [design and verification](docs/BOT_STRATEGIC_PLANNER.md).
+
+## Common bot levels and Friendly robber — 2026-11-15
+
+The 0.15 level profiles, shared worker/headless adapter, session wiring and option propagation are original repository changes. Friendly robber reuses the already-attributed placement rule; no external algorithm/dependency is imported. Old profile versions are excluded from the runtime package while historical experiment results and baseline attribution remain. See [implementation and verification](docs/BOT_LEVELS_AND_ROBBER.md).
