@@ -2,8 +2,8 @@
 export const CATAN_ARTIFACT = Object.freeze({
   "schemaVersion": 1,
   "rulesVersion": "2.1.0",
-  "releaseVersion": "0.15.0",
-  "breaking": true,
+  "releaseVersion": "0.15.1",
+  "breaking": false,
   "compatibilityId": "58d518a1db77c58e3058a48191fab7ea1162578e895cff43899b121be2d9ed7c",
   "files": [
     {

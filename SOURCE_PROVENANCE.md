@@ -177,3 +177,7 @@ The strategy estimates in `scripts/bots/strategy-model.mjs` and gated extensions
 ## Common bot levels and Friendly robber — 2026-11-15
 
 The 0.15 level profiles, shared worker/headless adapter, session wiring and option propagation are original repository changes. Friendly robber reuses the already-attributed placement rule; no external algorithm/dependency is imported. Old profile versions are excluded from the runtime package while historical experiment results and baseline attribution remain. See [implementation and verification](docs/BOT_LEVELS_AND_ROBBER.md).
+
+## Ports and recovery — 2026-11-18
+
+Original public-ownership presentation and metadata-only IndexedDB recovery additions. No replacement trade validator, external dependency or imported asset is introduced. Existing port-rule attribution is unchanged. Device cleanup uses explicit confirmation and lifecycle fencing, preserves snapshots/identities/compatible games and quarantines removed online-game outboxes. See [design and verification](docs/PORTS_AND_INCOMPATIBLE_GAMES.md).

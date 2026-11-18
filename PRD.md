@@ -1,5 +1,9 @@
 # Game Shelf / OpenCatan — Product Requirements Document
 
+## Incompatible-game recovery — owner-approved 2026-11-18
+
+Immediately offer targeted removal when saved games cannot be played in the current or incoming app version. Preserve identity and compatible games. Keeping obsolete saves must leave compatible new-game entry available. Device-wide stale account data must not create an unexplained update dead end. See [ports and recovery](docs/PORTS_AND_INCOMPATIBLE_GAMES.md).
+
 ## Bot levels and robber rule — owner-approved 2026-11-15
 
 New Solo and online games offer Easy, Standard and Hard using the common strategic bot. Standard keeps the approved 0.14 profile. Friendly robber is the default new-game rule; Normal is optional. Friendly protects opponents with at most two visible VP from robber placement after seven or Knight. Choices are persisted with the game. Old experimental/runtime profiles are retired. See [design and verification](docs/BOT_LEVELS_AND_ROBBER.md).

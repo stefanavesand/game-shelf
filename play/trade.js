@@ -1,3 +1,4 @@
+import {vertexKey} from './catan/rules/geometry.js';
 import {RESOURCES,RESOURCE_NAMES,ownPlayer,handCount} from './core/protocol.js';
 const empty=()=>Object.fromEntries(RESOURCES.map(r=>[r,0]));
 export function offerDraft(view,prior){
@@ -24,3 +25,12 @@ export function handAfter(hand,give,receive){return Object.fromEntries(RESOURCES
 export const tradeLabel=bundle=>RESOURCES.filter(r=>bundle[r]).map(r=>`${bundle[r]} ${RESOURCE_NAMES[r]}`).join(' + ')||'Choose cards';
 export const bankChoices=view=>view.choices.filter(c=>c.type==='BANK_TRADE');
 export function bankBundles(action){return {give:{...empty(),...(action?{[action.give.resource]:action.give.amount}:{})},receive:{...empty(),...(action?{[action.receive.resource]:action.receive.amount}:{})}};}
+
+// Public ownership for explanation only; executable exchanges still come from choices.
+export function ownedPorts(view){
+ const vertices=new Set(view.state.board.buildings.filter(b=>b.playerId===view.you).map(b=>vertexKey(b.vertex)));
+ return view.state.board.ports.filter(p=>p.vertices.some(v=>vertices.has(vertexKey(v))));
+}
+export function displayedBankRate(view,resource){
+ return Math.min(4,...ownedPorts(view).map(p=>p.type===resource?2:p.type==='generic'?3:4));
+}

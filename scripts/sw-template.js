@@ -32,7 +32,7 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
  try{await navigator.locks.request('game-shelf-app-lifecycle',{mode:'exclusive'},async()=>{
   if(!await self.GameShelfUpdateState.compatible(self.OFFLINE_ENGINE,{ignoreEnginePins:await sameActiveEngine()}))throw Error('Saved games or pending moves block this update');
   await self.GameShelfUpdateState.setFence({schemaVersion:1,version:self.OFFLINE_VERSION,engine:self.OFFLINE_ENGINE});
- });}catch(error){for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'UPDATE_BLOCKED'});throw error;}
+ });}catch(error){for(const client of await self.clients.matchAll({type:'window',includeUncontrolled:true}))client.postMessage({type:'UPDATE_BLOCKED',engine:self.OFFLINE_ENGINE});throw error;}
  await download();
 })()));
 // Updated workers wait for an explicit safe activation request.

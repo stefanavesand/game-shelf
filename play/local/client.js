@@ -29,7 +29,10 @@ export function createLocalClient({planner=createPlannerRunner(),storage=createL
   isLocal:()=>local,
   selectOnline:()=>lock(async()=>{const lib=await load();lib.local=false;await storage.save(lib);local=false;}),
   inspect:()=>lock(async()=>{const lib=await load(),g=lib.games[lib.current];if(local&&g)await verify(g);return {state:{schemaVersion:1,roomId:local?lib.current:null,pending:null,persistent:lib.persistent},principalId:'local',packet:local&&g?packet(g):null};}),
-  games:()=>lock(async()=>Object.values((await load()).games).filter(g=>!g.abandoned).map(g=>({roomId:g.state.snapshot.id,status:g.state.snapshot.state.game.phase==='ended'?'ended':'playing',players:g.state.snapshot.seats.map(s=>s.name),mode:'solo',lastPlayedAt:g.lastPlayedAt||0,scenario:scenarioName(g.state.snapshot.state),playerCount:g.state.snapshot.seats.length,botLevel:g.state.snapshot.seats[1].level,local:true,compatible:g.artifact===CATAN_ARTIFACT.compatibilityId}))),
+  games:(artifact=CATAN_ARTIFACT.compatibilityId)=>lock(async()=>Object.entries((await load()).games).filter(([,g])=>!g.abandoned).map(([roomId,g])=>{
+   const snapshot=g.state?.snapshot,seats=Array.isArray(snapshot?.seats)?snapshot.seats:[],compatible=g.artifact===artifact&&supportedPolicy(g.botPolicy);
+   return {roomId,status:snapshot?.state?.game?.phase==='ended'?'ended':'playing',players:seats.map(s=>s.name),mode:'solo',lastPlayedAt:g.lastPlayedAt||0,scenario:compatible?scenarioName(snapshot?.state):null,playerCount:seats.length,botLevel:seats.find(s=>s.kind==='bot')?.level,local:true,compatible};
+  })),
   resume:(roomId,options={})=>lock(async()=>{const lib=await load(),g=lib.games[roomId];if(!g||g.abandoned)return null;await verify(g);g.lastPlayedAt=now();lib.current=roomId;lib.local=true;await storage.save(lib);local=true;await bots(lib,g,options.botBudget);return packet(g);}),
   refresh:(options={})=>lock(async()=>{const lib=await load(),g=lib.games[lib.current];if(!local||!g)return null;await verify(g);await bots(lib,g,options.botBudget);return packet(g);}),
   execute:(op,args={},options={})=>lock(async()=>{
@@ -45,6 +48,6 @@ export function createLocalClient({planner=createPlannerRunner(),storage=createL
    await commit(lib,g,next);await bots(lib,g,options.botBudget);return packet(g);
   }),
   abandon:roomId=>lock(async()=>{const lib=await load(),g=lib.games[roomId];if(!g)throw new PlayError('PROTOCOL_ERROR','Choose a saved game.');g.abandoned=true;if(lib.current===roomId){lib.current=null;lib.local=false;}await storage.save(lib);local=lib.local;}),
-  canUpdate:artifact=>lock(async()=>Object.values((await load()).games).every(g=>g.abandoned||g.state.snapshot.state.game.phase==='ended'||g.artifact===artifact))
+  canUpdate:artifact=>lock(async()=>Object.values((await load()).games).every(g=>g.abandoned||g.state?.snapshot?.state?.game?.phase==='ended'||g.artifact===artifact))
  };
 }

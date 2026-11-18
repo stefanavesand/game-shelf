@@ -1,7 +1,7 @@
 import {withUpdateLock} from './lifecycle.js';
 import './offline-assets.js';
 export let updates=null;
-export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onReloadPending=()=>{}}={}){
+export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onReloadPending=()=>{},onIncompatible=async()=>{}}={}){
  const status=document.getElementById('offline-status');if(!status)return;
  const show=text=>{if(status.textContent!==text)status.textContent=text;};
  if(!('serviceWorker'in navigator)){show('Offline installation unavailable');return;}
@@ -35,7 +35,7 @@ export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onRelo
  try{
   registration=await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
   navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='UPDATE_IDLE_QUERY')event.ports[0]?.postMessage({idle:isIdle()});});
-  navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='UPDATE_BLOCKED'){blockedInstall=true;show('Update blocked · saved games or pending moves need attention');}});
+  navigator.serviceWorker.addEventListener('message',event=>{if(event.data?.type==='UPDATE_BLOCKED'){blockedInstall=true;show('Update blocked · saved games or pending moves need attention');if(event.data.engine)Promise.resolve(onIncompatible(event.data.engine)).catch(()=>{});}});
   registration.addEventListener('updatefound',()=>watch(registration.installing));watch(registration.installing);
   await navigator.serviceWorker.ready;await check();
   updates={check:async(event)=>{
@@ -53,6 +53,7 @@ export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onRelo
       });
       return result.ready;
      });
+     if(blocked)await onIncompatible(info.engine);
      if(activated===null)show('Update waiting · another window is saving or sending a move');
      else if(activated===false&&!blocked)show('Update waiting · another open window is still in use');
     }else{
@@ -81,7 +82,7 @@ export async function setupPwa({canUpdate=async()=>false,isIdle=()=>false,onRelo
   navigator.serviceWorker.addEventListener('controllerchange',()=>{if(registration.active&&navigator.serviceWorker.controller&&self.OFFLINE_VERSION!==undefined)ask(registration.active,'INFO').then(info=>{if(info.version!==self.OFFLINE_VERSION){pendingReload=info;show('Updating app…');onReloadPending();automaticUpdate();}else check();});});
  }catch{
   show('Offline package unavailable · retrying automatically');const controller=new AbortController();
-  const retry=()=>{if(document.hidden||!navigator.onLine)return;clearInterval(timer);controller.abort();setupPwa({canUpdate,isIdle,onReloadPending});};
+  const retry=()=>{if(document.hidden||!navigator.onLine)return;clearInterval(timer);controller.abort();setupPwa({canUpdate,isIdle,onReloadPending,onIncompatible});};
   const timer=setInterval(retry,30000);window.addEventListener('online',retry,{signal:controller.signal});document.addEventListener('visibilitychange',retry,{signal:controller.signal});
  }
 }

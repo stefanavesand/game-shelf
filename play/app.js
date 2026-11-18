@@ -1,3 +1,4 @@
+import {PLANNER_POLICY} from './bots/contract.js';
 import {recentGames} from './presentation/recent-games.js';
 import {createCountPresentation} from './presentation/counts.js';
 import {scenarioPicker} from './presentation/scenarios.js';
@@ -18,7 +19,7 @@ import {withUpdateLock} from './lifecycle.js';
 import {canSupplyOffer,updateTradeFeedback,unavailableIncomingOffer,resolveUnavailableOffers} from './trade-feedback.js';
 import {CARD_RULES,ACTION_CARD_TIMING} from './help.js';
 import {setupPwa} from './pwa.js';
-import {offerDraft,offerIssue,tradeLimit,tradeLabel,bankChoices,bankBundles} from './trade.js';
+import {offerDraft,offerIssue,tradeLimit,tradeLabel,bankChoices,bankBundles,ownedPorts,displayedBankRate} from './trade.js';
 import {client} from './session.js';
 import {draw} from './board.js';
 import {symbol} from './presentation/art.js';
@@ -34,6 +35,8 @@ const botBudget=()=>counts.pending()?0:movePacer.takeBudget(packet);
 const activity=createActivity({principal:()=>googleAuth.profile()?.id||''}),activityScroll=createActivityScroll();
 let invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite');
 let tradeMode='players',bankGive=null,bankReceive=null,bankRevision=null,bankRatio=null,tradeViewKey=null,tradeEditing=false,counterDraftOfferId=null,tradeStartRevision=null,lastIncomingOffer=null;
+let incompatibleTarget=null,incompatibleRows=[],incompatibleBusy=false;
+const incompatibleShown=new Set();
 let activeSync=null,renderedHTML=null,renderedBoard=null,renderedMenu=null;
 let tradeDraft=null,opener=null,formDraft={room:null,level:'standard',friendlyRobber:true,scenario:'classic',gameMode:'friends',playerCount:3};
 function announce(s){$('announcement').textContent=s;}
@@ -49,7 +52,7 @@ const pendingRecipients=o=>offerRecipients(o).filter(id=>!o.responses?.[id]);
 const incoming=()=>pendingRecipients(view()?.offer).includes(view()?.you);
 const recipientName=id=>id==='all'?'All':name(id);
 function currentTradeResult(v=view()){return tradeStartRevision===null||!v?null:[...(v.trades||[])].reverse().find(t=>t.from===v.you&&t.revision>=tradeStartRevision);}
-function closeSheet(){counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&currentTradeResult()?.status==='accepted')tradeDraft=null;tradeStartRevision=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus({preventScroll:true});else if(opener?.id)$(opener.id)?.focus({preventScroll:true});}
+function closeSheet(){const restore=sheet.dataset.incompatible==='true'&&!incompatibleBusy;sheet.dataset.incompatible='';counterDraftOfferId=null;if(sheet.dataset.trade==='live'&&currentTradeResult()?.status==='accepted')tradeDraft=null;tradeStartRevision=null;reply.close();reply.dataset.offerId='';sheet.dataset.trade='';tradeViewKey=null;sheet.close();modalAction=null;modalRevision=null;modalRoom=null;modalYou=null;if(opener?.isConnected)opener.focus({preventScroll:true});else if(opener?.id)$(opener.id)?.focus({preventScroll:true});if(restore){ready=false;render();refreshCleanupHome().catch(e=>{error=e;render();});}}
 function openSheet(title,body){overlays.closeDrawer();reply.close();sheet.dataset.trade='';opener=document.activeElement;modalRevision=packet?.revision??null;modalRoom=packet?.roomId??null;modalYou=packet?.you??null;$('sheet-title').textContent=title;$('sheet-body').innerHTML=body;if(!sheet.open)overlays.show(sheet);$('sheet-title').tabIndex=-1;$('sheet-title').focus({preventScroll:true});}
 const tradePages=createTradePages(sheet);
 const overlays=createOverlays({sheet,reply,drawer:$('sidebar'),closeSheet});
@@ -159,7 +162,7 @@ function schedule(){
  }
 }
 function sync(op,args={},options={}){
-  if(updateReloadPending||!googleAuth.profile())return Promise.resolve();
+  if(updateReloadPending||!googleAuth.profile()||!op&&screen==='home'&&!packet&&!saved?.pending&&knownGames.some(g=>g.compatible===false))return Promise.resolve();
   if(activeSync){
     if(!op)return activeSync;
     // Keep the exact selected command while a read finishes; never drop a click.
@@ -268,10 +271,10 @@ function renderTradeComposer(focusAction=null){
       const control=(text,action,disabled,label)=>tradeButton(text,action,disabled,'icon-button').replace('data-trade-control',`aria-label="${label}" data-trade-control`);
       return `<div class="trade-stepper ${amount?'has-value':''}">${control('−',remove,!amount,`Remove ${RESOURCE_NAMES[r]} ${side==='give'?'from offer':'from request'}`)}<output aria-label="${RESOURCE_NAMES[r]} ${side==='give'?'offered':'requested'}">${amount}</output>${control('+',add,!allowed,`Add ${RESOURCE_NAMES[r]} to ${words}`)}</div>`;
     };
-    return `<div class="trade-row" data-resource="${r}"><span class="trade-row-resource">${art(r)}<span>${RESOURCE_NAMES[r]}</span>${isBank&&rate?`<small>${rate.give.amount}:1</small>`:''}</span><span class="trade-row-hand" aria-label="${RESOURCE_NAMES[r]} in hand">${hand[r]}</span>${stepper('give')}${stepper('receive')}</div>`;
+    return `<div class="trade-row" data-resource="${r}"><span class="trade-row-resource">${art(r)}<span>${RESOURCE_NAMES[r]}</span>${isBank?`<small>${bankGive===r&&bankRatio?bankRatio:rate?.give.amount??displayedBankRate(v,r)}:1</small>`:''}</span><span class="trade-row-hand" aria-label="${RESOURCE_NAMES[r]} in hand">${hand[r]}</span>${stepper('give')}${stepper('receive')}</div>`;
   }).join('');
   const summaryGive=isBank?bankBundles(provisional).give:tradeDraft.give,summaryReceive=isBank?bankBundles(bank).receive:tradeDraft.receive;
-  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,!isBank?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div>${isBank&&bankGive&&new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount)).size>1?`<label>Exchange rate<select id="bank-rate" data-trade-control data-base-disabled="false">${[...new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount))].map(rate=>`<option value="${rate}" ${rate===(bankRatio||provisional?.give.amount)?'selected':''}>${rate}:1</option>`).join('')}</select></label>`:''}${isBank?'':`<label class="trade-recipient">Offer to<select id="trade-target" data-trade-control data-base-disabled="false">${v.state.game.currentPlayerId===v.you?'<option value="all" '+(tradeDraft.to==='all'?'selected':'')+'>All</option>':''}${peers.filter(s=>v.state.game.currentPlayerId===v.you||s.id===v.state.game.currentPlayerId).map(s=>`<option value="${esc(s.id)}" ${s.id===tradeDraft.to?'selected':''}>${esc(s.name)} · ${count(s.id)} cards</option>`).join('')}</select></label>`}<div class="trade-row trade-row-head"><span>Resource</span><span>In hand</span><span>Give</span><span>${isBank?'Receive':'Request'}</span></div>${rows}</div><div class="trade-footer">${tradeResponses(currentTradeResult(v))}<p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>${isBank?'Trade with bank':'Send offer'}</button></div></form>`;
+  $('sheet-body').innerHTML=`<form id="trade-form" class="trade-composer-form"><div class="trade-scroll"><div class="trade-tabs" role="group" aria-label="Trade type">${tradeButton('Players','trade-mode:players',false,!isBank?'primary':'').replace('data-trade-control',`aria-pressed="${!isBank}" data-trade-control`)}${tradeButton('Bank & ports','trade-mode:bank',false,isBank?'primary':'').replace('data-trade-control',`aria-pressed="${isBank}" data-trade-control`)}</div>${isBank&&bankGive&&new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount)).size>1?`<label>Exchange rate<select id="bank-rate" data-trade-control data-base-disabled="false">${[...new Set(choices.filter(c=>c.give.resource===bankGive).map(c=>c.give.amount))].map(rate=>`<option value="${rate}" ${rate===(bankRatio||provisional?.give.amount)?'selected':''}>${rate}:1</option>`).join('')}</select></label>`:''}${isBank?`<p class="trade-help">${ownedPorts(v).length?'Your ports: '+ownedPorts(v).map(p=>p.type==='generic'?'Any resource 3:1':RESOURCE_NAMES[p.type]+' 2:1').join(' · ')+'. ':''}Ports apply to the resource you give. Rates do not stack.</p>`:''}${isBank?'':`<label class="trade-recipient">Offer to<select id="trade-target" data-trade-control data-base-disabled="false">${v.state.game.currentPlayerId===v.you?'<option value="all" '+(tradeDraft.to==='all'?'selected':'')+'>All</option>':''}${peers.filter(s=>v.state.game.currentPlayerId===v.you||s.id===v.state.game.currentPlayerId).map(s=>`<option value="${esc(s.id)}" ${s.id===tradeDraft.to?'selected':''}>${esc(s.name)} · ${count(s.id)} cards</option>`).join('')}</select></label>`}<div class="trade-row trade-row-head"><span>Resource</span><span>In hand</span><span>Give</span><span>${isBank?'Receive':'Request'}</span></div>${rows}</div><div class="trade-footer">${tradeResponses(currentTradeResult(v))}<p class="trade-kept-total">${handCount(hand)-handCount(summaryGive)} of your current cards kept</p><p id="trade-status" data-hint="${esc(issue)}" class="trade-help" role="status">${esc(issue)}</p><button class="primary" aria-describedby="trade-status" data-trade-control data-base-disabled="${!!issue}" type="submit" ${issue?'disabled':''}>${isBank?'Trade with bank':'Send offer'}</button></div></form>`;
   const ratio=$('bank-rate');if(ratio)ratio.onchange=()=>{if(blocked()||modalChanged())return;bankRatio=Number(ratio.value);renderTradeComposer();$('bank-rate')?.focus();};
   const recipient=$('trade-target');if(recipient)recipient.onchange=()=>{if(blocked()||modalChanged())return;tradeDraft.to=recipient.value;renderTradeComposer();$('trade-target')?.focus();};
   sheet.querySelector('.trade-scroll').scrollTop=scrollTop;
@@ -342,6 +345,8 @@ function begin(next){
   setScreen(next);
 }
 async function dispatch(action,el){
+  if(action==='close'){closeSheet();return;}
+  if(action==='remove-incompatible'){await removeIncompatibleGames();return;}
   if(action==='menu'){showMenu();return;}
   if(action==='menu-close'){overlays.closeDrawer();return;}
   if(action==='cards'){openSheet('Your development cards',cardsPanel()||'<p>No development cards yet.</p>');itemPages($('sheet-body'),'.card-button',{label:'Card page',perPage:()=>innerHeight<500?2:4});return;}
@@ -379,12 +384,11 @@ async function dispatch(action,el){
     renderTradeComposer(action);return;
   }
   if(action.startsWith('discard-add:')||action.startsWith('discard-remove:')){if(blocked()||staleModal())return;const [operation,r]=action.split(':'),input=$(`discard-${r}`);if(!RESOURCES.includes(r)||!input)return;const total=handCount(Object.fromEntries(RESOURCES.map(key=>[key,Number($(`discard-${key}`).value)]))),amount=Number(input.value),limit=view().state.game.discardAmounts[view().you];if(operation==='discard-add'&&amount<ownPlayer(view()).resources[r]&&total<limit)input.value=amount+1;else if(operation==='discard-remove'&&amount>0)input.value=amount-1;updateDiscard();return;}
-  if(action==='close'){closeSheet();return;}
   if(action==='start-game'){if(blocked())return;await sync('start',{roomId:packet.roomId});return;}
   if(action==='refresh'){closeSheet();botSince=0;botRevision=-1;await sync();return;}
-  if(action.startsWith('resume-game:')){closeSheet();await sync('resume',{roomId:action.slice(12)});if(view()?.state.game.phase==='ended')resultPanel();return;}
+  if(action.startsWith('resume-game:')){if(knownGames.find(g=>g.roomId===action.slice(12))?.compatible===false){await offerIncompatibleGames(self.OFFLINE_ENGINE,{force:true});return;}closeSheet();await sync('resume',{roomId:action.slice(12)});if(view()?.state.game.phase==='ended')resultPanel();return;}
   if(action.startsWith('abandon-game:')){const roomId=action.slice(13);if(busy||saved?.pending)return;openSheet('Abandon this game?',`<p>This removes the game from this device’s list and allows future engine updates. You cannot resume it here.</p><p>For online games, this does not notify your friend or delete the server’s history. Bots may pause if you created the game.</p><div class="sheet-actions">${button('Keep game','close','quiet')}${button('Abandon game',`confirm-abandon:${roomId}`,'primary')}</div>`);return;}
-  if(action.startsWith('confirm-abandon:')){if(busy||saved?.pending)return;busy=true;render();try{await client.abandon(action.slice(16));closeSheet();const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();error=null;ready=true;notice='Game abandoned on this device.';setScreen('home');}catch(e){error=e;ready=false;}finally{busy=false;render();}return;}
+  if(action.startsWith('confirm-abandon:')){if(busy||saved?.pending)return;busy=true;render();try{if(!await client.abandon(action.slice(16)))throw new PlayError('GAME_BUSY','A move is being saved in another window. Try again.');closeSheet();const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();error=null;ready=true;notice='Game abandoned on this device.';setScreen('home');}catch(e){error=e;ready=false;}finally{busy=false;render();}return;}
   if(action==='home'){overlays.closeDrawer();if(saved?.pending){notice='Your original move still needs to be resolved.';render();return;}closeSheet();knownGames=await client.games();setScreen('home');return;}
   if(action==='resume'){closeSheet();setScreen('table');await sync();return;}
   if(action==='create'||action==='solo'||action==='join'){if(action!=='join')formDraft.gameMode=action==='solo'?'solo':'friends';begin(action==='solo'?'create':action);return;}
@@ -423,6 +427,37 @@ document.addEventListener('input',e=>{if(e.target.id==='room-id')formDraft.room=
 $('help').onclick=()=>helpPanel();$('refresh').onclick=()=>{if(googleAuth.profile())sync();};$('room').onclick=()=>showMenu();
 window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#join')){invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;formDraft.room=invitedRoom();if(saved?.pending){notice='Resolve your current move before joining another game.';render();}else setScreen('join');}else if(location.hash==='#home')dispatch('home');});
 window.addEventListener('offline',()=>{clearTimeout(timer);if(offlineAllowed()){error=null;render();schedule();return;}ready=false;error=new PlayError('NETWORK_UNAVAILABLE','Internet play is paused. Your data is still here.',{retryable:true});render();});
+async function refreshCleanupHome(){
+ knownGames=await client.games();
+ try{const current=await client.inspect();saved=current.state;packet=current.packet;}
+ catch(e){if(e.code!=='UNSUPPORTED_VERSION')throw e;saved=null;packet=null;}
+ error=null;ready=!saved?.pending;setScreen('home');
+}
+async function offerIncompatibleGames(engine=self.OFFLINE_ENGINE,{startup=false,force=false}={}){
+ if(incompatibleBusy||busy||accountBusy)return false;
+ const refs=await self.GameShelfUpdateState.incompatible(engine,[PLANNER_POLICY]);if(!refs.length)return false;
+ let games=[];try{games=await client.games(engine);}catch{/* Obsolete snapshots must not prevent metadata-only recovery. */}
+ const principal=googleAuth.profile()?.id;
+ const old=refs.map(ref=>{const mine=ref.owner===principal||ref.owner==='account:'+principal,game=mine?games.find(g=>g.roomId===ref.roomId):null;return {...ref,...(game||{players:['Saved game on this device'],mode:ref.kind})};});
+ if(!old.length)return false;
+ if(startup){if(location.hash.startsWith('#join'))formDraft.room=invitedRoom();knownGames=games;packet=null;saved=null;error=null;ready=true;setScreen('home');}
+ const key=engine+':'+old.map(g=>g.owner+':'+g.roomId).sort().join(',');
+ if(!force&&incompatibleShown.has(key)||sheet.open||reply.open)return startup;
+ incompatibleShown.add(key);incompatibleTarget=engine;incompatibleRows=old;
+ openSheet('Remove incompatible games?',`<p>${old.length===1?'One saved game cannot':old.length+' saved games cannot'} be played with ${engine===self.OFFLINE_ENGINE?'this app version':'the new app version'}.</p><p>Remove these games from this device to continue and allow updates. Accounts and compatible games stay available. Older games from other accounts on this device are included.</p><ul>${old.map(g=>`<li>${esc(g.players.join(' · ')||'Saved game')} · ${g.mode==='solo'?'Solo':'Online'}</li>`).join('')}</ul><p>Removed games cannot be resumed here. Pending moves for these games will not be retried. Other players’ copies are unchanged; bots may pause if you were the host.</p><div class="sheet-actions">${button('Keep for now','close','quiet')}${button('Remove old games','remove-incompatible','primary')}</div>`);
+ sheet.dataset.incompatible='true';
+ return true;
+}
+async function removeIncompatibleGames(){
+ if(incompatibleBusy||busy)return;
+ incompatibleBusy=true;busy=true;render();
+ try{
+  const removed=await withUpdateLock(async()=>{await self.GameShelfUpdateState.discardIncompatible(incompatibleTarget,incompatibleRows,[PLANNER_POLICY]);return true;});
+  if(removed!==true)throw new PlayError('GAME_BUSY','A move is being saved in another window. Try again.');
+  closeSheet();await refreshCleanupHome();notice='Old games removed. You can start a new game.';if(navigator.onLine)navigator.serviceWorker?.getRegistration().then(r=>r?.update()).catch(()=>{});
+ }catch(e){$('sheet-body').insertAdjacentHTML('beforeend',`<p role="alert">${esc(e.message||'Cleanup failed. Try again.')}</p>`);}
+ finally{incompatibleBusy=false;busy=false;render();window.dispatchEvent(new Event('game-shelf-ui-state'));}
+}
 function resumeForeground(){
  if(document.hidden)return;
  // Suspended animations and background wall time must never strand bot work.
@@ -433,8 +468,8 @@ window.addEventListener('online',()=>sync());document.addEventListener('visibili
 async function boot(){
   if(isGoogleReturn(location.href)){const href=location.href;history.replaceState(null,'',location.pathname+'#home');accountBusy=true;notice='Completing Google sign-in…';render();try{await changeAccount(()=>googleAuth.finish(href,path=>history.replaceState(null,'',path)));notice='Signed in with Google.';}catch(e){notice=e.message||'Google sign-in could not be completed. Please try again.';}finally{accountBusy=false;}}
   invitationToken=new URLSearchParams(location.hash.split('?')[1]||'').get('invite')||invitationToken;
-  try{knownGames=await client.games();const existing=await client.inspect();saved=existing.state;packet=existing.packet;screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if((navigator.onLine||client.isLocal())&&(saved.roomId||saved.pending)&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
+  try{if(await offerIncompatibleGames(self.OFFLINE_ENGINE,{startup:true}))return;knownGames=await client.games();const existing=await client.inspect();saved=existing.state;packet=existing.packet;screen=location.hash==='#home'?'home':location.hash.startsWith('#join')&&invitedRoom()!==saved.roomId?'join':saved.roomId?'table':'home';ready=screen==='home'?!saved.pending:!saved.roomId&&!saved.pending;render();if((navigator.onLine||client.isLocal())&&(saved.roomId||saved.pending)&&(screen!=='home'||saved.pending))await sync();}catch(e){error=e;ready=false;render();}
 }
 trackViewport();boot();
 
-setupPwa({onReloadPending:()=>{updateReloadPending=true;render();},isIdle:()=>(ready&&!error||['UPDATE_PENDING','UNSUPPORTED_VERSION'].includes(error?.code))&&!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open,canUpdate:async artifact=>!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open&&await client.canUpdate(artifact)});
+setupPwa({onIncompatible:engine=>offerIncompatibleGames(engine),onReloadPending:()=>{updateReloadPending=true;render();},isIdle:()=>(ready&&!error||['UPDATE_PENDING','UNSUPPORTED_VERSION'].includes(error?.code))&&!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open,canUpdate:async artifact=>!busy&&!accountBusy&&!saved?.pending&&screen==='home'&&!sheet.open&&!reply.open&&!$('sidebar').open&&await client.canUpdate(artifact)});
