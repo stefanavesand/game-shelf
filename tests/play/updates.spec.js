@@ -220,7 +220,8 @@ test('automatic activation waits while another window is playing and resumes aft
 test('a failed download is retried and installed automatically after connectivity recovers',async({browser})=>{
  const f=await open(browser,{automatic:true});try{
   f.server.upgrade(true);await update(f.page);await expect.poll(f.server.failures).toBeGreaterThan(0);expect((await status(f.page)).version).toBe(f.server.version);
-  await f.page.clock.install();f.server.setFailure(false);await f.page.clock.fastForward(61000);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));
+  await expect.poll(()=>f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).installing)).toBe(false);
+  f.server.setFailure(false);await f.page.clock.setFixedTime(Date.now()+61000);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));
   await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:15000});await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');
  }finally{await cleanup(f);}
 });
