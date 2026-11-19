@@ -2,6 +2,10 @@
 
 Owner-approved direction (2026-11-07): one fixed game viewport on phones and iPads, compact player chips, board plus an action dock, left overlay navigation, and dialogs that fit the available screen. Landscape uses a right action panel; portrait uses the bottom dock. The page does not scroll during play. The entire board, including port labels, scales uniformly to the largest size that fits the board area. There are no zoom/pan controls. Static board bounds keep the framing stable during placement previews and moves. Home and the saved-game library remain ordinary document views.
 
+## Portrait activity minimum — 2026-11-19
+
+Portrait play reserves at least 240 CSS pixels for Game activity on tablets and 200 on phones. The hand and player row keep their fixed sizes. The board scales down uniformly into the remaining height, including its existing port framing, instead of clipping the current action. These reservations depend on viewport size, not on the turn or animation, so pieces and controls do not move when the game phase changes. History scrolls within its own region.
+
 ## Boundaries
 
 - `play/catan/`: deterministic rules and authorized views. No viewport, DOM or navigation dependencies were introduced.

@@ -2,10 +2,16 @@ import {test,expect} from './account-fixture.js';
 import {service} from './mock-service.js';
 async function start(browser,viewport){const context=await browser.newContext({viewport}),backend=service({phase:'main'});await backend.attach(context,'alice',{legacy:true});const page=await context.newPage();await page.goto('/game-shelf/play/#game');await expect(page.getByRole('button',{name:'Build',exact:true})).toBeVisible();return {context,page,backend};}
 async function fits(page,selector){return page.locator(selector).evaluate(el=>{const r=el.getBoundingClientRect();return {visible:r.width>0&&r.height>0,inside:r.left>=-1&&r.top>=-1&&r.right<=innerWidth+1&&r.bottom<=innerHeight+1};});}
-for(const [width,height] of [[390,664],[360,640],[844,390],[1024,768],[768,1024],[1366,1024]])test(`fixed game and sidebar fit ${width}×${height}`,async({browser})=>{
+for(const [width,height] of [[390,664],[360,640],[844,390],[1024,768],[768,1024],[1024,1366],[1366,1024]])test(`fixed game and sidebar fit ${width}×${height}`,async({browser})=>{
  const {context,page}=await start(browser,{width,height});try{
   for(const s of ['.players','#board','.action-panel','.action-buttons'])expect(await fits(page,s),s).toEqual({visible:true,inside:true});
   expect(await page.evaluate(()=>({height:document.documentElement.scrollHeight,width:document.documentElement.scrollWidth}))).toEqual({height,width});
+  if(height>width){
+   const minimum=width<600?200:240;
+   const activity=await page.locator('.activity-panel').boundingBox();expect(activity.height).toBeGreaterThanOrEqual(minimum);
+   const feed=await page.locator('#activity-feed').boundingBox(),action=await page.locator('.action-entry').boundingBox();
+   expect(action.y).toBeGreaterThanOrEqual(feed.y);expect(action.y+action.height).toBeLessThanOrEqual(feed.y+feed.height+1);
+  }
   await expect(page.locator('.board-tools')).toHaveCount(0);const square=await page.locator('.board-wrap').boundingBox();if(width>=600)expect(Math.abs(square.width-square.height)).toBeLessThan(1);else {const ratio=await page.locator('#board').evaluate(svg=>svg.viewBox.baseVal.width/svg.viewBox.baseVal.height);expect(Math.abs(square.width/square.height-ratio)).toBeLessThan(.01);}
   const framing=await page.locator('#board').evaluate(svg=>{
    const box=svg.getBoundingClientRect(),bounds=[...svg.querySelectorAll('[data-motion-tile],[data-port]')].map(el=>el.getBoundingClientRect());
