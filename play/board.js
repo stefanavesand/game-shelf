@@ -18,8 +18,10 @@ const p=pos=>({x:pos.x+320,y:pos.y+275});
 export function choicePoint(choice){if(choice.vertex)return p(vertexPoint(choice.vertex));if(choice.edge){const[a,b]=edgePoints(choice.edge);return p({x:(a.x+b.x)/2,y:(a.y+b.y)/2});}if(choice.hex)return p(center(choice.hex));return null;}
 export function draw(root,view,choices,selected,disabled,onSelect){
   root.replaceChildren();root.setAttribute('viewBox','0 0 640 550');root.setAttribute('preserveAspectRatio','xMidYMid meet');
+  const frame=[];
   for(const tile of view.state.board.tiles){const c=p(center(tile.coord)),[fill,art,name]=tiles[tile.terrain]||tiles.desert,group=n('g',{'aria-hidden':true,'data-motion-tile':hexDisplayKey(tile.coord),'data-motion-key':hexDisplayKey(tile.coord)});
     const points=Array.from({length:6},(_,i)=>({x:c.x+SIZE*Math.cos((i*60-30)*Math.PI/180),y:c.y+SIZE*Math.sin((i*60-30)*Math.PI/180)}));
+    frame.push(...points);
     const outline=points.map(v=>`${v.x},${v.y}`).join(' '),clipId=`terrain-${tile.coord.q}-${tile.coord.r}`;
     const clip=n('clipPath',{id:clipId});clip.append(n('polygon',{points:outline}));group.append(clip);
     group.append(n('image',{href:`./art/terrain-${art}.webp`,x:c.x-Math.sqrt(3)*SIZE/2,y:c.y-SIZE,width:Math.sqrt(3)*SIZE,height:SIZE*2,preserveAspectRatio:'none','clip-path':`url(#${clipId})`}));
@@ -30,6 +32,7 @@ export function draw(root,view,choices,selected,disabled,onSelect){
   const players=view.state.players.players;
   for(const port of view.state.board.ports){
    const [a,b]=edgePoints(port.edge),mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2},length=Math.hypot(b.x-a.x,b.y-a.y),normal={x:(b.y-a.y)/length,y:-(b.x-a.x)/length},outward=normal.x*mid.x+normal.y*mid.y>=0?1:-1,pos=p({x:mid.x+normal.x*outward*23,y:mid.y+normal.y*outward*23});
+   frame.push({x:pos.x-14,y:pos.y-16},{x:pos.x+14,y:pos.y+14});
    const type=port.type==='lumber'?'Wood':port.type==='generic'?'Any resource':port.type[0].toUpperCase()+port.type.slice(1),ratio=port.type==='generic'?'3:1':'2:1';
    const g=n('g',{'data-port':'','data-port-edge':edgeDisplayKey(port.edge),'aria-label':`${type} harbor, ${ratio}. Both ends of the marked coastal edge grant access.`,role:'img'});
    g.append(n('title',{},`${type} harbor · ${ratio} · Build at either end of this coastal edge`));
@@ -41,8 +44,10 @@ export function draw(root,view,choices,selected,disabled,onSelect){
   }
   // Fit static board art and complete port labels. Buildings and selection markers
   // fit inside this padding, so choosing a move never changes the framing.
-  const bounds=root.getBBox(),padding=7;
-  root.setAttribute('viewBox',`${bounds.x-padding} ${bounds.y-padding} ${bounds.width+padding*2} ${bounds.height+padding*2}`);
+  // SVG text bounds vary slightly with rasterization scale. Use fixed geometry
+  // for the frame so a redraw cannot move the board or adjacent activity panel.
+  const left=Math.min(...frame.map(p=>p.x)),right=Math.max(...frame.map(p=>p.x)),top=Math.min(...frame.map(p=>p.y)),bottom=Math.max(...frame.map(p=>p.y)),padding=7;
+  root.setAttribute('viewBox',`${left-padding} ${top-padding} ${right-left+padding*2} ${bottom-top+padding*2}`);
   root.dispatchEvent(new Event('boardframing',{bubbles:true}));
   for(const road of view.state.board.roads){const[a,b]=edgePoints(road.edge).map(p),color=paint[players.find(player=>player.id===road.playerId)?.color]||paint.red;for(const[stroke,width]of[['#fff8e9',10],[color,6]])root.append(n('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke,'stroke-width':width,'stroke-linecap':'round',...(width===6?{'data-motion-piece':'road','data-motion-key':edgeDisplayKey(road.edge)}:{})}));}
   function piece(position,color,city,preview=false,key=null){const c=p(position);const pieceGroup=n('g',{'data-piece-art':'',...(!preview&&key?{'data-motion-piece':'building','data-motion-key':key}:{})});root.append(pieceGroup);pieceGroup.append(n('path',{d:city?`M${c.x-12} ${c.y+9}v-13h8v-8h11v10h7v11Z`:`M${c.x-9} ${c.y+8}v-13l9-7 9 7v13Z`,fill:color,stroke:preview?'#164b3e':'#fff8e9','stroke-width':preview?3:1.6,opacity:preview?0.65:1,'stroke-dasharray':preview?'4 3':'none','pointer-events':'none'}));if(!preview)pieceGroup.append(n('path',{d:`M${c.x+1} ${c.y-9}v16h7v-13Z`,fill:'#000',opacity:.14,'pointer-events':'none'}));}

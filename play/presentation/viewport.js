@@ -9,10 +9,14 @@ export function trackViewport(){
   const width=app.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
   const height=app.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
   const landscape=innerWidth>=600&&innerWidth>=innerHeight;
-  // Reserve the fixed controls specified in game-layout.css, then fit a square.
-  const size=landscape?Math.min(height,width-(innerHeight<=500?280:324)-16):Math.min(width,height-44-248-16);
-  const phone=innerWidth<600,box=document.getElementById('board')?.viewBox.baseVal,ratio=box?.width>0?box.height/box.width:1;
-  const boardWidth=phone?width:Math.max(120,Math.floor(size));
+  const phone=innerWidth<600,box=document.getElementById('board')?.viewBox.baseVal;
+  const ratio=phone&&box?.width>0?box.height/box.width:1;
+  const game=document.querySelector('.game-screen');
+  const activityMinimum=game?parseFloat(getComputedStyle(game).getPropertyValue('--activity-min-height')):240;
+  // In portrait, the activity minimum wins; fit the board into what remains.
+  // Match the fixed player row, hand panel and gaps in feed-layout.css.
+  const size=landscape?Math.min(height,width-(innerHeight<=500?280:324)-16):Math.min(width,(height-44-16-activityMinimum-118-8)/ratio);
+  const boardWidth=Math.max(1,Math.floor(size));
   root.style.setProperty('--board-size',`${boardWidth}px`);
   root.style.setProperty('--board-height',`${Math.ceil(boardWidth*ratio)}px`);
  }
