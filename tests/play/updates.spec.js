@@ -8,7 +8,7 @@ import {offlineVersion} from '../../scripts/offline-version.mjs';
 const sha=value=>createHash('sha256').update(value).digest('hex');
 // Worker requests time out after 15 seconds and can defer retry for 30 seconds.
 // Allow one complete automatic retry on a loaded CI worker.
-test.describe.configure({timeout:90000});
+test.describe.configure({timeout:120000});
 const packageRoot=process.env.GAME_SHELF_STATIC_ROOT==='dist'?'dist':'.';
 async function updateServer({differentEngine=false,workerOnly=false,automatic=false,breaking=false}={}){
  const script=await readFile(path.join(packageRoot,'play/offline-assets.js'),'utf8');
@@ -224,8 +224,9 @@ test('a failed download is retried and installed automatically after connectivit
  const f=await open(browser,{automatic:true});try{
   f.server.upgrade(true);await update(f.page);await expect.poll(f.server.failures).toBeGreaterThan(0);expect((await status(f.page)).version).toBe(f.server.version);
   await expect.poll(()=>f.page.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).installing)).toBe(false);
-  f.server.setFailure(false);await f.page.clock.setFixedTime(Date.now()+61000);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));
-  await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:60000});await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');
+  // The page and service worker must share real time for discovery and cooldowns.
+  f.server.setFailure(false);await f.page.evaluate(()=>window.dispatchEvent(new Event('online')));
+  await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:90000});await expect(f.page.locator('#offline-status')).toHaveText('Ready for offline');
  }finally{await cleanup(f);}
 });
 
