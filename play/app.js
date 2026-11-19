@@ -388,7 +388,7 @@ async function dispatch(action,el){
   if(action==='refresh'){closeSheet();botSince=0;botRevision=-1;await sync();return;}
   if(action.startsWith('resume-game:')){if(knownGames.find(g=>g.roomId===action.slice(12))?.compatible===false){await offerIncompatibleGames(self.OFFLINE_ENGINE,{force:true});return;}closeSheet();await sync('resume',{roomId:action.slice(12)});if(view()?.state.game.phase==='ended')resultPanel();return;}
   if(action.startsWith('abandon-game:')){const roomId=action.slice(13);if(busy||saved?.pending)return;openSheet('Abandon this game?',`<p>This removes the game from this device’s list and allows future engine updates. You cannot resume it here.</p><p>For online games, this does not notify your friend or delete the server’s history. Bots may pause if you created the game.</p><div class="sheet-actions">${button('Keep game','close','quiet')}${button('Abandon game',`confirm-abandon:${roomId}`,'primary')}</div>`);return;}
-  if(action.startsWith('confirm-abandon:')){if(busy||saved?.pending)return;busy=true;render();try{if(!await client.abandon(action.slice(16)))throw new PlayError('GAME_BUSY','A move is being saved in another window. Try again.');closeSheet();const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();error=null;ready=true;notice='Game abandoned on this device.';setScreen('home');}catch(e){error=e;ready=false;}finally{busy=false;render();}return;}
+  if(action.startsWith('confirm-abandon:')){if(activeSync)await activeSync;if(busy||saved?.pending)return;busy=true;render();try{if(!await client.abandon(action.slice(16)))throw new PlayError('GAME_BUSY','A move is being saved in another window. Try again.');closeSheet();const existing=await client.inspect();saved=existing.state;packet=existing.packet;knownGames=await client.games();error=null;ready=true;notice='Game abandoned on this device.';setScreen('home');}catch(e){error=e;ready=false;}finally{busy=false;render();}return;}
   if(action==='home'){overlays.closeDrawer();if(saved?.pending){notice='Your original move still needs to be resolved.';render();return;}closeSheet();knownGames=await client.games();setScreen('home');return;}
   if(action==='resume'){closeSheet();setScreen('table');await sync();return;}
   if(action==='create'||action==='solo'||action==='join'){if(action!=='join')formDraft.gameMode=action==='solo'?'solo':'friends';begin(action==='solo'?'create':action);return;}
@@ -435,7 +435,7 @@ async function refreshCleanupHome(){
 }
 async function offerIncompatibleGames(engine=self.OFFLINE_ENGINE,{startup=false,force=false}={}){
  if(incompatibleBusy||busy||accountBusy)return false;
- const refs=await self.GameShelfUpdateState.incompatible(engine,[PLANNER_POLICY]);if(!refs.length)return false;
+ let refs;try{refs=await self.GameShelfUpdateState.incompatible(engine,[PLANNER_POLICY]);}catch{throw new PlayError('STORAGE_FAILURE','Your player data could not be saved or read. No new move was sent. Keep this installation and fix storage before continuing.');}if(!refs.length)return false;
  let games=[];try{games=await client.games(engine);}catch{/* Obsolete snapshots must not prevent metadata-only recovery. */}
  const principal=googleAuth.profile()?.id;
  const old=refs.map(ref=>{const mine=ref.owner===principal||ref.owner==='account:'+principal,game=mine?games.find(g=>g.roomId===ref.roomId):null;return {...ref,...(game||{players:['Saved game on this device'],mode:ref.kind})};});
