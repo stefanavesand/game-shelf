@@ -275,3 +275,10 @@ BOT-AI-01/04 strategic-planner-0.1.0, 0.14.0: parameter-gated bounded two-build 
 BOT-AI-01/04 / RULE-VALIDATION-01, 0.15.0: common strategic Easy/Standard/Hard in Solo and online, exact approved Standard profile, retired old runtime profiles, and persisted Friendly robber default/Normal option. Rule/private-VP/Knight tests, local profile/rule restoration, mixed-level complete games and packaged asset checks added. Physical-device timing and broader difficulty calibration remain open. See [levels and robber](BOT_LEVELS_AND_ROBBER.md).
 
 UX-02 / SESSION-3, 0.15.1: explicit owned-port/rate presentation including unaffordable resources; two-port engine and real-composer regressions. Immediate incompatible-game confirmation at startup/update blocking, metadata-only cross-account audit and lifecycle-fenced targeted cleanup with online outbox quarantine. Compatible games and identities retained; no server deletion. Exact reported port case and physical-device acceptance remain open. See [ports and recovery](PORTS_AND_INCOMPATIBLE_GAMES.md).
+
+
+## 2026-11-20 — result statistics and setup-road planning
+
+STATS-01: result statistics include recorded dice totals versus theoretical frequencies, coverage labeling, per-account completed-game totals, wins/losses and score averages stored on this device. Duplicate/reloaded views do not double count; retention gaps remain explicit. Account sync, a complete retroactive record of old games and resource-economy statistics remain follow-ups.
+
+BOT-AI-03: setup roads now search actual public topology toward distance-rule-valid future settlements, bounded by existing route/node parameters. Opponent buildings and roads block traversal. A regression distinguishes an engine-legal enclosed road from a useful expansion route. The screenshots alone do not prove the route was already blocked when its first road was placed; later settlements can close it. See [details](RESULT_STATISTICS.md).

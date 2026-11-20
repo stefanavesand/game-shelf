@@ -1,5 +1,9 @@
 # Private MVP requirements — agreed product baseline
 
+## Result statistics and setup-road planning — 2026-11-20
+
+The result dialog opens device-local dice-distribution and account-result statistics instead of New game. Missing older roll history is labeled explicitly. Setup roads use bounded legal topology search rather than coordinate proximity. See [scope and verification](RESULT_STATISTICS.md).
+
 ## Incompatible-game recovery — owner-approved 2026-11-18
 
 Immediately offer targeted removal when saved games cannot be played in the current or incoming app version. Preserve identity and compatible games. Keeping obsolete saves must leave compatible new-game entry available. Device-wide stale account data must not create an unexplained update dead end. See [ports and recovery](PORTS_AND_INCOMPATIBLE_GAMES.md).
