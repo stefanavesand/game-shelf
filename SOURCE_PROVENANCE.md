@@ -181,3 +181,7 @@ The 0.15 level profiles, shared worker/headless adapter, session wiring and opti
 ## Ports and recovery — 2026-11-18
 
 Original public-ownership presentation and metadata-only IndexedDB recovery additions. No replacement trade validator, external dependency or imported asset is introduced. Existing port-rule attribution is unchanged. Device cleanup uses explicit confirmation and lifecycle fencing, preserves snapshots/identities/compatible games and quarantines removed online-game outboxes. See [design and verification](docs/PORTS_AND_INCOMPATIBLE_GAMES.md).
+
+## Live multiplayer feedback — 2026-11-20
+
+Original procedural Web Audio synthesis, recipient-local theft journal, presentation fixes and transport diagnostics were authored for this repository. No external sound asset, dependency or algorithm was imported. Existing rule/bot/art attribution remains unchanged. Backend source was inspected for the [performance proposal](docs/ONLINE_FEEDBACK.md), not copied into this runtime.

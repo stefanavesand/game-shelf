@@ -1,3 +1,4 @@
+import {observeThefts,privateThefts} from '../core/private-events.js';
 import {createPlannerRunner} from '../bots/client.js';
 import {PLANNER_POLICY} from '../bots/contract.js';
 import {scenarioName} from '../catan/rules/scenarios.js';
@@ -12,6 +13,7 @@ import {RuleRejection} from './replica.js';
 import {createRelayClient} from './client.js';
 import {createCatanModule,catanConfig} from '../catan/module.js';
 import {CATAN_ARTIFACT} from '../catan/artifact.js';
+const withPrivateEvents=(view,events)=>({...view,privateThefts:privateThefts(view,events)});
 const module=createCatanModule(CATAN_ARTIFACT.compatibilityId);
 const pendingRoll=record=>Object.values(record?.game?.randomRequests||{}).some(r=>!r.superseded&&r.baseGameRevision===record.game.revision&&!Object.hasOwn(record.game.seen,r.intentId));
 export function createOnlineGameClient({locks=globalThis.navigator?.locks,planner=createPlannerRunner(),auth=createIdentity(),store=createRelayStore({name:'game-shelf-online-catan-v1'}),transport=createRelayTransport({endpoint:'https://stefan-game-shelf.lovable.app/api/public/relay/v1',identity:options=>auth.identity(options)}),id=()=>crypto.randomUUID(),now=Date.now}={}){
@@ -30,9 +32,11 @@ export function createOnlineGameClient({locks=globalThis.navigator?.locks,planne
  }
  async function binding(index,network){
   if(!index.current)return null;const room=index.rooms[index.current];
-  if(network){const {result}=await transport.request({protocolVersion:1,op:'channel.read',channelId:index.current},index.principalId);Object.assign(room,result);await save(index);}
+  const refreshRoom=async()=>{const {result}=await transport.request({protocolVersion:1,op:'channel.read',channelId:index.current},index.principalId);if(result?.channelId!==index.current||room.creatorId&&result.creatorId!==room.creatorId)throw new PlayError('PROTOCOL_ERROR','The relay returned a different room.');Object.assign(room,result);await save(index);return room.members.map(m=>m.playerId);};
+  // Started-game seats are fixed. Refresh live channel membership on a new sender.
+  if(network&&(!room?.creatorId||!(await store.load(index.principalId,index.current)).game))await refreshRoom();
   if(!room?.creatorId)return null;
-  const replica=createRelayClient({principalId:index.principalId,channelId:index.current,creatorId:room.creatorId,members:room.members.map(m=>m.playerId),module,store,transport,locks,createEffects:randomEffects});return {replica,room};
+  const replica=createRelayClient({principalId:index.principalId,channelId:index.current,creatorId:room.creatorId,members:room.members.map(m=>m.playerId),module,store,transport,locks,createEffects:randomEffects,refreshMembers:refreshRoom,observeRecord:(before,after)=>{if(after.halt||!before.game||after.game?.revision!==before.game.revision+1||after.game.state.snapshot.history.at(-1)?.message!=='steal resource'||!after.game.state.snapshot.seats.some(s=>s.id===index.principalId))return before.observations;return observeThefts(before.observations,module.view(before.game.state,index.principalId),module.view(after.game.state,index.principalId));}});return {replica,room};
  }
  function packet(index,room,record){
   if(record?.halt)throw new PlayError('GAME_HALTED','The players computed different results. This game has stopped.');
@@ -41,7 +45,7 @@ export function createOnlineGameClient({locks=globalThis.navigator?.locks,planne
   if(!record?.game){const config=catanConfig(humans,{...settings,level:settings.level});return {ok:true,apiVersion:1,roomId:index.current,status:'waiting',you:index.principalId,revision:0,members:config.seats,view:null,inviteToken:room.inviteToken,lobby:{playerCount:settings.playerCount,creatorId:room.creatorId,canStart:index.principalId===room.creatorId,friendlyRobber:settings.friendlyRobber??false,botLevel:settings.level,scenario:settings.scenario?'Random Island':'Classic',full:!humans.some(h=>h.id===index.principalId),openSeats:settings.playerCount-humans.length}};}
   const state=record.game.state;
   if(!state.snapshot.seats.some(s=>s.id===index.principalId))return {ok:true,apiVersion:1,roomId:index.current,status:'waiting',you:index.principalId,revision:0,members:state.snapshot.seats,view:null,lobby:{playerCount:state.snapshot.seats.length,creatorId:room.creatorId,canStart:false,full:true,started:true,openSeats:0}};
-  return {ok:true,apiVersion:1,roomId:index.current,status:state.snapshot.state.game.phase==='ended'?'ended':'playing',you:index.principalId,revision:record.game.revision,pendingRandom:pendingRoll(record),members:state.snapshot.seats,view:module.view(state,index.principalId),inviteToken:room.inviteToken,botWorkPending:index.principalId===room.creatorId&&module.hasBotWork(state)};
+  return {ok:true,apiVersion:1,roomId:index.current,status:state.snapshot.state.game.phase==='ended'?'ended':'playing',you:index.principalId,revision:record.game.revision,pendingRandom:pendingRoll(record),members:state.snapshot.seats,view:withPrivateEvents(module.view(state,index.principalId),record.observations),inviteToken:room.inviteToken,botWorkPending:index.principalId===room.creatorId&&module.hasBotWork(state)};
  }
  async function start(index,replica,room){
   if(room.creatorId!==index.principalId)throw new PlayError('NOT_CREATOR','Only the host can start this game.');
@@ -67,7 +71,7 @@ export function createOnlineGameClient({locks=globalThis.navigator?.locks,planne
  async function refresh(options={}){if(!saved())return null;principal=(await auth.identity()).user.id;let index=await read(principal);if(index.intent)index=await enter(index);const bound=await binding(index,true);return bound?progress(index,bound.replica,bound.room,undefined,options):null;}
  function translate(error){if(error instanceof PlayError)return error;return new PlayError(error.code==='AUTH_REQUIRED'?'AUTH_REQUIRED':['UNSUPPORTED_ENGINE','UNSUPPORTED_PROTOCOL'].includes(error.code)?'UNSUPPORTED_VERSION':error.code||'NETWORK_UNAVAILABLE',error.message,{retryable:!!error.retryable,retryAfterMs:error.retryAfterMs||0});}
  const client={
-  capabilities:{pollIntervalMs:5000,requiresInternet:true},
+  capabilities:{pollIntervalMs:2500,requiresInternet:true},
   async inspect(){const p=saved();if(!p)return {state:{schemaVersion:1,roomId:null,pending:null},packet:null,principalId:null};const index=await read(p),bound=await binding(index,false),record=bound?await bound.replica.state():null;return {state:{schemaVersion:1,roomId:index.current||null,pending:index.intent?{body:{op:index.intent.op},principalId:p}:(record?.outbox.length||pendingRoll(record))?{body:{op:'command'},principalId:p}:null,retryAt:record?.retryAt||0},principalId:p,packet:bound?packet(index,bound.room,record):null};},
   async games(artifact=CATAN_ARTIFACT.compatibilityId){const p=saved();if(!p)return [];const index=await read(p),rows=[];for(const roomId of Object.keys(index.rooms)){if(index.rooms[roomId].abandoned)continue;const record=await store.load(p,roomId),snapshot=record.game?.state?.snapshot,seats=Array.isArray(snapshot?.seats)?snapshot.seats:[];rows.push({roomId,compatible:!record.game||record.game.moduleDigest===artifact,status:snapshot?.state?.game?.phase==='ended'?'ended':snapshot?'playing':'waiting',players:(seats.length?seats.map(s=>s.name):null)||index.rooms[roomId].members?.map(s=>s.displayName||'Player')||[],mode:'friends',lastPlayedAt:index.rooms[roomId].lastPlayedAt||0,scenario:snapshot?scenarioName(snapshot.state):(record.lobby?.scenario||index.rooms[roomId].scenario)?'Random Island':'Classic',playerCount:seats.length||record.lobby?.playerCount||index.rooms[roomId].playerCount||3,botLevel:seats.find(s=>s.kind==='bot')?.level||record.lobby?.level||index.rooms[roomId].botLevel});}return rows;},
   async execute(op,args={},options={}){try{

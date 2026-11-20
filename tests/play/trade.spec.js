@@ -70,3 +70,15 @@ test('an offer between other players has no dead View trade action',async({brows
   await expect(page.locator('#trade-reply')).not.toBeVisible();
  }finally{await context.close();}
 });
+
+
+test('sound preference is device-local and persists across reloads',async({browser})=>{
+ const {context,page}=await start(browser);
+ try{
+  await page.locator('#close-sheet').click();await page.getByRole('button',{name:'Open menu',exact:true}).click();
+  await page.getByRole('button',{name:'Sound: on',exact:true}).click();await expect(page.getByRole('button',{name:'Sound: off',exact:true})).toBeVisible();
+  await page.reload();await page.getByRole('button',{name:'Open menu',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Sound: off',exact:true})).toBeVisible();await page.getByRole('button',{name:'Sound: off',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Sound: on',exact:true})).toBeVisible();
+ }finally{await context.close();}
+});

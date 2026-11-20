@@ -207,3 +207,22 @@ test('online UI budgets commit the human move before coordinator bot processing'
  p=await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action:{type:'END_TURN'}},{botBudget:0});assert.equal(p.revision,revision+1);assert.equal(p.botWorkPending,true);assert.equal(server.messages.slice(n).filter(m=>m.message.type==='game.command').length,1);
  const next=await client.refresh({botBudget:1});assert.equal(next.revision,p.revision+1);
 });
+
+test('started-game polls reuse room metadata without skipping ordered message reads',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js'),server=fakeRelay(),store=createMemoryStore();
+ const make=id=>createOnlineGameClient({store,transport:server.transport(),auth:{savedIdentity:()=>({user:{id}}),identity:async()=>({user:{id}})}}),a=make('alice'),b=make('bob');
+ await a.execute('create',{name:'Alice'});await b.execute('join',{name:'Bob',inviteToken:'fixture-only'});await a.execute('start',{roomId:server.channelId});await b.refresh({botBudget:0});await a.refresh({botBudget:0});
+ const n=server.sent.length;for(let i=0;i<3;i++)await a.refresh({botBudget:0});const ops=server.sent.slice(n).map(s=>s.body.op);
+ assert.deepEqual(ops,['message.list','message.list','message.list']);assert.equal(a.capabilities.pollIntervalMs,2500);
+});
+test('a later channel participant refreshes cached membership without changing the fixed game seats',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js'),server=fakeRelay({members:['alice']}),store=createMemoryStore();
+ const make=id=>createOnlineGameClient({store,transport:server.transport(),auth:{savedIdentity:()=>({user:{id}}),identity:async()=>({user:{id}})}}),a=make('alice');
+ await a.execute('create',{name:'Alice'},{botBudget:0});await a.execute('start',{roomId:server.channelId},{botBudget:0});server.members.push('bob');const b=make('bob');const late=await b.execute('join',{name:'Bob',inviteToken:'fixture-only'},{botBudget:0});assert.equal(late.lobby.full,true);
+ const n=server.sent.length,result=await a.refresh({botBudget:0});assert.ok(result.view);assert.ok(!result.view.seats.some(s=>s.id==='bob'));assert.equal(server.sent.slice(n).filter(s=>s.body.op==='channel.read').length,1);
+});
+test('HTTP timing diagnostics contain only operation, duration, status and success',async()=>{
+ let time=100;const samples=[],options={endpoint:'https://example.test/relay',identity:async()=>({user:{id:'alice'},access_token:'test-token'}),clock:()=>time,fetcher:async()=>{time+=120;return new Response(JSON.stringify({ok:true,protocolVersion:1,result:{}}),{status:200});}};
+ const t=createRelayTransport({...options,onTiming:s=>samples.push(s)});await t.request({op:'message.list',channelId:'private-channel'},'alice');assert.deepEqual(samples,[{op:'message.list',ms:120,status:200,ok:true}]);
+ const broken=createRelayTransport({...options,onTiming(){throw Error('Diagnostics failed');}});assert.equal((await broken.request({op:'message.list',channelId:'private-channel'},'alice')).ok,true);
+});
