@@ -19,7 +19,7 @@ for(const [width,height] of [[390,664],[844,390],[1024,1366]])test(`result stati
   await expect(page.getByRole('listitem',{name:'2: 1 rolls, expected 0.1',exact:true})).toBeVisible();
   for(const tab of ['This game','My results']){
    await page.getByRole('button',{name:tab,exact:true}).click();await expect(page.getByRole('button',{name:'Back to results',exact:true})).toBeInViewport();
-   expect(await page.locator('#sheet-body').evaluate(e=>e.scrollHeight<=e.clientHeight+1)).toBe(true);
+   const size=await page.locator('#sheet-body').evaluate(e=>({content:e.scrollHeight,available:e.clientHeight}));expect(size.content,tab+' '+JSON.stringify(size)).toBeLessThanOrEqual(size.available+1);
   }
   await expect(page.locator('.statistics-summary>div').filter({hasText:'Games'}).locator('dd')).toHaveText('1');
   await page.reload();await page.getByRole('button',{name:'View results',exact:true}).click();await page.getByRole('button',{name:'Statistics',exact:true}).click();await expect(page.getByText('2 recorded rolls · 0 sevens',{exact:true})).toBeVisible();
