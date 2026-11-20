@@ -1,6 +1,6 @@
 import {stage,afterGoal,handEconomy,adjustedGain,affordableWinningGoal} from './strategy-model.mjs';
 // Original adaptive goal policy. Uses public topology and the bot's own hand only.
-import {botDecision as baseline} from './baselines/heuristic-1.1.0.js';
+import {botDecision as baseline,settlementValue} from './baselines/heuristic-1.1.0.js';
 import {siteProduction,acquisitionRolls,preview} from './planner-policy.mjs';
 import {opponentTotals} from './resource-policy.mjs';
 import {landEdges,validRoads,validSettlements} from '../../play/catan/rules/board.js';
@@ -106,11 +106,28 @@ function immediateWin(view,legal){
   if(next&&score(next,view.you,true)>=view.state.game.settings.victoryPoints)return action;
  }return null;
 }
+// Setup roads must lead along legal topology, not toward nearby hex coordinates.
+export function setupRoadCandidates(view,p){
+ const state=view.state,id=view.you,start=vertexKey(state.game.setupState.lastPlacedSettlement),targets=new Set(validSetupSettlements(state).map(vertexKey));
+ const occupied=new Map(state.board.roads.map(r=>[edgeKey(r.edge),r.playerId])),blocked=new Set(state.board.buildings.filter(b=>b.playerId!==id).map(b=>vertexKey(b.vertex))),adj=new Map();
+ for(const edge of landEdges(state))for(const [i,v]of getEdgeVertices(edge).entries()){const key=vertexKey(v);if(!adj.has(key))adj.set(key,[]);adj.get(key).push({edge,next:getEdgeVertices(edge)[1-i]});}
+ return view.choices.filter(a=>a.type==='PLACE_ROAD').map(action=>{
+  const end=getEdgeVertices(action.edge).find(v=>vertexKey(v)!==start),queue=end?[{vertex:end,steps:1}]:[],seen=new Set([start]);let value=-1,sites=0,nodes=0;
+  for(let i=0;i<queue.length&&nodes<p.maxGraphNodes;i++){
+   const {vertex,steps}=queue[i],key=vertexKey(vertex);if(seen.has(key)||blocked.has(key))continue;seen.add(key);nodes++;
+   if(targets.has(key)){sites++;value=Math.max(value,settlementValue(view,vertex)/steps);}
+   if(steps>=Math.max(2,p.maxRouteLength+1))continue;
+   for(const {edge,next}of adj.get(key)||[]){const owner=occupied.get(edgeKey(edge));if(owner&&owner!==id||edgeKey(edge)===edgeKey(action.edge))continue;queue.push({vertex:next,steps:steps+1});}
+  }
+  return {action,value,sites,nodes};
+ }).sort((a,b)=>b.value-a.value||b.sites-a.sites||compare(edgeKey(a.action.edge),edgeKey(b.action.edge)));
+}
 export function decision(view,p,_seed,memory=null){
  if(!view.choices.length||view.choices.length>256||JSON.stringify(view).length>131072)throw Error('Shared plan observation exceeds work budget');
  if(memory&&(memory.schemaVersion!==1||typeof memory.goalKey!=='string'&&memory.goalKey!==null))throw Error('Unsupported shared plan memory');
  const phase=view.state.game.phase;
  const frozen=()=>baseline(view,'standard');
+ if(phase.startsWith('setup-road')){const candidates=setupRoadCandidates(view,p);if(candidates.length)return {action:candidates[0].action,reason:candidates[0].sites?'SETUP_ROAD_TO_REACHABLE_SITE':'SETUP_ROAD_NO_REACHABLE_SITE',memory:memory||{schemaVersion:1,goalKey:null},diagnostics:{setupRoads:candidates}};}
  if(view.offer||phase.startsWith('setup-')||['robber-move','robber-steal'].includes(phase))return {action:frozen(),reason:view.offer?'FROZEN_PLAYER_TRADE':'FROZEN_PHASE',memory:memory||{schemaVersion:1,goalKey:null},diagnostics:null};
  const selected=selectGoal(view,p,memory),goal=selected.goal;
  const finish=(action,reason,extra={})=>({action,reason,memory:{schemaVersion:1,goalKey:goal?.key||null},diagnostics:{selection:selected.reason,plan:summary(goal),alternatives:selected.alternatives.map(summary),graphNodes:selected.graph.expanded,graphTruncated:selected.graph.truncated,nextStep:action,...extra}});

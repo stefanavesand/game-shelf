@@ -1,3 +1,4 @@
+import {createStatisticsStore} from './core/statistics.js';
 import {withSessionLock,withUpdateLock} from './lifecycle.js';
 import {createOnlineGameClient} from './relay/game-client.js';
 import {createIdentity,isAccount,accountName} from './core/identity.js';
@@ -5,6 +6,9 @@ import {PlayError} from './core/errors.js';
 import {createLocalStorage,createLocalClient} from './local/client.js';
 const auth=createIdentity(),account=()=>{const s=auth.savedIdentity();return isAccount(s?.user)?s.user:null;};
 const online=createOnlineGameClient({auth}),local=createLocalClient({storage:createLocalStorage({owner:()=>account()?.id})});
+const statistics=createStatisticsStore();
+let statisticsError=null;
+async function observe(value,owner){if(owner&&owner===account()?.id&&(value?.packet||value)?.view){try{await statistics.record(owner,value?.packet||value);statisticsError=null;}catch(e){statisticsError=e;}}return value;}
 const empty=()=>({state:{roomId:null,pending:null},packet:null});
 export const client={
  isLocal:()=>!!account()&&local.isLocal(),
@@ -21,9 +25,13 @@ export const client={
 // Fence all operations that may persist state or schedule bots against activation.
 for(const method of ['execute','refresh','resume']){
  const operation=client[method].bind(client);
- client[method]=(...args)=>withSessionLock(()=>{if(!account())throw new PlayError('AUTH_REQUIRED','Sign in with Google to play.');return operation(...args);});
+ client[method]=(...args)=>withSessionLock(async()=>{if(!account())throw new PlayError('AUTH_REQUIRED','Sign in with Google to play.');const owner=account().id;return observe(await operation(...args),owner);});
 }
 
 // Cleanup must work without opening an incompatible engine or passing its fence.
 const abandon=client.abandon.bind(client);
 client.abandon=roomId=>withUpdateLock(async()=>{if(!account())throw new PlayError('AUTH_REQUIRED','Sign in with Google.');await abandon(roomId);return true;});
+
+const inspect=client.inspect.bind(client);
+client.inspect=async()=>{const owner=account()?.id;return observe(await inspect(),owner);};
+client.statistics=async()=>{if(statisticsError)throw statisticsError;return statistics.list(account()?.id);};

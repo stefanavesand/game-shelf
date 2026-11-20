@@ -1,3 +1,4 @@
+import {statisticsMarkup} from './presentation/statistics.js';
 import {PLANNER_POLICY} from './bots/contract.js';
 import {recentGames} from './presentation/recent-games.js';
 import {createCountPresentation} from './presentation/counts.js';
@@ -308,7 +309,14 @@ function cardPanel(index){
 function helpPanel(){showHelp(openSheet);}
 function scorePanel(playerId){showScores(view(),openSheet,playerId);}
 
-function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<button type="button" data-action="player:${esc(p.id)}" class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP →</span></button>`).join('')}<div class="sheet-actions">${button('Detailed scores','scores','primary')}${button('View the board','close','quiet')}${button('New game','create','primary')}</div></div>`);}
+async function statisticsPanel(tab='game'){
+ const room=packet?.roomId;if(!room||view()?.state.game.phase!=='ended')return;
+ openSheet('Statistics','<p>Loading recorded statistics…</p>');
+ try{await client.inspect();const games=await client.statistics();if(!sheet.open||packet?.roomId!==room||$('sheet-title').textContent!=='Statistics')return;
+  $('sheet-body').innerHTML='<section class="statistics-content">'+statisticsMarkup(games.find(g=>g.gameId===room),games,tab)+`<div class="sheet-actions">${button('Back to results','results','quiet')}</div></section>`;
+ }catch{if(sheet.open&&$('sheet-title').textContent==='Statistics')$('sheet-body').innerHTML='<p>Statistics storage is unavailable on this device. Your game and result are unchanged.</p>';}
+}
+function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<button type="button" data-action="player:${esc(p.id)}" class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP →</span></button>`).join('')}<div class="sheet-actions">${button('Detailed scores','scores','primary')}${button('View the board','close','quiet')}${button('Statistics','statistics:game','primary')}</div></div>`);}
 function invitedRoom(){return new URLSearchParams(location.hash.split('?')[1]||'').get('room');}
 const accountBlocked=()=>updateReloadPending||accountBusy||busy||!!saved?.pending||!navigator.onLine||!!(error&&error.code!=='AUTH_REQUIRED');
 function accountPanel(){
@@ -396,6 +404,7 @@ async function dispatch(action,el){
   if(action==='share'){showInvitation();return;}
   if(action==='copy'){try{await navigator.clipboard.writeText($('invite-link').value);$('copy-result').textContent='Invitation copied.';}catch{$('invite-link').select();$('copy-result').textContent='Select and copy the invitation manually.';}return;}
   if(action==='results'){resultPanel();return;}
+  if(action.startsWith('statistics:')){await statisticsPanel(action.slice(11));return;}
   if(action.startsWith('card:')){cardPanel(Number(action.split(':')[1]));return;}
   if(action==='skip-offer'){if(!blocked()&&unavailableIncomingOffer(view()))await sync();return;}
   if(action==='offer'){offerPanel();return;}
