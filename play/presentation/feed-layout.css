@@ -62,3 +62,5 @@
 @media(max-height:500px){.statistics-track{height:65px}.statistics-note{margin:5px 0;font-size:11px}.statistics-coverage{margin:4px 0;font-size:11px}.statistics-summary{gap:6px;margin:8px 0}.statistics-summary div{padding:6px}.statistics-summary dd{font-size:19px}}
 
 @media(min-width:600px) and (max-height:500px){.statistics-summary{grid-template-columns:repeat(6,minmax(0,1fr))}}
+
+.activity-theft span{display:inline-flex;align-items:center;gap:3px}.activity-theft svg{width:24px;height:24px}

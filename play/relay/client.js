@@ -1,7 +1,7 @@
 import {clone,invariant,pendingRequest,validatePage,RelayError,digest} from './protocol.js';
 import {applyMessage,beginMessage,commandMessage,configureMessage,proposalMessage,resolutionMessage} from './replica.js';
 import {validateRecord} from './store.js';
-export function createRelayClient({principalId,channelId,creatorId,members,module,store,transport,locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),now=Date.now,maxPages=20,createEffects=()=>({})}={}) {
+export function createRelayClient({principalId,channelId,creatorId,members,module,store,transport,locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),now=Date.now,maxPages=20,createEffects=()=>({}),observeRecord=null,refreshMembers=null}={}) {
   invariant(members.includes(principalId)&&members.includes(creatorId),'INVALID_MEMBERS','Invalid channel participant binding.');
   const key=`game-shelf-relay:${principalId}:${channelId}`;
   const locked=work=>{invariant(locks?.request,'UNSUPPORTED_BROWSER','This browser cannot coordinate app windows safely.');return locks.request(key,work);};
@@ -22,7 +22,9 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
       const page=validatePage(result,record.cursor);
       let next=record;
       for(const item of page.messages) {
-        const applied=await applyMessage(next,item,{module,creatorId,members});next=applied.record;
+        if(!members.includes(item.senderId)&&refreshMembers){const updated=await refreshMembers();invariant(Array.isArray(updated)&&updated.includes(principalId)&&updated.includes(creatorId),'INVALID_MEMBERS','Invalid refreshed membership.');members=updated;}
+        const before=next,applied=await applyMessage(before,item,{module,creatorId,members});next=applied.record;
+        if(observeRecord){const observations=observeRecord(before,next);if(observations!==undefined)next.observations=observations;}
         for(const message of applied.notifications)enqueue(next,message);
       }
       // Cursor, state, incident and generated replies commit together.

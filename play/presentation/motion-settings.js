@@ -1,5 +1,5 @@
 // Shared presentation defaults. The lab passes overrides; normal games use these values.
-export const MOTION_DEFAULTS=Object.freeze({diceMs:3100,diceRotation:140,diceLift:0,pieceMs:1450,pieceLift:9,flightMs:2200,holdMs:0,gapMs:300});
+export const MOTION_DEFAULTS=Object.freeze({diceMs:1500,diceRotation:140,diceLift:0,pieceMs:1450,pieceLift:9,flightMs:2200,holdMs:0,gapMs:300});
 const limits={diceMs:[200,6000],diceRotation:[0,1080],diceLift:[0,50],pieceMs:[150,4000],pieceLift:[0,60],flightMs:[200,4000],holdMs:[0,6000],gapMs:[300,8000]};
 export function motionSettings(input={}){return Object.fromEntries(Object.entries(MOTION_DEFAULTS).map(([key,fallback])=>{const value=Number(input[key]??fallback),[min,max]=limits[key];return [key,Number.isFinite(value)?Math.round(Math.max(min,Math.min(max,value))):fallback];}));}
 
@@ -17,3 +17,6 @@ export function motionInterval(action,settings=MOTION_DEFAULTS){
  if(['trade accept','bank trade','play year of plenty','play monopoly','steal resource'].includes(type))return Math.max(t.gapMs,t.flightMs+550);
  return t.gapMs;
 }
+
+// One direction and constant angular speed; no reversed or slow final phase.
+export const diceFrames=t=>[{transform:`rotate(${-t.diceRotation}deg) translateY(${-t.diceLift}px)`},{transform:'rotate(0deg) translateY(0px)'}];

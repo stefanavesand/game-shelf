@@ -1,3 +1,4 @@
+import {createGameAudio} from './presentation/audio.js';
 import {statisticsMarkup} from './presentation/statistics.js';
 import {PLANNER_POLICY} from './bots/contract.js';
 import {recentGames} from './presentation/recent-games.js';
@@ -30,7 +31,8 @@ const $=id=>document.getElementById(id),sheet=$('sheet'),reply=$('trade-reply');
 const art=r=>symbol(r==='lumber'?'wood':r);
 let packet=null,saved=null,screen='home',busy=false,ready=false,error=null,notice='',mode='',selection=null,selectionRevision=-1,spatial=[],timer=null,modalRevision=null,modalRoom=null,modalYou=null,modalAction=null,lastRenderKey='',botSince=0,botRevision=-1;
 let knownGames=[],tradeFeedback=[],accountBusy=false,updateReloadPending=false;
-const googleAuth=createGoogleAuth(),motion=createGameMotion(),movePacer=createMovePacer();
+const audio=createGameAudio();
+const googleAuth=createGoogleAuth(),motion=createGameMotion({onCue:(kind,duration)=>audio.cue(kind,duration)}),movePacer=createMovePacer();
 const counts=createCountPresentation({onChange:()=>{render();schedule();}});
 const botBudget=()=>counts.pending()?0:movePacer.takeBudget(packet);
 const activity=createActivity({principal:()=>googleAuth.profile()?.id||''}),activityScroll=createActivityScroll();
@@ -99,7 +101,7 @@ function actingPlayers(v){const g=v.state.game;return g.phase==='ended'?[]:v.off
 function actorStatus(v){if(unavailableIncomingOffer(v))return 'Resolving trade';const g=v.state.game,actors=actingPlayers(v).map(name).join(', ');return g.phase==='ended'?'Game finished':v.offer?`${actors} responds to the trade · Turn owner: ${name(g.currentPlayerId)}`:g.phase==='discard'?`${actors} must discard · Turn owner: ${name(g.currentPlayerId)}`:`${actors} is acting`;}
 function drawTable(){
  const v=view(),[heading,description]=title();spatial=selectSpatial();if(selection!==null&&!spatial[selection])selection=null;
- return gameScreen({view:counts.view()||v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(counts.view()||v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&(incoming()&&canSupplyOffer(v)||v.offer.from===v.you)?button(incoming()?'View offer':'View your offer','offer','primary',blocked()):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
+ return gameScreen({view:counts.view()||v,heading,description,actor:actorStatus(v),actors:actingPlayers(v),entries:activity.observe(packet),flowActions:flowActions(),saving:(busy||!!saved?.pending)&&!packet?.pendingRandom,resources:resourcesPanel(),placements:placements(),actions:actions(),recovery:recovery(),cards:ownPlayer(counts.view()||v).developmentCards.filter(c=>!c.isPlayed).length,offer:v.offer&&(incoming()&&canSupplyOffer(v)||v.offer.from===v.you)?button(incoming()?'View offer':'View your offer','offer','primary'):'',continueOffer:unavailableIncomingOffer(v)?button('Continue game','skip-offer','primary',blocked()):''});
 }
 function render(){
   counts.observe(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});
@@ -128,7 +130,7 @@ function render(){
   const boardKey=$('board')?JSON.stringify([view().state.board,view().state.players.players.map(p=>[p.id,p.color]),view().you,spatial,selection,blocked()]):null;
   if($('board')&&boardKey!==renderedBoard){draw($('board'),view(),spatial,selection,blocked(),index=>{if(!blocked()){selection=index;selectionRevision=packet.revision;render();announce('Location selected. Confirm to commit it.');}});renderedBoard=boardKey;}
 
-  activityScroll.restore(feedPosition);
+  activityScroll.restore(feedPosition);audio.observe(packet,{active:screen==='table'&&!!googleAuth.profile()});
   if(sheet.open&&view()&&$('sheet-body').querySelector('.score-detail'))refreshScores(view());
   const completion=motion.present(packet,{enabled:screen==='table'&&!!googleAuth.profile()&&!document.hidden});if(completion)counts.completeOn(packet,completion);
   if(replaced&&focused&&$(focused))$(focused).focus({preventScroll:true});
@@ -213,7 +215,7 @@ function tradeResponses(trade){
 }
 function offerPanel(){
  const v=view(),o=v.offer;if(!o)return;const mine=o.from===v.you;
- if(mine){tradeStartRevision=0;tradeDraft={...offerDraft(v),to:o.to,give:{...o.give},receive:{...o.receive}};tradeEditing=false;openSheet('Trade','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
+ if(mine){tradeMode='players';tradeStartRevision=0;tradeDraft={...offerDraft(v),to:o.to,give:{...o.give},receive:{...o.receive}};tradeEditing=false;openSheet('Trade','');sheet.dataset.trade='live';tradeViewKey=null;refreshTradeDialog();return;}
  showReplyOffer(o);
 }
 function showReplyOffer(offer){
@@ -226,7 +228,7 @@ function showReplyOffer(offer){
  reply.dataset.offerId=offer.id;if(!reply.open)overlays.show(reply,{stack:sheet.open&&!!sheet.dataset.trade});
 }
 function refreshTradeDialog(){
- const v=view();if(!v||modalRoom!==v.id||modalYou!==v.you){closeSheet();return;}
+ const v=view();if(!v||modalRoom!==packet?.roomId||modalYou!==v.you){closeSheet();return;}
  if(tradeViewKey===String(v.revision))return;
  tradeViewKey=String(v.revision);modalRevision=v.revision;
  tradeDraft=tradeDraft?.roomId===v.id&&tradeDraft.you===v.you?{...tradeDraft,revision:v.revision}:offerDraft(v);
@@ -310,10 +312,10 @@ function helpPanel(){showHelp(openSheet);}
 function scorePanel(playerId){showScores(view(),openSheet,playerId);}
 
 async function statisticsPanel(tab='game'){
- const room=packet?.roomId;if(!room||view()?.state.game.phase!=='ended')return;
+ const room=packet?.roomId,gameId=view()?.id;if(!room||view()?.state.game.phase!=='ended')return;
  openSheet('Statistics','<p>Loading recorded statistics…</p>');
  try{await client.inspect();const games=await client.statistics();if(!sheet.open||packet?.roomId!==room||$('sheet-title').textContent!=='Statistics')return;
-  $('sheet-body').innerHTML='<section class="statistics-content">'+statisticsMarkup(games.find(g=>g.gameId===room),games,tab)+`<div class="sheet-actions">${button('Back to results','results','quiet')}</div></section>`;
+  $('sheet-body').innerHTML='<section class="statistics-content">'+statisticsMarkup(games.find(g=>g.gameId===gameId),games,tab)+`<div class="sheet-actions">${button('Back to results','results','quiet')}</div></section>`;
  }catch{if(sheet.open&&$('sheet-title').textContent==='Statistics')$('sheet-body').innerHTML='<p>Statistics storage is unavailable on this device. Your game and result are unchanged.</p>';}
 }
 function resultPanel(){const v=view(),g=v.state.game;if(g.phase!=='ended')return;openSheet('An evening well played',`<div class="result"><span class="result-icon" aria-hidden="true">✧</span><p class="eyebrow">The island has a winner</p><h1>${g.winnerId===v.you?'You win.':esc(name(g.winnerId))+' wins.'}</h1><p class="muted">Thanks for a game together.</p>${v.state.players.players.map(p=>`<button type="button" data-action="player:${esc(p.id)}" class="result-score ${p.id===g.winnerId?'winner':''}"><span>${esc(p.name)}</span><span>${g.finalScores[p.id]} VP →</span></button>`).join('')}<div class="sheet-actions">${button('Detailed scores','scores','primary')}${button('View the board','close','quiet')}${button('Statistics','statistics:game','primary')}</div></div>`);}
@@ -337,7 +339,7 @@ async function accountAction(signOut=false){
  finally{if(!navigating)accountBusy=false;render();}
 }
 function renderMenu(){
- const playing=!!view(),body=$('sidebar-body'),focused=body.contains(document.activeElement)?document.activeElement.dataset.action:null;const html=`<nav aria-label="Main navigation">${button('Home','home')}${packet?button('Game details','room'):''}${playing?button('Activity','activity'):''}${packet&&!solo()?button('Invitation details','share'):''}${button('Help & rules','help')}${button('Account','account')}</nav>`;
+ const playing=!!view(),body=$('sidebar-body'),focused=body.contains(document.activeElement)?document.activeElement.dataset.action:null;const html=`<nav aria-label="Main navigation">${button('Home','home')}${packet?button('Game details','room'):''}${playing?button('Activity','activity'):''}${packet&&!solo()?button('Invitation details','share'):''}${button('Help & rules','help')}${button(audio.enabled()?'Sound: on':'Sound: off','sound-toggle')}${button('Account','account')}</nav>`;
  if(renderedMenu!==html){body.innerHTML=html;renderedMenu=html;if(focused)[...body.querySelectorAll('[data-action]')].find(el=>el.dataset.action===focused)?.focus({preventScroll:true});}
 }
 function showMenu(){renderMenu();overlays.showDrawer();}
@@ -356,6 +358,7 @@ async function dispatch(action,el){
   if(action==='close'){closeSheet();return;}
   if(action==='remove-incompatible'){await removeIncompatibleGames();return;}
   if(action==='menu'){showMenu();return;}
+  if(action==='sound-toggle'){audio.setEnabled(!audio.enabled());renderMenu();return;}
   if(action==='menu-close'){overlays.closeDrawer();return;}
   if(action==='cards'){openSheet('Your development cards',cardsPanel()||'<p>No development cards yet.</p>');itemPages($('sheet-body'),'.card-button',{label:'Card page',perPage:()=>innerHeight<500?2:4});return;}
   if(action==='activity'){

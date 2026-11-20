@@ -1,5 +1,9 @@
 # Private MVP requirements — agreed product baseline
 
+## Live multiplayer feedback — 2026-11-20
+
+Add optional device-local game sounds, shorter one-direction dice feedback, usable online offer review and recipient-only stolen-resource details. Reduce redundant relay requests while retaining delivery safeguards. See [implementation and backend performance proposal](ONLINE_FEEDBACK.md).
+
 ## Result statistics and setup-road planning — 2026-11-20
 
 The result dialog opens device-local dice-distribution and account-result statistics instead of New game. Missing older roll history is labeled explicitly. Setup roads use bounded legal topology search rather than coordinate proximity. See [scope and verification](RESULT_STATISTICS.md).

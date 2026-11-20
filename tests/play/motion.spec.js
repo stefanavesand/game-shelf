@@ -33,7 +33,7 @@ for(const reducedMotion of ['no-preference','reduce'])test(`bot placements are s
  }finally{await context.close();}
 });
 
-test('a real dice roll uses the approved 3.1-second motion and keeps all game regions stationary',async({browser})=>{
+test('a real dice roll uses shorter one-direction motion and keeps all game regions stationary',async({browser})=>{
  const context=await browser.newContext({viewport:{width:390,height:844}});
  try{
   await context.route(/^https:\/\//,route=>route.abort());const page=await context.newPage();await page.goto(root+'#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode',{exact:true}).selectOption('solo');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#connection')).toHaveText('Local · saved');
@@ -42,8 +42,8 @@ test('a real dice roll uses the approved 3.1-second motion and keeps all game re
    s.revision=30;s.history=[];s.offer=null;Object.assign(s.state.game,{phase:'roll',currentPlayerId:'p1',turn:8,lastRoll:null});const {digest}=await import('./relay/protocol.js');g.hash=await digest(g.state);await new Promise(resolve=>{const tx=db.transaction('records','readwrite');tx.objectStore('records').put(lib,'account:alice');tx.oncomplete=resolve;});db.close();
   }));
   await page.reload();await expect(page.getByRole('button',{name:'Roll dice',exact:true})).toBeEnabled();const before=await page.locator('.board-wrap').boundingBox();await page.getByRole('button',{name:'Roll dice',exact:true}).click();await expect(page.locator('.motion-caption')).toContainText('rolled');
-  const result=await page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {roll:p.view.state.game.lastRoll,durations:document.getAnimations().filter(a=>a.effect.target.classList.contains('die')).map(a=>a.effect.getTiming().duration),lit:[...document.querySelectorAll('.activity-entry.is-latest .die')].map(el=>el.querySelectorAll('.pip.lit').length)};});
-  expect(result.durations).toEqual([3100,3100]);expect(result.lit).toEqual([result.roll.die1,result.roll.die2]);expect(await page.locator('.board-wrap').boundingBox()).toEqual(before);await expect(page.locator('.dice')).toContainText('= '+result.roll.total);
+  const result=await page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {roll:p.view.state.game.lastRoll,durations:document.getAnimations().filter(a=>a.effect.target.classList.contains('die')).map(a=>a.effect.getTiming().duration),easing:document.getAnimations().filter(a=>a.effect.target.classList.contains('die')).map(a=>a.effect.getTiming().easing),lit:[...document.querySelectorAll('.activity-entry.is-latest .die')].map(el=>el.querySelectorAll('.pip.lit').length)};});
+  expect(result.durations).toEqual([1500,1500]);expect(result.easing).toEqual(['linear','linear']);expect(result.lit).toEqual([result.roll.die1,result.roll.die2]);expect(await page.locator('.board-wrap').boundingBox()).toEqual(before);await expect(page.locator('.dice')).toContainText('= '+result.roll.total);
  }finally{await context.close();}
 });
 

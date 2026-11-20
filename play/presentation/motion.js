@@ -1,10 +1,10 @@
-import {motionSettings} from './motion-settings.js';
+import {diceFrames,motionSettings} from './motion-settings.js';
 import {describeMove,costLabel,hexDisplayKey} from './move-events.js';
 import {center,vertexPoint} from '../board.js';
 import {symbol} from './art.js';
 const colors={red:'#b84f3c',blue:'#396a9c',orange:'#b57d27',green:'#397252'};
 const resourceFor={hills:'brick',forest:'lumber',fields:'grain',pasture:'wool',mountains:'ore'};
-export function createGameMotion({reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches,settings={}}={}){
+export function createGameMotion({reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches,settings={},onCue=()=>{}}={}){
  const timing=motionSettings(settings);
  let previous=null,timers=[],animations=[],floating=[];
  function clear(){timers.forEach(clearTimeout);timers=[];animations.forEach(a=>a.cancel());animations=[];floating.forEach(el=>el.remove());floating=[];}
@@ -29,7 +29,9 @@ export function createGameMotion({reduced=()=>matchMedia('(prefers-reduced-motio
    animate(caption,[{opacity:0,transform:'translateY(8px)'},{opacity:1,transform:'translateY(0)'}],{duration:180});
    animate(player(event.actorId),[{transform:'translateY(0)'},{transform:'translateY(-4px)',offset:.4},{transform:'translateY(0)'}],{duration:280});
    for(const piece of event.pieces)animate(find(`[data-motion-piece="${piece.kind}"]`,piece.key),[{transform:`translateY(${-timing.pieceLift}px) scale(.75)`,opacity:.1},{transform:'translateY(2px) scale(1.08)',opacity:1,offset:.72},{transform:'translateY(0) scale(1)',opacity:1}],{delay:250,duration:timing.pieceMs});
-   if(event.rolled){document.querySelectorAll('.activity-entry.is-latest .die').forEach((die,i)=>animate(die,[{transform:`rotate(${-timing.diceRotation}deg) translateY(${-timing.diceLift}px)`},{transform:`rotate(${timing.diceRotation*.8}deg) translateY(${timing.diceLift/3}px)`,offset:.35},{transform:`rotate(${-timing.diceRotation*.45}deg) translateY(${-timing.diceLift/3}px)`,offset:.65},{transform:'rotate(0) translateY(0)'}],{duration:timing.diceMs,delay:i*60}));for(const key of event.producing)animate(find('[data-motion-tile]',key),[{opacity:1,filter:'brightness(1)'},{opacity:1,filter:'brightness(1.35)',offset:.5},{opacity:1,filter:'brightness(1)'}],{delay:timing.diceMs,duration:800});}
+   if(event.rolled){document.querySelectorAll('.activity-entry.is-latest .die').forEach((die,i)=>animate(die,diceFrames(timing),{duration:timing.diceMs,delay:i*60,easing:'linear'}));onCue('dice',timing.diceMs);for(const key of event.producing)animate(find('[data-motion-tile]',key),[{opacity:1,filter:'brightness(1)'},{opacity:1,filter:'brightness(1.35)',offset:.5},{opacity:1,filter:'brightness(1)'}],{delay:timing.diceMs,duration:800});}
+   if(event.pieces.length)later(()=>onCue('piece'),250+timing.pieceMs);
+   if(event.resources.length||event.cost.length)later(()=>onCue('cards'),event.rolled?timing.diceMs+200:500);
    const v=packet.view;
    for(const delta of event.resources){const target=document.querySelector(`.resource-tile[data-motion-resource="${delta.resource}"]`);animate(target,[{transform:'scale(1)'},{transform:'scale(1.12)',offset:.5},{transform:'scale(1)'}],{delay:event.rolled?timing.diceMs+150:600,duration:450});
     if(delta.amount>0){const tile=v.state.board.tiles.find(t=>resourceFor[t.terrain]===delta.resource&&event.producing.includes(hexDisplayKey(t.coord))&&v.state.board.buildings.some(b=>b.playerId===v.you&&Math.abs(Math.hypot(vertexPoint(b.vertex).x-center(t.coord).x,vertexPoint(b.vertex).y-center(t.coord).y)-54)<1e-6));fly(delta.resource,delta.amount,tile?find('[data-motion-tile]',hexDisplayKey(tile.coord)):player(event.actorId),target,{delay:event.rolled?timing.diceMs+200:500});}
