@@ -34,3 +34,15 @@ export function ownedPorts(view){
 export function displayedBankRate(view,resource){
  return Math.min(4,...ownedPorts(view).map(p=>p.type===resource?2:p.type==='generic'?3:4));
 }
+
+// Scale a legal one-card bank choice into one atomic, ordinary BANK_TRADE.
+export function bankTradeLimit(view,choice){
+ if(!choice)return 0;const hand=ownPlayer(view).resources,stock=view.state.game.bank?.[choice.receive.resource];
+ return Math.max(0,Math.min(Math.floor(hand[choice.give.resource]/choice.give.amount),Number.isSafeInteger(stock)?Math.floor(stock/choice.receive.amount):1));
+}
+export function multipleBankTrade(view,give,receive,units=1,ratio=null){
+ if(!Number.isSafeInteger(units)||units<1)return null;
+ const choice=bankChoices(view).find(c=>c.give.resource===give&&c.receive.resource===receive&&(!ratio||c.give.amount===ratio));
+ if(units>bankTradeLimit(view,choice))return null;
+ return {...choice,give:{resource:give,amount:choice.give.amount*units},receive:{resource:receive,amount:choice.receive.amount*units}};
+}

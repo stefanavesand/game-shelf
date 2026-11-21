@@ -145,3 +145,17 @@ test('signed-in home survives refresh and foreground events without network call
  const context=await browser.newContext();let calls=0;
  try{await context.route(/^https:\/\//,route=>{calls++;return route.abort();});const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.locator('#refresh').evaluate(button=>button.click());await page.evaluate(()=>{window.dispatchEvent(new Event('pageshow'));document.dispatchEvent(new Event('visibilitychange'));});await expect(page.getByRole('button',{name:'New game',exact:true})).toBeEnabled();expect(calls).toBe(0);}finally{await context.close();}
 });
+
+test('Solo via backend starts without an invitation, sends moves through the relay and shows request timing',async({browser})=>{
+ const server=fakeRelay({channelId,members:['alice']}),context=await browser.newContext();let legacy=0;
+ try{
+  await context.route('**/api/public/catan',r=>{legacy++;return r.abort();});
+  await context.route('**/api/public/relay/v1',async route=>{try{const p=await server.transport().request(route.request().postDataJSON(),'alice');await route.fulfill({json:{ok:true,protocolVersion:1,...p}});}catch(e){await route.fulfill({status:409,json:{ok:false,protocolVersion:1,error:{code:e.code,message:e.message,retryable:false}}});}});
+  const page=await context.newPage();await page.goto('/game-shelf/play/#home');await page.getByRole('button',{name:'New game',exact:true}).click();await page.getByLabel('Play mode').selectOption('solo-relay');await page.getByLabel('Game size').selectOption('4');await page.getByRole('button',{name:'Start solo game',exact:true}).click();await expect(page.locator('#board')).toBeVisible();await expect(page.locator('.players .bot-tag')).toHaveCount(3);
+  const inspect=()=>page.evaluate(async()=>{const {client}=await import('./session.js');const p=(await client.inspect()).packet;return {local:client.isLocal(),relaySolo:p.relaySolo,room:p.roomId,revision:p.revision};});const before=await inspect();expect(before.local).toBe(false);expect(before.relaySolo).toBe(true);
+  await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.getByRole('button',{name:'Connection timing',exact:true}).click();await expect(page.getByRole('heading',{name:'Connection timing',exact:true})).toBeVisible();await expect(page.locator('#sheet-body')).toContainText('median');await page.getByRole('button',{name:'Reset measurements',exact:true}).click();await expect(page.locator('#sheet-body')).toContainText('No requests measured yet.');await page.locator('#close-sheet').click();
+  await expect(page.locator('#offline-status')).toHaveText('Ready for offline');await page.reload();await expect(page.locator('#board')).toBeVisible();expect((await inspect()).room).toBe(before.room);expect((await inspect()).local).toBe(false);expect(legacy).toBe(0);
+  expect(server.sent.some(x=>x.body.op==='message.append'&&x.body.message.type==='game.begin')).toBe(true);
+  await page.getByRole('button',{name:'Open menu',exact:true}).click();await page.getByRole('button',{name:'Home',exact:true}).click();await expect(page.locator('.saved-game')).toContainText('Solo via backend');
+ }finally{await context.close();}
+});

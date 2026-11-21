@@ -286,3 +286,5 @@ BOT-AI-03: setup roads now search actual public topology toward distance-rule-va
 UX-09 / TRADE-FEEDBACK-01 / QUALITY-1 (2026-11-20): sound cues, monotonic 1.5-second dice, online channel/game-ID fixes, private recipient theft observations and fewer relay metadata reads implemented. Server-side latency work and physical online sound/performance acceptance remain open. See [live feedback and backend proposal](ONLINE_FEEDBACK.md).
 
 UX-09 — 2026-11-21: adopt owner-exported Sites feedback profiles in 0.15.6, including soft cards, felt placements/dice, pluck turn cue and 1100 ms / 510° dice. The dice-only reduced-motion override is explicit. See [selected feedback](SELECTED_FEEDBACK.md).
+
+TRADE-UI / QUALITY-1 — 2026-11-21: multi-card atomic bank/port quantities and an opt-in Solo via backend connection-test mode are implemented for 0.15.7. Existing Solo remains offline. Request timing is readable/resettable from the test-mode sidebar. See [behavior and verification](BANK_QUANTITIES_AND_RELAY_SOLO.md).

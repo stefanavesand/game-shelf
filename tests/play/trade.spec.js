@@ -82,3 +82,11 @@ test('sound preference is device-local and persists across reloads',async({brows
   await expect(page.getByRole('button',{name:'Sound: on',exact:true})).toBeVisible();
  }finally{await context.close();}
 });
+
+test('bank and port steppers can exchange several cards in one ordinary command',async({browser})=>{
+ const expectedAction={type:'BANK_TRADE',give:{resource:'ore',amount:4},receive:{resource:'brick',amount:2}},{backend,context,page}=await start(browser,{expectedAction,initialResources:{ore:4}});
+ try{await page.getByRole('button',{name:'Bank & ports',exact:true}).click();await page.getByRole('button',{name:'Add Ore to give',exact:true}).click();await page.getByRole('button',{name:'Add Brick to receive',exact:true}).click();await page.getByRole('button',{name:'Add Ore to give',exact:true}).click();
+ await expect(page.getByLabel('Ore offered',{exact:true})).toHaveText('4');await expect(page.getByLabel('Brick requested',{exact:true})).toHaveText('2');await expect(page.getByRole('button',{name:'Add Ore to give',exact:true})).toBeDisabled();
+ await page.getByRole('button',{name:'Trade with bank',exact:true}).click();await expect.poll(()=>backend.accepted).toBe(1);expect(backend.commands).toHaveLength(1);expect(backend.commands[0].action).toEqual(expectedAction);
+ }finally{await context.close();}
+});

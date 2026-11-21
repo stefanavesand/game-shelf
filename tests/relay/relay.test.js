@@ -226,3 +226,20 @@ test('HTTP timing diagnostics contain only operation, duration, status and succe
  const t=createRelayTransport({...options,onTiming:s=>samples.push(s)});await t.request({op:'message.list',channelId:'private-channel'},'alice');assert.deepEqual(samples,[{op:'message.list',ms:120,status:200,ok:true}]);
  const broken=createRelayTransport({...options,onTiming(){throw Error('Diagnostics failed');}});assert.equal((await broken.request({op:'message.list',channelId:'private-channel'},'alice')).ok,true);
 });
+
+test('backend Solo starts one human with bots, persists its mode and uses the ordinary relay after reopening',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js');
+ for(const playerCount of [3,4]){const server=fakeRelay({members:['alice']}),store=createMemoryStore(),make=()=>createOnlineGameClient({store,transport:server.transport(),auth:{savedIdentity:()=>({user:{id:'alice'}}),identity:async()=>({user:{id:'alice'}})}}),client=make();
+  let p=await client.execute('create',{name:'Alice',mode:'solo-relay',playerCount,botLevel:'standard'},{botBudget:0});assert.equal(p.status,'playing');assert.equal(p.relaySolo,true);assert.equal(p.members.filter(m=>m.kind==='human').length,1);assert.equal(p.members.filter(m=>m.kind==='bot').length,playerCount-1);
+  assert.equal((await make().inspect()).packet.relaySolo,true);assert.equal((await make().games())[0].mode,'solo-relay');
+  for(let i=0;i<8&&!p.view.choices.length;i++)p=await client.refresh({botBudget:1});assert.ok(p.view.choices.length);
+  const action=p.view.choices.find(c=>c.type==='PLACE_SETTLEMENT')||p.view.choices[0],next=await client.execute('command',{roomId:p.roomId,expectedRevision:p.revision,action},{botBudget:0});assert.equal(next.ok,true,JSON.stringify({playerCount,actor:p.view.state.game.currentPlayerId,choices:p.view.choices.slice(0,2),next}));assert.equal(next.revision,p.revision+1);
+  const append=server.sent.filter(x=>x.body.op==='message.append');assert.ok(append.some(x=>x.body.message.type==='game.begin'));assert.ok(append.some(x=>x.body.message.type==='game.command'));assert.equal((await make().refresh({botBudget:0})).revision,next.revision);
+ }
+});
+
+test('backend Solo admission resumes the original intent after a lost response',async t=>{
+ browserLocks(t);const {createOnlineGameClient}=await import('../../play/relay/game-client.js'),server=fakeRelay({members:['alice']}),store=createMemoryStore(),make=()=>createOnlineGameClient({store,transport:server.transport(),auth:{savedIdentity:()=>({user:{id:'alice'}}),identity:async()=>({user:{id:'alice'}})}});server.loseResponse();await assert.rejects(make().execute('create',{mode:'solo-relay',name:'Alice'},{botBudget:0}),e=>e.retryable);
+ const p=await make().refresh({botBudget:0});assert.equal(p.relaySolo,true);assert.equal(p.status,'playing');assert.equal(p.members.filter(m=>m.kind==='human').length,1);assert.equal(server.sent.filter(x=>x.body.op==='channel.create').length,1);
+ server.offline(true);await assert.rejects(make().refresh({botBudget:0}));assert.equal((await make().inspect()).packet.roomId,p.roomId);assert.equal((await make().inspect()).packet.relaySolo,true);
+});

@@ -189,3 +189,7 @@ Original procedural Web Audio synthesis, recipient-local theft journal, presenta
 ## Selected Sites feedback — 2026-11-21
 
 The owner-selected original sound recipes and smooth envelopes are adapted from the independently hosted Game Shelf feedback studio. No external samples, MIDI library or third-party synthesis code are imported. Only selected presentation code enters the PWA. See [parameters and verification](docs/SELECTED_FEEDBACK.md).
+
+## Bank quantities and relay Solo — 2026-11-21
+
+Original UI quantity scaling, relay Solo orchestration and diagnostic presentation reuse existing legal bank actions and the generic relay. No engine/reducer code, external algorithm, asset or dependency is added. See [implementation](docs/BANK_QUANTITIES_AND_RELAY_SOLO.md).

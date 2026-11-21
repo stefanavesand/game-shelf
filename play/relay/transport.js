@@ -2,6 +2,7 @@ import {RelayError,invariant,canonical} from './protocol.js';
 const timings=[];
 const operationNames=new Set(['capabilities','profile.get','profile.set','channel.create','channel.join','channel.read','message.append','message.list','receipt.get']);
 export function relayPerformanceSnapshot(){return [...new Set(timings.map(s=>s.op))].map(op=>{const samples=timings.filter(s=>s.op===op),values=samples.map(s=>s.ms).sort((a,b)=>a-b);return {op,count:values.length,failures:samples.filter(s=>!s.ok).length,medianMs:values[Math.floor(values.length/2)],p95Ms:values[Math.ceil(values.length*.95)-1]};});}
+export function resetRelayPerformance(){timings.length=0;}
 const recordTiming=sample=>{timings.push(sample);if(timings.length>120)timings.shift();};
 export const capabilities=Object.freeze({requiresInternet:true,updates:'poll',orderedDelivery:false,maxMessageBytes:8192,readMayAdvance:false,autonomousProgress:false});
 export function createRelayTransport({endpoint,identity,fetcher=globalThis.fetch,timeoutMs=15000,id=()=>crypto.randomUUID(),now=Date.now,clock=()=>globalThis.performance?.now()??Date.now(),onTiming=recordTiming}={}) {

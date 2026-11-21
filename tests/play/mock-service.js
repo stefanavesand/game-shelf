@@ -5,8 +5,9 @@ export const roomId=main.p1.roomId;
 export const AUTH='spelhyllan-online-auth-v1',STATE='game-shelf-catan-online-v1';
 const endpoint='https://stefan-game-shelf.lovable.app/api/public/catan';
 export const auth=principal=>({access_token:principal,refresh_token:`refresh-${principal}`,expires_at:9999999999,user:{id:principal,is_anonymous:false,app_metadata:{provider:'google'},user_metadata:{full_name:principal==='alice'?'Alice':'Bob'}}});
-export function service({phase='setup',loseReply=false,futureReply=false,loseCreateReply=false,expectedAction=null}={}){
+export function service({phase='setup',loseReply=false,futureReply=false,loseCreateReply=false,expectedAction=null,initialResources=null}={}){
   let host=phase==='main'?'alice':'',guest=phase==='main'?'bob':'',started=phase==='main',index=0,current=phase==='main'?structuredClone(main):null,dropped=false,accepted=0;
+  if(initialResources&&current){const original=current.p1.view.state.players.players.find(p=>p.id==='p1').resources;for(const packet of Object.values(current)){const actor=packet.view.state.players.players.find(p=>p.id==='p1');for(const [resource,amount] of Object.entries(initialResources)){const delta=amount-original[resource];actor.resourceCount+=delta;packet.view.state.game.bank[resource]-=delta;}if(actor.resources)actor.resources={...actor.resources,...initialResources};}}
   let solo=false,createDropped=false;const creates=[],createReceipts=new Map();
   const receipts=new Map(),commands=[];let authCalls=0;
   const packet=seat=>started?structuredClone(current[seat]):{ok:true,apiVersion:1,roomId,status:'waiting',you:seat,revision:0,members:[{id:'p1',name:'Alice',kind:'human',level:'standard'},{id:'p3',name:'Bot',kind:'bot',level:'standard'}],view:null};

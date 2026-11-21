@@ -42,3 +42,10 @@ test('auto-decline stops on failed delivery, stale repeats, other recipients and
  calls=0;await resolveUnavailableOffers(()=>view(1,[],offer),async()=>{calls++;});assert.equal(calls,0);
  let id=0;await resolveUnavailableOffers(()=>view(id,[],{...offer,id:String(id++),to:'a'}),async()=>true,3);assert.equal(id,3);
 });
+
+test('bank quantities scale one legal choice atomically and honor both hand and bank limits',async()=>{
+ const {multipleBankTrade,bankTradeLimit}=await import('../../play/trade.js');const v=view(10);v.state.game={bank:{ore:2}};v.state.players.players[0].resources={brick:0,lumber:12,grain:0,wool:0,ore:0};v.choices=[{type:'BANK_TRADE',give:{resource:'lumber',amount:4},receive:{resource:'ore',amount:1}}];
+ assert.equal(bankTradeLimit(v,v.choices[0]),2);assert.deepEqual(multipleBankTrade(v,'lumber','ore',2),{type:'BANK_TRADE',give:{resource:'lumber',amount:8},receive:{resource:'ore',amount:2}});
+ assert.equal(multipleBankTrade(v,'lumber','ore',3),null);assert.equal(multipleBankTrade(v,'lumber','ore',1.5),null);assert.equal(multipleBankTrade(v,'lumber','ore',1,2),null);assert.equal(multipleBankTrade(v,'ore','lumber',1),null);
+ v.choices[0].give.amount=2;v.state.game.bank.ore=9;assert.equal(multipleBankTrade(v,'lumber','ore',3).give.amount,6);v.state.players.players[0].resources.lumber=3;assert.equal(multipleBankTrade(v,'lumber','ore',2),null);
+});

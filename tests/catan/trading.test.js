@@ -108,3 +108,9 @@ test('port owners retain ordinary 4:1 and owned generic 3:1 choices, with finite
  for(const action of choices){const next=act(g,'a',action);assert.equal(player(next,'a').resources.brick,4-action.give.amount);assert.equal(player(next,'a').resources.ore,1);conserved(next);}
  const withoutGeneric=structuredClone(g);withoutGeneric.snapshot.state.board.buildings.pop();assert.throws(()=>act(withoutGeneric,'a',{type:'BANK_TRADE',give:{resource:'brick',amount:3},receive:{resource:'ore',amount:1}}));
 });
+
+test('a scaled bank exchange is atomic, conserves cards and increments the trade count once',()=>{
+ let g=fixture(true,'standard');fund(g,'a','lumber',8);fund(g,'a','ore',0);const revision=g.snapshot.revision,trades=player(g,'a').totalTradesMade;
+ g=act(g,'a',{type:'BANK_TRADE',give:{resource:'lumber',amount:8},receive:{resource:'ore',amount:2}});assert.equal(player(g,'a').resources.lumber,0);assert.equal(player(g,'a').resources.ore,2);assert.equal(g.snapshot.revision,revision+1);assert.equal(player(g,'a').totalTradesMade,trades+1);conserved(g);
+ const short=fixture(true,'standard');fund(short,'a','lumber',8);fund(short,'bot:1','ore',18);const original=structuredClone(short);assert.throws(()=>act(short,'a',{type:'BANK_TRADE',give:{resource:'lumber',amount:8},receive:{resource:'ore',amount:2}}));assert.deepEqual(short,original);
+});
