@@ -191,7 +191,9 @@ test('automatic updates wait while a dialog is open, then activate after it clos
 });
 
 test('a compatible breaking release also installs automatically without confirmation',async({browser})=>{
- const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:60000});}finally{await cleanup(f);}
+ // An explicit update can join the initial check. Allow the next 60-second
+ // foreground discovery tick while still requiring activation without a click.
+ const f=await open(browser,{automatic:true,breaking:true});try{f.server.upgrade(false);await update(f.page);await expect(async()=>{expect((await status(f.page)).version).toBe(f.server.nextVersion);}).toPass({timeout:90000});}finally{await cleanup(f);}
 });
 
 test('foreground discovery retries a focus request received during an in-flight check',async({browser})=>{
