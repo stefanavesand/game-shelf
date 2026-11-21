@@ -27,3 +27,7 @@ The 2.5-second interval implies about 24 idle reads/minute per foreground princi
 Pure tests cover turn-sound deduplication/muting/hidden state, monotonic dice frames, recipient-only theft details, batched relay catch-up/reload, equal replica hashes and absence of private observations on the wire. Relay tests cover metadata reuse, authenticated late-membership refresh, unchanged fixed seats and diagnostic privacy. Browser scenarios cover real online channel/game IDs with offer close/reopen on both seats, sound preference persistence and linear dice timing. CI executes the browser suite; local sandbox cannot launch its server/browser. Physical installed-iOS sound behavior and perceived online latency need another playtest. Existing rules/compatibility IDs remain unchanged.
 
 The harbor browser regression waits for the committed revision and exact resource hand after both bank exchanges. Closing the trade sheet begins asynchronous submission; an immediate storage read can precede the command. PR checks passed, but that one-shot read raced in the subsequent release run and correctly blocked deployment. The regression now checks eventual durable completion rather than treating dialog dismissal as an acknowledgement.
+
+## Owner-selected sound and motion — 0.15.6
+
+The later Sites playtest replaces the initial sound recipes and dice timing above with the [selected feedback profiles](SELECTED_FEEDBACK.md), including 1100 ms / 510° dice.

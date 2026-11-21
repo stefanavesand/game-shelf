@@ -1,3 +1,4 @@
+import {reduceFeedback} from './feedback-profile.js';
 import {describeMove} from './move-events.js';
 import {motionInterval} from './motion-settings.js';
 // Visual counters only: authoritative state and durable commands never wait here.
@@ -12,7 +13,7 @@ export function createCountPresentation({now=Date.now,reduced=()=>globalThis.mat
    if(!enabled||!packet?.view){this.reset();return;}
    latest=packet;if(previous?.roomId===packet.roomId&&previous?.you===packet.you&&previous.revision===packet.revision){if(due&&!external&&now()>=due)settle();return;}
    const event=describeMove(previous,packet),old=displayed;previous=packet;
-   clear();if(!old||!event||reduced()||counters(old)===counters(packet.view)){displayed=packet.view;return;}
+   clear();if(!old||!event||reduceFeedback(event.rolled?'dice':'cards',reduced())||counters(old)===counters(packet.view)){displayed=packet.view;return;}
    const oldPlayers=new Map(old.state.players.players.map(p=>[p.id,p]));
    displayed={...packet.view,state:{...packet.view.state,players:{...packet.view.state.players,players:packet.view.state.players.players.map(p=>{const before=oldPlayers.get(p.id);return before?{...p,resources:before.resources,resourceCount:before.resourceCount,developmentCards:before.developmentCards,devCardCount:before.devCardCount}:p;})}}};
    due=now()+Math.max(motionInterval(event.action),event.resources.length?1100:0,event.scores.length?1350:0);

@@ -185,3 +185,7 @@ Original public-ownership presentation and metadata-only IndexedDB recovery addi
 ## Live multiplayer feedback — 2026-11-20
 
 Original procedural Web Audio synthesis, recipient-local theft journal, presentation fixes and transport diagnostics were authored for this repository. No external sound asset, dependency or algorithm was imported. Existing rule/bot/art attribution remains unchanged. Backend source was inspected for the [performance proposal](docs/ONLINE_FEEDBACK.md), not copied into this runtime.
+
+## Selected Sites feedback — 2026-11-21
+
+The owner-selected original sound recipes and smooth envelopes are adapted from the independently hosted Game Shelf feedback studio. No external samples, MIDI library or third-party synthesis code are imported. Only selected presentation code enters the PWA. See [parameters and verification](docs/SELECTED_FEEDBACK.md).

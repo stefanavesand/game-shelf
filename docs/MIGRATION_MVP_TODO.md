@@ -284,3 +284,5 @@ STATS-01: result statistics include recorded dice totals versus theoretical freq
 BOT-AI-03: setup roads now search actual public topology toward distance-rule-valid future settlements, bounded by existing route/node parameters. Opponent buildings and roads block traversal. A regression distinguishes an engine-legal enclosed road from a useful expansion route. The screenshots alone do not prove the route was already blocked when its first road was placed; later settlements can close it. See [details](RESULT_STATISTICS.md).
 
 UX-09 / TRADE-FEEDBACK-01 / QUALITY-1 (2026-11-20): sound cues, monotonic 1.5-second dice, online channel/game-ID fixes, private recipient theft observations and fewer relay metadata reads implemented. Server-side latency work and physical online sound/performance acceptance remain open. See [live feedback and backend proposal](ONLINE_FEEDBACK.md).
+
+UX-09 — 2026-11-21: adopt owner-exported Sites feedback profiles in 0.15.6, including soft cards, felt placements/dice, pluck turn cue and 1100 ms / 510° dice. The dice-only reduced-motion override is explicit. See [selected feedback](SELECTED_FEEDBACK.md).

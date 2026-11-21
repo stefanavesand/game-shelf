@@ -1,5 +1,6 @@
-// Shared presentation defaults. The lab passes overrides; normal games use these values.
-export const MOTION_DEFAULTS=Object.freeze({diceMs:1500,diceRotation:140,diceLift:0,pieceMs:1450,pieceLift:9,flightMs:2200,holdMs:0,gapMs:300});
+import {FEEDBACK_PROFILE} from './feedback-profile.js';
+// Selected presentation timings; gameplay and random outcomes are independent.
+export const MOTION_DEFAULTS=Object.freeze({diceMs:FEEDBACK_PROFILE.dice.duration,diceRotation:FEEDBACK_PROFILE.dice.rotation,diceLift:FEEDBACK_PROFILE.dice.lift,pieceMs:FEEDBACK_PROFILE.piece.duration,pieceLift:FEEDBACK_PROFILE.piece.lift,flightMs:FEEDBACK_PROFILE.cards.duration,holdMs:0,gapMs:300});
 const limits={diceMs:[200,6000],diceRotation:[0,1080],diceLift:[0,50],pieceMs:[150,4000],pieceLift:[0,60],flightMs:[200,4000],holdMs:[0,6000],gapMs:[300,8000]};
 export function motionSettings(input={}){return Object.fromEntries(Object.entries(MOTION_DEFAULTS).map(([key,fallback])=>{const value=Number(input[key]??fallback),[min,max]=limits[key];return [key,Number.isFinite(value)?Math.round(Math.max(min,Math.min(max,value))):fallback];}));}
 
