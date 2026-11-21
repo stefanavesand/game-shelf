@@ -193,3 +193,7 @@ The owner-selected original sound recipes and smooth envelopes are adapted from 
 ## Bank quantities and relay Solo — 2026-11-21
 
 Original UI quantity scaling, relay Solo orchestration and diagnostic presentation reuse existing legal bank actions and the generic relay. No engine/reducer code, external algorithm, asset or dependency is added. See [implementation](docs/BANK_QUANTITIES_AND_RELAY_SOLO.md).
+
+## Confirmed append replay — 2026-11-21
+
+Original client replay/refactoring and safety regressions reuse the existing session reducer and the inspected generic relay acknowledgement contract. No external implementation or dependency is imported. Backend source was inspected for metadata/CAS semantics; server files and database schema are unchanged. See [design](docs/RELAY_APPEND_OPTIMIZATION.md).

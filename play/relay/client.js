@@ -1,4 +1,4 @@
-import {clone,invariant,pendingRequest,validatePage,RelayError,digest} from './protocol.js';
+import {clone,invariant,pendingRequest,validatePage,RelayError,digest,canonical,validateMessage} from './protocol.js';
 import {applyMessage,beginMessage,commandMessage,configureMessage,proposalMessage,resolutionMessage} from './replica.js';
 import {validateRecord} from './store.js';
 export function createRelayClient({principalId,channelId,creatorId,members,module,store,transport,locks=globalThis.navigator?.locks,id=()=>crypto.randomUUID(),now=Date.now,maxPages=20,createEffects=()=>({}),observeRecord=null,refreshMembers=null}={}) {
@@ -15,18 +15,39 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
   };
   const save=record=>store.save(record);
   function enqueue(record,message){record.outbox.push({message:clone(message),request:null});}
+  async function replay(record,items){
+    let next=record;
+    for(const item of items){
+      if(!members.includes(item.senderId)&&refreshMembers){const updated=await refreshMembers();invariant(Array.isArray(updated)&&updated.includes(principalId)&&updated.includes(creatorId),'INVALID_MEMBERS','Invalid refreshed membership.');members=updated;}
+      const before=next,applied=await applyMessage(before,item,{module,creatorId,members});next=applied.record;
+      if(observeRecord){const observations=observeRecord(before,next);if(observations!==undefined)next.observations=observations;}
+      for(const message of applied.notifications)enqueue(next,message);
+    }
+    return next;
+  }
+  function confirmedAppend(packet,pending,record){
+    const result=packet.result,receipt=packet.receipt,request=pending.request;
+    if(receipt.channelId!==undefined)invariant(receipt.channelId===channelId,'INVALID_RECEIPT','Receipt belongs to another channel.');
+    if(receipt.op!==undefined)invariant(receipt.op==='message.append','INVALID_RECEIPT','Receipt confirms another operation.');
+    let item;
+    if(result?.channelId!==undefined)invariant(result.channelId===channelId,'INVALID_RECEIPT','Append result belongs to another channel.');
+    if(result?.message){item=validateMessage(result.message);invariant(item.sequence===receipt.sequence&&item.messageId===request.mutationId&&item.senderId===principalId&&canonical(item.message)===canonical(request.message),'INVALID_RECEIPT','Append echo does not match the original message.');}
+    else if(result&&['channelId','messageId','sequence'].every(k=>Object.hasOwn(result,k))){
+      invariant(result.channelId===channelId&&result.messageId===request.mutationId&&result.sequence===receipt.sequence,'INVALID_RECEIPT','Append result does not match its receipt.');
+      item={sequence:result.sequence,messageId:result.messageId,senderId:principalId,message:clone(request.message)};
+    }
+    // The accepted compare-and-swap proves this is the next ordered message.
+    // Opaque/older replies and non-adjacent duplicate receipts still use log replay.
+    if(!item||request.expectedSequence!==record.cursor||item.sequence!==record.cursor+1)return null;
+    invariant(canonical(pending.message)===canonical(request.message),'INVALID_SAVE','Pending message differs from its persisted request.');
+    return item;
+  }
   async function catchUp(record) {
     for(let count=0;count<maxPages;count++) {
       const {result}=await transport.request({protocolVersion:1,op:'message.list',channelId,afterSequence:record.cursor,limit:50},principalId);
       invariant(result?.channelId===channelId,'INVALID_RESPONSE','Relay page belongs to another channel.');
       const page=validatePage(result,record.cursor);
-      let next=record;
-      for(const item of page.messages) {
-        if(!members.includes(item.senderId)&&refreshMembers){const updated=await refreshMembers();invariant(Array.isArray(updated)&&updated.includes(principalId)&&updated.includes(creatorId),'INVALID_MEMBERS','Invalid refreshed membership.');members=updated;}
-        const before=next,applied=await applyMessage(before,item,{module,creatorId,members});next=applied.record;
-        if(observeRecord){const observations=observeRecord(before,next);if(observations!==undefined)next.observations=observations;}
-        for(const message of applied.notifications)enqueue(next,message);
-      }
+      const next=await replay(record,page.messages);
       // Cursor, state, incident and generated replies commit together.
       if(page.messages.length)await save(next);record=next;
       if(!page.hasMore)return record;
@@ -50,8 +71,12 @@ export function createRelayClient({principalId,channelId,creatorId,members,modul
         record.retryAt=now()+Math.max(0,error.retryAfterMs||0);await save(record);throw error;
       }
       invariant(packet.receipt?.mutationId===pending.request.mutationId&&packet.receipt?.outcome==='stored'&&Number.isSafeInteger(packet.receipt.sequence)&&packet.receipt.sequence>0,'INVALID_RECEIPT','Delivery could not be confirmed. Original intent is preserved.');
-      record.outbox.shift();record.retryAt=0;await save(record);
-      record=await catchUp(record);
+      invariant(packet.receipt.sequence===pending.request.expectedSequence+1,'INVALID_RECEIPT','Receipt sequence contradicts the accepted append.');
+      const item=confirmedAppend(packet,pending,record);
+      if(item){
+        const next=await replay(record,[item]);next.outbox.shift();next.retryAt=0;
+        await save(next);record=next; // State, cursor, observations and receipt removal commit together.
+      }else{record.outbox.shift();record.retryAt=0;await save(record);record=await catchUp(record);}
     }
     return record;
   }

@@ -3,7 +3,7 @@ import {RelayError,canonical,clone} from '../../play/relay/protocol.js';
 export function createLocks() {
   const tails=new Map();return {request(key,work){const result=(tails.get(key)??Promise.resolve()).then(work);tails.set(key,result.catch(()=>{}));return result;}};
 }
-export function fakeRelay({creator='alice',members=['alice','bob'],channelId='channel'}={}) {
+export function fakeRelay({creator='alice',members=['alice','bob'],channelId='channel',appendReply='flat'}={}) {
   const messages=[],receipts=new Map(),sent=[];let loseNext=false,readFails=false;
   function transport() {return {async request(body,principal) {
     sent.push({body:clone(body),principal});
@@ -22,7 +22,8 @@ export function fakeRelay({creator='alice',members=['alice','bob'],channelId='ch
       if(body.expectedSequence!==messages.length)throw new RelayError('sequence_conflict','Moved.');
       const item={sequence:messages.length+1,senderId:principal,messageId:body.mutationId,message:clone(body.message)};
       messages.push(item);
-      const packet={result:{message:clone(item)},receipt:{mutationId:body.mutationId,outcome:'stored',sequence:item.sequence,duplicate:false}};receipts.set(key,{hash,packet});
+      const result=appendReply==='echo'?{message:clone(item)}:appendReply==='opaque'?{}:{channelId,messageId:body.mutationId,sequence:item.sequence,receivedAt:'2026-11-03T12:00:00Z'};
+      const packet={result,receipt:{mutationId:body.mutationId,op:'message.append',channelId,outcome:'stored',sequence:item.sequence,duplicate:false}};receipts.set(key,{hash,packet});
       if(loseNext){loseNext=false;throw new RelayError('NETWORK_UNAVAILABLE','Response lost.',{retryable:true});}
       return clone(packet);
     }

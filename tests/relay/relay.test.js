@@ -243,3 +243,42 @@ test('backend Solo admission resumes the original intent after a lost response',
  const p=await make().refresh({botBudget:0});assert.equal(p.relaySolo,true);assert.equal(p.status,'playing');assert.equal(p.members.filter(m=>m.kind==='human').length,1);assert.equal(server.sent.filter(x=>x.body.op==='channel.create').length,1);
  server.offline(true);await assert.rejects(make().refresh({botBudget:0}));assert.equal((await make().inspect()).packet.roomId,p.roomId);assert.equal((await make().inspect()).packet.relaySolo,true);
 });
+
+test('confirmed flat and echoed append results avoid two reads per move; opaque replies retain replay',async()=>{
+ for(const appendReply of ['flat','echo','opaque']){
+  const server=fakeRelay({appendReply}),store=createMemoryStore(),client=createRelayClient({principalId:'alice',...server,creatorId:'alice',module:counterModule('fixture-artifact'),store,locks:createLocks(),id,now,transport:server.transport()});
+  await client.begin({start:0});const before=server.sent.length,result=await client.command({type:'ADD',amount:3});assert.equal(result.game.state.value,3);assert.equal(result.game.peerVerified.alice,1);assert.equal(result.outbox.length,0);
+  const ops=server.sent.slice(before).map(x=>x.body.op);assert.equal(ops.filter(x=>x==='message.append').length,2);assert.equal(ops.filter(x=>x==='message.list').length,appendReply==='opaque'?3:1);
+ }
+});
+
+test('a save failure after a confirmed append preserves the exact intent and retries it once',async()=>{
+ const h=harness();await h.alice.begin({start:0});let failed=false;
+ const flaky=h.client('alice',{store:{load:h.store.load,save:async r=>{if(!failed&&r.game?.revision===1){failed=true;throw new RelayError('STORAGE_FAILURE','Interrupted checkpoint');}return h.store.save(r);}}});
+ await assert.rejects(flaky.command({type:'ADD',amount:7}),e=>e.code==='STORAGE_FAILURE');const pending=await h.store.load('alice',h.server.channelId),original=structuredClone(pending.outbox[0].request);assert.equal(pending.game.revision,0);
+ const restored=await h.client('alice').sync();assert.equal(restored.game.state.value,7);assert.equal(restored.game.revision,1);assert.equal(restored.outbox.length,0);
+ const attempts=h.server.sent.filter(x=>x.body.mutationId===original.mutationId);assert.equal(attempts.length,2);assert.deepEqual(attempts[0].body,attempts[1].body);assert.equal(h.server.messages.filter(x=>x.message.type==='game.command').length,1);
+});
+
+test('contradictory append metadata never commits state or drops the durable pending request',async()=>{
+ for(const field of ['channelId','messageId','sequence']){
+  const h=harness();await h.alice.begin({start:0});const transport=h.server.transport(),bad=h.client('alice',{transport:{request:async(body,p)=>{const reply=await transport.request(body,p);if(body.message?.type==='game.command')reply.result[field]=field==='sequence'?999:'wrong';return reply;}}});
+  await assert.rejects(bad.command({type:'ADD',amount:4}),e=>e.code==='INVALID_RECEIPT');const pending=await h.store.load('alice',h.server.channelId);assert.equal(pending.game.revision,0);assert.ok(pending.outbox[0].request);const recovered=await h.alice.sync();assert.equal(recovered.game.state.value,4);assert.equal(recovered.game.revision,1);
+ }
+});
+
+test('concurrent peer verification uses CAS catch-up without skipping a message',async()=>{
+ const h=harness();await h.alice.begin({start:0});await h.bob.sync();let once=true;const transport=h.server.transport(),racing=h.client('alice',{transport:{request:async(body,p)=>{const reply=await transport.request(body,p);if(once&&body.message?.type==='game.command'){once=false;await h.bob.sync();}return reply;}}});
+ const result=await racing.command({type:'ADD',amount:2});assert.equal(result.game.state.value,2);assert.equal(result.halt,null);const peer=await h.bob.sync();assert.equal(result.game.hash,peer.game.hash);assert.equal(result.cursor<=h.server.messages.length,true);
+});
+
+test('an already-replayed duplicate receipt uses log catch-up and does not apply twice',async()=>{
+ const h=harness();await h.alice.begin({start:0});await h.alice.command({type:'ADD',amount:5});
+ const request=structuredClone(h.server.sent.find(x=>x.body.message?.type==='game.command').body),record=await h.store.load('alice',h.server.channelId),cursor=record.cursor;record.outbox.unshift({message:request.message,request});await h.store.save(record);
+ const before=h.server.sent.length,result=await h.alice.sync();assert.equal(result.game.state.value,5);assert.equal(result.game.revision,1);assert.equal(result.outbox.length,0);assert.ok(result.cursor>=cursor);assert.ok(h.server.sent.slice(before).some(x=>x.body.op==='message.list'));
+});
+
+test('an altered full-message echo preserves pending delivery until the correct receipt is replayed',async()=>{
+ const server=fakeRelay({appendReply:'echo'}),store=createMemoryStore(),module=counterModule('fixture-artifact'),locks=createLocks(),options={principalId:'alice',...server,creatorId:'alice',module,store,locks,id,now},transport=server.transport();const client=createRelayClient({...options,transport});await client.begin({start:0});
+ const bad=createRelayClient({...options,transport:{request:async(body,p)=>{const reply=await transport.request(body,p);if(body.message?.type==='game.command')reply.result.message.message.payload.command.amount=999;return reply;}}});await assert.rejects(bad.command({type:'ADD',amount:2}),e=>e.code==='INVALID_RECEIPT');assert.equal((await store.load('alice',server.channelId)).game.revision,0);assert.equal((await client.sync()).game.state.value,2);
+});
